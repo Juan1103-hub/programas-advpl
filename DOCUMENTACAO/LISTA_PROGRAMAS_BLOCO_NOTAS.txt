@@ -1,0 +1,137 @@
+LISTA DE PROGRAMAS DO WORKSPACE
+Data de geracao: 31/05/2026
+Total de arquivos listados: 61
+
+Formato: Arquivo -> O que faz
+
+[PATCH (fontes e pacote de patch)]
+01. PATCH/CADFORN.PRW
+    -> Solicitacao Cadastral de Fornecedores (ZZ4). Tela FWMBrowse com sincronizacao automatica de status: ao mudar de linha, verifica se o CNPJ ja foi cadastrado na SA2 e atualiza a legenda (BR_BRANCO=Pendente / BR_VERMELHO=Cadastrado).
+02. PATCH/custom15-05-2026-16-52-07.ptm
+    -> Pacote de patch PTM para transporte/aplicacao de customizacoes no Protheus.
+
+[Suprimentos - Fontes ativos]
+01. Suprimentos/A010TOK.PRW
+    -> PE - Validacao final antes de gravar produto (MATA010) Valida: 1. Maximo >= Minimo 2. Justificativa obrigatoria ao alterar Min/Max 3. Se Min ou Max > 0, B1_ZREPOS deve ser "S"
+02. Suprimentos/AVALCOT.PRW
+    -> Sem Protheus.doc explicito. Funcao principal: AVALCOT().
+03. Suprimentos/CADFORN.PRW
+    -> Solicitacao Cadastral de Fornecedores (ZZ4). Tela FWMBrowse com sincronizacao automatica de status: ao mudar de linha, verifica se o CNPJ ja foi cadastrado na SA2 e atualiza a legenda (BR_BRANCO=Pendente / BR_VERMELHO=Cadastrado).
+04. Suprimentos/CADSOLIC.PRW
+    -> Browse unificado de Solicitacoes Cadastrais - Produtos e Fornecedores. Utiliza mBrowse padrao do Protheus sobre uma query TOPCONN UNION ALL que combina os registros de SZ3 (Produtos) e SZ4 (Fornecedores). O botao Incluir exibe seletor de tipo; Alterar, Visualizar e Excluir roteiam para a tabela correta conforme o campo ZU_TIPO do alias. Colunas do alias ZU_SOL: ZU_TIPO - "P"=Produto / "F"=Fornecedor ZU_ID - ID da solicitacao ZU_USR - Usuario solicitante ZU_PRAZO - "S"=Urgente / "" para fornecedor ZU_DESC - Descricao (produto) ou Razao Social (fornecedor) ZU_STS - "0"=Pendente / "1"=Cadastrado / "2"=Rejeitado ZU_DTSOL - Data da solicitacao ZU_REC - R_E_C_N_O_ original (para reposicionamento)
+05. Suprimentos/CADSZ3.PRW
+    -> Solicitacao Cadastral de Produtos (SZ3). Tela padrao mBrowse com aRotina, apresentando no topo os botoes Incluir, Alterar, Visualizar e o menu "Outras Acoes" (Pesquisar, Excluir e Legenda). Para Fornecedores utilize o programa CADFORN (U_CADFORN).
+06. Suprimentos/CORCITEM.prw
+    -> Sem Protheus.doc explicito. Funcao principal: CORCITEM().
+07. Suprimentos/FALTFPED.PRW
+    -> Rotina para alteracao direta do fornecedor e/ou tipo de frete do pedido de compras (SC7), sem necessidade de aprovacao. Permite ao comprador localizar o pedido, visualizar o fornecedor atual e o tipo de frete, e substitui-los por novos valores. Fornecedor e frete sao independentes: pode alterar um sem o outro. A gravacao e feita via UPDATE direto no banco de dados.
+08. Suprimentos/FFZZ4A2.PRW
+    -> Funcao Valid do campo A2_ZZ4ID na SA2 (MATA020). Ao sair do campo Cod ZZ4 no cadastro de fornecedor, busca o registro correspondente na tabela ZZ4 e preenche automaticamente os campos do SA2: A2_NOME <- ZZ4_RAZAO (Razao Social) A2_NREDUZ <- ZZ4_RAZAO (primeiros chars conforme tamanho SA2) A2_CGC <- ZZ4_CNPJ (CNPJ) A2_TEL <- ZZ4_NUMERO (Telefone - truncado ao tamanho SA2) A2_EMAIL <- ZZ4_EMAIL (se campo existir) A2_INSEST <- ZZ4_INSEST (Inscricao Estadual - se campo existir) Bloqueios: - ZZ4 nao encontrada: erro, retorna .F. - ZZ4_STATUS = '2' (Rejeitada): bloqueia, retorna .F. - ZZ4_STATUS = '1' (ja Cadastrada): avisa, pergunta se continua
+09. Suprimentos/M020EXC.PRW
+    -> Ponto de Entrada executado durante a exclusao do fornecedor no MATA020 (Cadastro de Fornecedores / SA2). Quando um fornecedor e excluido, reverte o ZZ4 correspondente (que tinha STATUS='1') de volta para Pendente ('0'), limpando a data ZZ4_DTREJ. Isto permite que a solicitacao seja recadastrada sem o alerta "JA FOI CADASTRADA". Sempre retorna .T. nao bloqueia a exclusao.
+10. Suprimentos/MT010ALT.PRW
+    -> PE - Apos gravar alteracao do produto Atualiza data de alteracao quando modificado Min/Max
+11. Suprimentos/MT100OK.PRW
+    -> Ponto de entrada disparado na confirmacao/gravacao da Solicitacao de Compra (SC1 / MATA100), antes de MATA100 gravar os registros. Regra: em modo ALTERACAO, se houver ao menos uma linha nova no grid (item que ainda nao existe em SC1), atualiza C1_DATPRF de TODOS os itens nao deletados para dDataBase + 10 dias, garantindo prazo uniforme independentemente de o grid ter sido visualmente atualizado. Esta funcao complementa MT101OK: enquanto MT101OK atualiza o aCols quando o usuario confirma cada linha, MT100OK garante a atualizacao no momento exato do Salvar, antes do loop de gravacao do MATA100.
+12. Suprimentos/MT100TOK.PRW
+    -> Ponto de entrada para validacao do Documento de Entrada (SD1 / MATA103). Bloqueia a inclusao de itens cuja conta contabil de estoque (B1_XCTAEST) seja igual a 11401200001 e cuja TES movimente estoque (F4_ESTOQUE == 'S'), EXCETO quando o item originar de um Pedido de Compra (D1_PEDIDO preenchido). Itens de servico/TES sem estoque sao liberados porque nao geram saldo em SB2.
+13. Suprimentos/MT101OK.PRW
+    -> Ponto de entrada disparado na validacao de cada item (linha) do grid da Solicitacao de Compra (SC1 / MATA100). Regra: quando o usuario estiver em modo ALTERACAO e a linha atual for nova (ainda nao gravada no SC1), a data de necessidade C1_DATPRF de TODOS os itens do grid (novos e existentes) e ajustada para dDataBase + 10 dias. Assim toda a solicitacao passa a ter prazo uniforme contado a partir da data de edicao. Linhas marcadas como deletadas no grid sao ignoradas.
+14. Suprimentos/MT110CON.PRW
+    -> Ponto de entrada disparado antes da gravacao da Solicitacao de Compra (SC1 / MATA110), quando o usuario clica em Confirmar. Regra: ao confirmar a alteracao da SC, atualiza C1_DATPRF de TODOS os itens nao deletados para dDataBase + 10 dias. Para itens ja gravados: RecLock direto no SC1 (MATA110 nao regrava linhas que o usuario nao tocou). Para itens novos: atualiza aCols (MATA110 os grava com a data correta).
+15. Suprimentos/MT110TOK.PRW
+    -> Validacao Solicitacao de Compra. tudoOK Bloqueia itens com estoque de seguranca (B1_ESTSEG > 0) exceto para usuarios autorizados: 000047, 000080, 000077
+16. Suprimentos/MT120OK.PRW
+    -> Ponto de entrada para validacao do Pedido de Compra (SC7 / MATA120). Bloqueia a inclusao de itens cuja conta contabil de estoque (B1_XCTAEST) seja igual a 11401200001, EXCETO quando o item originar de uma Solicitacao de Compra (C7_NUMSC preenchido). Itens com essa conta inseridos diretamente no Pedido de Compra (sem solicitacao de origem) sao bloqueados. Regra adicional: propaga C7_TPFRETE da primeira linha nao deletada para todas as demais linhas nao deletadas do grid, garantindo tipo de frete uniforme em todo o pedido.
+17. Suprimentos/MT120TFR.PRW
+    -> Funcao auxiliar chamada pelo trigger SX7 de C7_PRODUTO no Pedido de Compra. Retorna o C7_TPFRETE da primeira linha do grid quando a linha atual for maior que 1, permitindo o preenchimento automatico do Tipo de Frete. Configuracao SX7 necessaria (via SIGACFG > Atualizacoes > Base de Dados > Gatilhos): Tabela : SC7 Campo : C7_PRODUTO Sequencia: (proxima disponivel, ex.: 001) Campo Destino: C7_TPFRETE Regra : U_MT120TFR() Acionar : Primario (ao sair do campo C7_PRODUTO) Resultado: ao informar o produto na linha 2 em diante, C7_TPFRETE ja vem preenchido com o valor da linha 1 automaticamente.
+18. Suprimentos/MT150GET.prw
+    -> Sem Protheus.doc explicito. Funcao principal: MT150GET().
+19. Suprimentos/MT160GRPC.prw
+    -> Gravacao de campos adicionais no pedido quando o mesmo for gerado atraves de cotacao Transfere automaticamente os campos customizados da SC8 para a SC7.
+20. Suprimentos/MT20FOPOS.PRW
+    -> Ponto de Entrada executado apos a gravacao no MATA020 (Cadastro de Fornecedores / SA2). Disparado tanto na inclusao quanto na alteracao do fornecedor. Ao gravar um fornecedor, verifica se existe alguma solicitacao cadastral (ZZ4) com o mesmo CNPJ ainda pendente (ZZ4_STATUS = '0') e a marca automaticamente como Cadastrada ('1'), gravando a data da confirmacao em ZZ4_DTREJ. Elimina a necessidade de clicar em "Atualizar" no CADFORN.
+21. Suprimentos/MTA020.PRW
+    -> PE de inicializacao do MATA020 (Cadastro de Fornecedores SA2). Garante que a tabela ZZ4 (Solicitacoes Cadastrais) esteja aberta como alias antes do formulario de inclusao/alteracao ativar, para que o FWLookup do campo A2_ZSOLID (F3) consiga localizar o alias.
+22. Suprimentos/MTA094RO.PRW
+    -> Sem Protheus.doc explicito. Funcao principal: MTA094RO().
+23. Suprimentos/MTA105OK.PRW
+    -> Sem Protheus.doc explicito. Funcao principal: MTA105OK().
+24. Suprimentos/MTA110OK.PRW
+    -> Ponto de entrada para validar preenchimento obrigatorio do campo C1_EC05DB Natureza de Gastos na Solicitacao de Compra
+25. Suprimentos/MTA131C8.PRW
+    -> Sem Protheus.doc explicito. Funcao principal: MTA131C8().
+26. Suprimentos/RLCOMPRAS.PRW
+    -> Relatorio de Valor Unitario de Compras por Produto Exibe o valor unitario da ultima compra de cada mes do periodo, com o saldo atual e custo medio (SB2) no final. Colunas dinamicas por mes/ano conforme periodo informado. Suporta periodos que cruzam anos (ex: Out/2025 a Fev/2026).
+27. Suprimentos/TIDEV.PRW
+    -> Ferramentas uteis ao desenvolvimento.
+28. Suprimentos/VOGSB101.prw
+    -> Sem Protheus.doc explicito. Funcao principal: VOGSB101().
+29. Suprimentos/VORATF01.prw
+    -> Modulo SIGACOM - Compras
+30. Suprimentos/VOREST02.PRW
+    -> Modulo SIGAEST - Relatorio de Reposicao de Estoque
+31. Suprimentos/ZADTASK.prw
+    -> Cadastro de Solicitacoes de Tarefas - Sem Dicionario
+32. Suprimentos/ZALTZZ4SA2.PRW
+    -> Adiciona fisicamente a coluna A2_ZZ4ID na tabela SA2 do banco de dados. Usa TCSQLExec para executar o ALTER TABLE sem necessidade de acesso direto ao SSMS. Deve ser executado UMA UNICA VEZ apos rodar ZCRIAZZ4SA2. Verificacao automatica: - Descobre o nome real da tabela SA2 via RetSQLName - Verifica se a coluna ja existe antes de tentar criar - Exibe o resultado da operacao
+33. Suprimentos/ZANALBX.PRW
+    -> Analise de Baixas ao Armazem 02 - Filial 0102 Relatorio gerencial de movimentacao de saida do armazem 02, com filtro por almoxarifes especificos e periodo selecionado.
+34. Suprimentos/ZAVALNEG.PRW
+    -> Tela de avaliacao de negociacao de compras para supervisores. Permite analisar precos, descontos e identificar piora nos precos de itens comprados em um periodo.
+35. Suprimentos/ZCOMPRAS.PRW
+    -> Consulta de compras por periodo com analise de desconto vs meta (3%). Permite ao usuario visualizar seus pedidos de compra (SC7) em um periodo, calcular o percentual de desconto obtido e comparar com a meta de 3%.
+36. Suprimentos/ZCONSRE5.prw
+    -> Sem Protheus.doc explicito. Funcao principal: ZCONSRE5().
+37. Suprimentos/ZCONSZZ4.PRW
+    -> Registra a consulta ZZ4 no SXB seguindo o padrao SA1 (funcionando). Estrutura correta baseada na analise do SXB do SA1: Tipo 1: XB_DESCRI="DB" (instrui FWLookup a abrir a tabela via DbUseArea - SEM isso da "Alias does not exist") XB_CONTEM="ZZ4" (alias da tabela) Tipo 2: XB_CONTEM="" (vazio! campos ficam no Tipo 4) XB_DESCRI = titulo da coluna Tipo 4: XB_CONTEM = campo (mapeamento real campo-coluna por ordem) Tipo 5: XB_CONTEM = "ZZ4->ZZ4_ID" (campo de RETORNO) Tipo 1 usa XB_COLUNA="PROG" chamando U_ZZ4PEND() que abre ZZ4 filtrada (apenas STATUS='0' - pendentes). Fornecedores ja cadastrados (STATUS='1') nao aparecem na Consulta Padrao. Executar UMA VEZ como admin. Reiniciar o Protheus depois.
+38. Suprimentos/ZCRIASX3.PRW
+    -> Sem Protheus.doc explicito. Funcao principal: ZCRIASX3().
+39. Suprimentos/ZCRIAZZ4SA2.PRW
+    -> Registra o campo customizado A2_ZZ4ID na tabela SA2 (SX3). Deve ser executado UMA UNICA VEZ pelo administrador. Apos executar, rodar o ALTER TABLE abaixo no banco de dados e reiniciar o Protheus: ALTER TABLE SA2010 ADD A2_ZZ4ID VARCHAR(6) DEFAULT ' ' O campo A2_ZZ4ID armazena o codigo da Solicitacao Cadastral (ZZ4) vinculada ao fornecedor. Ao sair do campo no MATA020, a funcao U_FFZZ4A2() preenche automaticamente os campos do SA2 com os dados informados na solicitacao ZZ4. Apos o SA2 ser salvo, o PE MT020INC atualiza ZZ4_STATUS para '1' (Cadastrado), exibindo a linha em VERMELHO no browse CADFORN.
+40. Suprimentos/ZCTAEST.PRW
+    -> Funcao para atualizar em massa a Conta Contabil de Estoque (B1_XCTAEST) a partir de arquivo CSV
+41. Suprimentos/ZFIXMODSA2.PRW
+    -> Corrige o X3_MODULO do campo A2_ZZ4ID na SA2 (SX3). Copia o valor de X3_MODULO do campo A2_NOME (campo padrao SA2) para garantir que o campo A2_ZZ4ID fique disponivel nos mesmos modulos que os demais campos do fornecedor. Executar quando o campo nao aparecer no MATA020 ou quando as caixas de modulo no configurador nao puderem ser marcadas.
+42. Suprimentos/ZFIXSX3SA2.PRW
+    -> Corrige flags do campo A2_ZZ4ID no SX3 via UPDATE SQL direto. Copia X3_USADO, X3_MODULO (e demais flags de visibilidade) do campo A2_COD para o A2_ZZ4ID, garantindo que o campo apareca no formulario MATA020.
+43. Suprimentos/ZLEADTIME.PRW
+    -> Lead Time dos Compradores - Analise de Tempo de Atendimento Calcula e exibe: - Dias entre a data da Solicitacao de Compra (SC1) e a geracao do Pedido de Compra (SC7) - Dias entre a Aprovacao do Pedido de Compra e a entrada da Pre-Nota (SD1) Agrupa por comprador com media de atendimento.
+44. Suprimentos/ZLOGCOL.prw
+    -> Abre tela simplificada para atualizar dados cadastrais do fornecedor Atualiza diretamente na tabela SA2 sem abrir tela padrao
+45. Suprimentos/ZMM01.PRW
+    -> Habilita/desabilita checkboxes conforme divergencia
+46. Suprimentos/ZMMA01.PRW
+    -> Analise de Recorrencia de Compras x Minimo/Maximo Identifica produtos com recorrencia de compras que nao estao no controle de estoque
+47. Suprimentos/ZMMA02.prw
+    -> Controle de Compras Diretas que Passam pelo Almoxarifado Identifica recorrencia, tempo de permanencia e taxa de baixa de materiais comprados que atualizam estoque mas nao sao para o CC 5010206
+48. Suprimentos/ZSLDEST.PRW
+    -> Kardex Diario do Almoxarifado Exibe a movimentacao consolidada para itens com saida no periodo com conta contabil (B1_XCTAEST) informada (padrao 11401200001). Mostra valores de abertura, entradas, baixas e fechamento do almoxarifado. Reconstroi o saldo diario a partir do SB2 (saldo atual) considerando SD1, SD2 e SD3. Exibe no rodape o resultado do razao esperado para os itens filtrados.
+
+[Suprimentos - Arquivos movidos/arquivados]
+01. Suprimentos/_arquivos-movidos-da-patch/.vscode/.advpl/_binary_class.prw
+    -> Fonte tecnico auxiliar gerado pela IDE TDS/ADVPL (classe binaria de apoio, sem regra de negocio).
+02. Suprimentos/_arquivos-movidos-da-patch/.vscode/.advpl/_binary_functions.prw
+    -> Fonte tecnico auxiliar gerado pela IDE TDS/ADVPL (funcoes binarias de apoio, sem regra de negocio).
+03. Suprimentos/_arquivos-movidos-da-patch/PATCH-20260531-092124/.vscode/.advpl/_binary_class.prw
+    -> Fonte tecnico auxiliar gerado pela IDE TDS/ADVPL (classe binaria de apoio, sem regra de negocio).
+04. Suprimentos/_arquivos-movidos-da-patch/PATCH-20260531-092124/.vscode/.advpl/_binary_functions.prw
+    -> Fonte tecnico auxiliar gerado pela IDE TDS/ADVPL (funcoes binarias de apoio, sem regra de negocio).
+05. Suprimentos/_arquivos-movidos-da-patch/vortice-smart-fill/app.js
+    -> Logica principal do Vortice Smart Fill: leitura de planilhas, mapeamento de campos e geracao de saida.
+06. Suprimentos/_arquivos-movidos-da-patch/vortice-smart-fill/index.html
+    -> Interface web da ferramenta Vortice Smart Fill para carga e conciliacao de planilhas.
+07. Suprimentos/_arquivos-movidos-da-patch/vortice-smart-fill/styles.css
+    -> Folha de estilos da interface web Vortice Smart Fill.
+08. Suprimentos/_arquivos-movidos-da-patch/vortice-smart-fill/vendor/exceljs.min.js
+    -> Biblioteca externa minificada ExcelJS para manter formatacao de planilhas XLSX.
+09. Suprimentos/_arquivos-movidos-da-patch/vortice-smart-fill/vendor/xlsx.full.min.js
+    -> Biblioteca externa minificada SheetJS (XLSX) para leitura/manipulacao de planilhas.
+
+[Suprimentos - Auxiliares de IDE/compilacao]
+01. Suprimentos/.vscode/.advpl/_binary_class.prw
+    -> Fonte tecnico auxiliar gerado pela IDE TDS/ADVPL (classe binaria de apoio, sem regra de negocio).
+02. Suprimentos/.vscode/.advpl/_binary_functions.prw
+    -> Fonte tecnico auxiliar gerado pela IDE TDS/ADVPL (funcoes binarias de apoio, sem regra de negocio).
+
+

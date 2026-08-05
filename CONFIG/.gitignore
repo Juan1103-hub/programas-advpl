@@ -1,0 +1,16 @@
+# Proteger arquivos de credenciais
+.env
+.env.local
+
+# Node
+node_modules/
+
+# OpenCode
+.opencode/cache/
+
+# TDS - Artefatos de compilacao (gerados automaticamente, NAO versionar)
+*.ppx_prw
+*.ppx
+*.tmp
+~$*
+

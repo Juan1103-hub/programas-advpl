@@ -1,0 +1,37 @@
+{
+    "totvsLanguageServer.welcomePage": false,
+    "totvsLanguageServer.workspaceServerConfig": true,
+    "totvsLanguageServer.editor.linter.includes": "C:\\totvs\\includes",
+    "totvsLanguageServer.folder.includes": [
+        "C:/totvs/includes"
+    ],
+
+    // Bracket pair colorization (destaca pares de parenteses/chaves)
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": "active",
+
+    // Minimap desligado (poupa espaco em arquivos PRW grandes)
+    "editor.minimap.enabled": false,
+
+    // Sticky scroll (mostra Function/While/For no topo ao rolar)
+    "editor.stickyScroll.enabled": true,
+
+    // Word wrap para queries SQL longas
+    "editor.wordWrap": "off",
+
+    // Trim whitespace automatico ao salvar
+    "files.encoding": "windows1252",
+    "files.autoGuessEncoding": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+
+    // Associar .prw e .PRW ao AdvPL
+    "files.associations": {
+        "*.prw": "advpl",
+        "*.PRW": "advpl",
+        "*.prx": "advpl",
+        "*.tlpp": "advpl"
+    },
+    "extensions.ignoreRecommendations": false,
+    "github.copilot.chat.codeGeneration.useInstructionFiles": true
+}

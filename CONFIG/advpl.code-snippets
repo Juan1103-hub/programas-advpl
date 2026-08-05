@@ -1,0 +1,273 @@
+{
+    "User Function completa": {
+        "prefix": "uf",
+        "body": [
+            "#INCLUDE \"PROTHEUS.CH\"",
+            "#INCLUDE \"TOPCONN.CH\"",
+            "",
+            "/*/{Protheus.doc} ${1:NOMEFUNC}",
+            "${2:Descricao do programa}",
+            "@type User Function",
+            "@version 12.1.33",
+            "@author ${3:Autor}",
+            "@since ${CURRENT_DATE}/${CURRENT_MONTH}/${CURRENT_YEAR}",
+            "/*/",
+            "User Function ${1:NOMEFUNC}()",
+            "    Local aArea := GetArea()",
+            "    $0",
+            "    RestArea(aArea)",
+            "Return"
+        ],
+        "description": "User Function completa com GetArea/RestArea e Protheus.doc"
+    },
+    "Static Function": {
+        "prefix": "sf",
+        "body": [
+            "/*/{Protheus.doc} ${1:PROG_Nome}",
+            "${2:Descricao}",
+            "@type Static Function",
+            "/*/",
+            "Static Function ${1:PROG_Nome}(${3:parametros})",
+            "    $0",
+            "Return"
+        ],
+        "description": "Static Function com documentacao Protheus.doc"
+    },
+    "Consulta SQL Completa": {
+        "prefix": "sql",
+        "body": [
+            "Local cQuery := \"\"",
+            "Local cAlias := GetNextAlias()",
+            "",
+            "cQuery := \" SELECT \"",
+            "cQuery += \"   ${1:T1.CAMPO1}, \"",
+            "cQuery += \"   ISNULL(${2:T2.CAMPO2}, '') AS ${3:CAMPO2} \"",
+            "cQuery += \" FROM \" + RetSqlName(\"${4:SXX}\") + \" T1 \"",
+            "cQuery += \" LEFT JOIN \" + RetSqlName(\"${5:SYY}\") + \" T2 \"",
+            "cQuery += \"   ON T2.D_E_L_E_T_ = ' ' \"",
+            "cQuery += \"   AND T2.${6:Y2}_FILIAL = '\" + xFilial(\"${5:SYY}\") + \"' \"",
+            "cQuery += \"   AND T2.${7:Y2_COD} = T1.${8:X1_COD} \"",
+            "cQuery += \" WHERE T1.D_E_L_E_T_ = ' ' \"",
+            "cQuery += \"   AND T1.${9:X1}_FILIAL = '\" + xFilial(\"${4:SXX}\") + \"' \"",
+            "cQuery += \"   ${0:// filtros adicionais} \"",
+            "cQuery += \" ORDER BY T1.${9:X1}_${10:DATA} DESC \"",
+            "cQuery := ChangeQuery(cQuery)",
+            "",
+            "If Select(cAlias) > 0",
+            "    (cAlias)->(DbCloseArea())",
+            "EndIf",
+            "DbUseArea(.T., \"TOPCONN\", TcGenQry(,, cQuery), cAlias, .F., .T.)",
+            "",
+            "(cAlias)->(DbGoTop())",
+            "While !(cAlias)->(EoF())",
+            "    // processar",
+            "    (cAlias)->(DbSkip())",
+            "End",
+            "(cAlias)->(DbCloseArea())"
+        ],
+        "description": "Consulta SQL completa com TOPCONN, LEFT JOIN e loop"
+    },
+    "Dialog Padrao": {
+        "prefix": "dlg",
+        "body": [
+            "Local oDlg",
+            "Local oFont, oFontTit, oFontInd, oFontVal",
+            "Local oBtnFechar",
+            "",
+            "oFont    := TFont():New(\"Arial\",, -11,, .F.)",
+            "oFontTit := TFont():New(\"Arial\",, -13, .T., .F.)",
+            "oFontInd := TFont():New(\"Arial\",, -12, .T., .F.)",
+            "oFontVal := TFont():New(\"Arial\",, -12,, .F.)",
+            "",
+            "DEFINE MSDIALOG oDlg TITLE \"${1:Titulo}\" FROM 0,0 TO ${2:650},${3:1400} PIXEL STYLE DS_MODALFRAME",
+            "",
+            "// Indicadores",
+            "TSay():New(005, 010, {|| \"${4:Secao}\"}, oDlg, , oFontTit, , , , .T., CLR_HBLUE, , 300, 14)",
+            "@ 017, 005 TO 055, 695 OF oDlg PIXEL",
+            "",
+            "$0",
+            "",
+            "@ ${5:288}, 600 BUTTON oBtnFechar PROMPT \"Fechar\" SIZE 085, 015 OF oDlg PIXEL ;",
+            "    ACTION oDlg:End()",
+            "",
+            "ACTIVATE MSDIALOG oDlg CENTERED",
+            "",
+            "FreeObj(oFont)",
+            "FreeObj(oFontTit)",
+            "FreeObj(oFontInd)",
+            "FreeObj(oFontVal)"
+        ],
+        "description": "Dialog padrao com indicadores, fontes e botao fechar"
+    },
+    "ListBox Grid": {
+        "prefix": "grid",
+        "body": [
+            "@ ${1:070}, ${2:005} LISTBOX ${3:oList} FIELDS HEADER ;",
+            "    \"${4:Coluna1}\", ;",
+            "    \"${5:Coluna2}\", ;",
+            "    \"${6:Coluna3}\" ;",
+            "    SIZE ${7:690}, ${8:115} OF oDlg PIXEL",
+            "",
+            "If Len(${9:aDados}) > 0",
+            "    ${3:oList}:SetArray(${9:aDados})",
+            "    ${3:oList}:bLine := {|| {;",
+            "        AllTrim(${9:aDados}[${3:oList}:nAt][1]), ;",
+            "        Transform(${9:aDados}[${3:oList}:nAt][2], \"@E 999,999.99\"), ;",
+            "        cValToChar(${9:aDados}[${3:oList}:nAt][3])}}",
+            "    ${3:oList}:aColSizes := {${10:200, 100, 80}}",
+            "EndIf"
+        ],
+        "description": "ListBox grid com SetArray e bLine"
+    },
+    "ParamBox": {
+        "prefix": "param",
+        "body": [
+            "Local aPar := {}",
+            "Local aRet := {}",
+            "",
+            "aAdd(aPar, {1, \"Data Inicial\", ${1:dDtDe},  \"\", \"\", \"\", \"\", 60, .T.})",
+            "aAdd(aPar, {1, \"Data Final\",   ${2:dDtAte}, \"\", \"\", \"\", \"\", 60, .T.})",
+            "",
+            "If !ParamBox(aPar, \"${3:Titulo}\", @aRet)",
+            "    RestArea(aArea)",
+            "    Return",
+            "EndIf",
+            "",
+            "${1:dDtDe}  := aRet[1]",
+            "${2:dDtAte} := aRet[2]"
+        ],
+        "description": "ParamBox com datas e validacao"
+    },
+    "Excel FWMSEXCEL": {
+        "prefix": "excel",
+        "body": [
+            "Local oExcel",
+            "Local cArquivo   := \"${1:Relatorio}_\" + DtoS(Date()) + \"_\" + StrTran(Time(),\":\",\"\") + \".xml\"",
+            "Local cWorkSheet := \"${2:Dados}\"",
+            "",
+            "If Len(${3:aDados}) == 0",
+            "    MsgAlert(\"Nao ha dados para exportar!\", \"Atencao\")",
+            "    Return",
+            "EndIf",
+            "",
+            "oExcel := FWMSEXCEL():New()",
+            "oExcel:AddworkSheet(cWorkSheet)",
+            "oExcel:AddTable(cWorkSheet, \"Tabela1\")",
+            "",
+            "// Tipos: 1=Texto, 2=Numero, 4=Data",
+            "oExcel:AddColumn(cWorkSheet, \"Tabela1\", \"${4:Coluna1}\", 1, 1)",
+            "oExcel:AddColumn(cWorkSheet, \"Tabela1\", \"${5:Coluna2}\", 1, 2)",
+            "$0",
+            "",
+            "For nI := 1 To Len(${3:aDados})",
+            "    oExcel:AddRow(cWorkSheet, \"Tabela1\", {;",
+            "        ${3:aDados}[nI][1],;",
+            "        ${3:aDados}[nI][2]})",
+            "Next nI",
+            "",
+            "oExcel:Activate()",
+            "oExcel:GetXMLFile(cArquivo)",
+            "MsgInfo(\"Planilha gerada: \" + cArquivo, \"Exportacao Excel\")"
+        ],
+        "description": "Exportacao Excel com FWMSEXCEL completa"
+    },
+    "TReport": {
+        "prefix": "report",
+        "body": [
+            "Local oReport",
+            "Local oSection",
+            "",
+            "oReport := TReport():New(\"${1:NOME}\", ;",
+            "    \"${2:Titulo do Relatorio}\", \"\", ;",
+            "    {|oReport| ${3:PROG_Imp}(oReport)}, ;",
+            "    \"${4:Descricao}\")",
+            "",
+            "oReport:SetLandscape(.T.)",
+            "oReport:SetTotalInLine(.F.)",
+            "",
+            "oSection := TRSection():New(oReport, \"${5:Secao}\", {})",
+            "",
+            "TRCell():New(oSection, \"${6:COL1}\", \"\", \"${7:Coluna 1}\", \"@!\", 15)",
+            "TRCell():New(oSection, \"${8:COL2}\", \"\", \"${9:Coluna 2}\", \"@E 999,999.99\", 12)",
+            "$0",
+            "",
+            "oReport:PrintDialog()"
+        ],
+        "description": "TReport completo com Section e Cells"
+    },
+    "RecLock Atualizar": {
+        "prefix": "reclock",
+        "body": [
+            "DbSelectArea(\"${1:SXX}\")",
+            "DbSetOrder(1)",
+            "If MsSeek(xFilial(\"${1:SXX}\") + ${2:cChave})",
+            "    RecLock(\"${1:SXX}\", .F.)",
+            "    ${1:SXX}->${3:CAMPO} := ${4:cValor}",
+            "    MsUnlock()",
+            "EndIf"
+        ],
+        "description": "RecLock para atualizar registro existente"
+    },
+    "Point of Entry": {
+        "prefix": "pe",
+        "body": [
+            "#INCLUDE \"PROTHEUS.CH\"",
+            "",
+            "/*/{Protheus.doc} ${1:MT000XXX}",
+            "${2:Point of Entry - Descricao}",
+            "@type User Function",
+            "@version 12.1.33",
+            "@author ${3:Autor}",
+            "@since ${CURRENT_DATE}/${CURRENT_MONTH}/${CURRENT_YEAR}",
+            "/*/",
+            "User Function ${1:MT000XXX}()",
+            "    Local lRet := .T.",
+            "    $0",
+            "Return lRet"
+        ],
+        "description": "Point of Entry padrao com lRet"
+    },
+    "Processa com Barra": {
+        "prefix": "proc",
+        "body": [
+            "Processa({|| ${1:PROG_Exec}(${2:param1})}, ;",
+            "    \"Processando...\", \"${3:Descricao da operacao}...\")"
+        ],
+        "description": "Processa com barra de progresso"
+    },
+    "aScan protegido": {
+        "prefix": "ascan",
+        "body": [
+            "nPos := aScan(${1:aLista}, {|x| x[${2:1}] == ${3:cChave}})",
+            "If nPos > 0",
+            "    $0",
+            "EndIf"
+        ],
+        "description": "aScan com validacao de posicao"
+    },
+    "Filtro de Grid": {
+        "prefix": "filtro",
+        "body": [
+            "Local cBusca := AllTrim(Upper(${1:cFiltro}))",
+            "Local nI",
+            "",
+            "${2:aDados} := {}",
+            "",
+            "If Empty(cBusca)",
+            "    ${2:aDados} := aClone(${3:aDadosOrig})",
+            "Else",
+            "    For nI := 1 To Len(${3:aDadosOrig})",
+            "        If (cBusca \\$ Upper(${3:aDadosOrig}[nI][${4:1}])) .Or. ;",
+            "           (cBusca \\$ Upper(${3:aDadosOrig}[nI][${5:2}]))",
+            "            aAdd(${2:aDados}, ${3:aDadosOrig}[nI])",
+            "        EndIf",
+            "    Next nI",
+            "    If Len(${2:aDados}) == 0",
+            "        ${2:aDados} := aClone(${3:aDadosOrig})",
+            "        MsgInfo(\"Nenhum registro encontrado.\", \"Filtro\")",
+            "    EndIf",
+            "EndIf"
+        ],
+        "description": "Logica de filtro para grid de arrays"
+    }
+}

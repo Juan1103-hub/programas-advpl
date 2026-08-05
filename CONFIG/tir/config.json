@@ -1,0 +1,8 @@
+{
+    "Url": "http://{server}:{port}/",
+    "Browser": "Chrome",
+    "Environment": "{environment_name}",
+    "User": "{username}",
+    "Password": "{password}",
+    "Language": "pt-br"
+}

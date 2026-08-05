@@ -1,0 +1,66 @@
+LISTA RESUMIDA - PROGRAMAS ATIVOS SEM PE
+Data de geracao: 31/05/2026
+Pasta analisada: Suprimentos (arquivos ativos no diretorio raiz)
+Total: 30
+
+01. AVALCOT.PRW
+    -> Sem Protheus.doc explicito. Funcao principal: AVALCOT().
+02. CADFORN.PRW
+    -> Solicitacao Cadastral de Fornecedores (ZZ4). Tela FWMBrowse com sincronizacao automatica de status: ao mudar de linha, verifica se o CNPJ ja foi cadastrado na SA2 e atualiza a legenda (BR_BRANCO=Pendente / BR_VERMELHO=Cadastrado).
+03. CADSOLIC.PRW
+    -> Browse unificado de Solicitacoes Cadastrais - Produtos e Fornecedores. Utiliza mBrowse padrao do Protheus sobre uma query TOPCONN UNION ALL que combina os registros de SZ3 (Produtos) e SZ4 (Fornecedores).
+04. CADSZ3.PRW
+    -> Solicitacao Cadastral de Produtos (SZ3). Tela padrao mBrowse com aRotina, apresentando no topo os botoes Incluir, Alterar, Visualizar e o menu "Outras Acoes" (Pesquisar, Excluir e Legenda).
+05. CORCITEM.prw
+    -> Sem Protheus.doc explicito. Funcao principal: CORCITEM().
+06. FALTFPED.PRW
+    -> Rotina para alteracao direta do fornecedor e/ou tipo de frete do pedido de compras (SC7), sem necessidade de aprovacao. Permite ao comprador localizar o pedido, visualizar o fornecedor atual e o tipo de frete, e substitui-los por novos valores.
+07. FFZZ4A2.PRW
+    -> Funcao Valid do campo A2_ZZ4ID na SA2 (MATA020). Ao sair do campo Cod ZZ4 no cadastro de fornecedor, busca o registro correspondente na tabela ZZ4 e preenche automaticamente os campos do SA2: A2_NOME <- ZZ4_RAZAO (Razao Social) A2_NREDUZ <- ZZ4_RAZAO (primeiro...
+08. RLCOMPRAS.PRW
+    -> Relatorio de Valor Unitario de Compras por Produto Exibe o valor unitario da ultima compra de cada mes do periodo, com o saldo atual e custo medio (SB2) no final. Colunas dinamicas por mes/ano conforme periodo informado.
+09. TIDEV.PRW
+    -> Ferramentas uteis ao desenvolvimento.
+10. VOGSB101.prw
+    -> Sem Protheus.doc explicito. Funcao principal: VOGSB101().
+11. VORATF01.prw
+    -> Modulo SIGACOM - Compras
+12. VOREST02.PRW
+    -> Modulo SIGAEST - Relatorio de Reposicao de Estoque
+13. ZADTASK.prw
+    -> Cadastro de Solicitacoes de Tarefas - Sem Dicionario
+14. ZALTZZ4SA2.PRW
+    -> Adiciona fisicamente a coluna A2_ZZ4ID na tabela SA2 do banco de dados. Usa TCSQLExec para executar o ALTER TABLE sem necessidade de acesso direto ao SSMS.
+15. ZANALBX.PRW
+    -> Analise de Baixas ao Armazem 02 - Filial 0102 Relatorio gerencial de movimentacao de saida do armazem 02, com filtro por almoxarifes especificos e periodo selecionado.
+16. ZAVALNEG.PRW
+    -> Tela de avaliacao de negociacao de compras para supervisores. Permite analisar precos, descontos e identificar piora nos precos de itens comprados em um periodo.
+17. ZCOMPRAS.PRW
+    -> Consulta de compras por periodo com analise de desconto vs meta (3%). Permite ao usuario visualizar seus pedidos de compra (SC7) em um periodo, calcular o percentual de desconto obtido e comparar com a meta de 3%.
+18. ZCONSRE5.prw
+    -> Sem Protheus.doc explicito. Funcao principal: ZCONSRE5().
+19. ZCONSZZ4.PRW
+    -> Registra a consulta ZZ4 no SXB seguindo o padrao SA1 (funcionando). Estrutura correta baseada na analise do SXB do SA1: Tipo 1: XB_DESCRI="DB" (instrui FWLookup a abrir a tabela via DbUseArea - SEM isso da "Alias does not exist") XB_CONTEM="ZZ4" (alias da tabe...
+20. ZCRIASX3.PRW
+    -> Sem Protheus.doc explicito. Funcao principal: ZCRIASX3().
+21. ZCRIAZZ4SA2.PRW
+    -> Registra o campo customizado A2_ZZ4ID na tabela SA2 (SX3). Deve ser executado UMA UNICA VEZ pelo administrador.
+22. ZCTAEST.PRW
+    -> Funcao para atualizar em massa a Conta Contabil de Estoque (B1_XCTAEST) a partir de arquivo CSV
+23. ZFIXMODSA2.PRW
+    -> Corrige o X3_MODULO do campo A2_ZZ4ID na SA2 (SX3). Copia o valor de X3_MODULO do campo A2_NOME (campo padrao SA2) para garantir que o campo A2_ZZ4ID fique disponivel nos mesmos modulos que os demais campos do fornecedor.
+24. ZFIXSX3SA2.PRW
+    -> Corrige flags do campo A2_ZZ4ID no SX3 via UPDATE SQL direto. Copia X3_USADO, X3_MODULO (e demais flags de visibilidade) do campo A2_COD para o A2_ZZ4ID, garantindo que o campo apareca no formulario MATA020.
+25. ZLEADTIME.PRW
+    -> Lead Time dos Compradores - Analise de Tempo de Atendimento Calcula e exibe: - Dias entre a data da Solicitacao de Compra (SC1) e a geracao do Pedido de Compra (SC7) - Dias entre a Aprovacao do Pedido de Compra e a entrada da Pre-Nota (SD1) Agrupa por comprado...
+26. ZLOGCOL.prw
+    -> Abre tela simplificada para atualizar dados cadastrais do fornecedor Atualiza diretamente na tabela SA2 sem abrir tela padrao
+27. ZMM01.PRW
+    -> Habilita/desabilita checkboxes conforme divergencia
+28. ZMMA01.PRW
+    -> Analise de Recorrencia de Compras x Minimo/Maximo Identifica produtos com recorrencia de compras que nao estao no controle de estoque
+29. ZMMA02.prw
+    -> Controle de Compras Diretas que Passam pelo Almoxarifado Identifica recorrencia, tempo de permanencia e taxa de baixa de materiais comprados que atualizam estoque mas nao sao para o CC 5010206
+30. ZSLDEST.PRW
+    -> Kardex Diario do Almoxarifado Exibe a movimentacao consolidada para itens com saida no periodo com conta contabil (B1_XCTAEST) informada (padrao 11401200001). Mostra valores de abertura, entradas, baixas e fechamento do almoxarifado.
+

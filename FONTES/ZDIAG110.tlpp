@@ -1,0 +1,160 @@
+#include "tlpp-core.th"
+#include "totvs.ch"
+
+/*/{Protheus.doc} ZDIAG110
+Diagnostico de disponibilidade das APIs MVC utilizadas pelo PE MT110LOK.
+Verifica se os metodos IsLineNew(), SetValue() e GetModel() estao
+acessiveis no RPO atual.
+
+Como executar:
+  1. Compile este arquivo no TDS-VSCode (botao direito -> Compile File)
+  2. No SmartClient, abra qualquer tela e execute: U_ZDIAG110
+     Ou via console do AppServer: U_ZDIAG110()
+  3. Uma caixa de mensagem exibira o resultado completo.
+
+Interpretacao dos resultados:
+  DISPONIVEL   => metodo/classe existe no RPO - PE MT110LOK v3.0 pode ser usado
+  INDISPONIVEL => metodo/classe ausente - avaliar versao do Protheus
+
+@type     function
+@author   Suprimentos
+@since    07/06/2026
+@version  1.0
+@see      MT110LOK
+/*/
+User Function ZDIAG110()
+
+    Local cRelatorio := "" as Character
+    Local cSep       := Replicate("-", 50) + Chr(13) + Chr(10) as Character
+    Local oModel     := Nil as Object
+    Local oGrid      := Nil as Object
+    Local lModelOk   := .F. as Logical
+    Local lGridOk    := .F. as Logical
+    Local lIsLineNew := .F. as Logical
+    Local lSetValue  := .F. as Logical
+    Local lGetModel  := .F. as Logical
+    Local lGetValue  := .F. as Logical
+
+    cRelatorio := "ZDIAG110 - Validacao API MVC (MT110LOK)" + Chr(13) + Chr(10)
+    cRelatorio += cSep
+
+    // --- 1) Versao do servidor -------------------------------------------
+    cRelatorio += "Versao AppServer : " + cValToChar(GetBuild()) + Chr(13) + Chr(10)
+    cRelatorio += "Empresa/Filial   : " + cEmpAnt + "/" + cFilAnt     + Chr(13) + Chr(10)
+    cRelatorio += cSep
+
+    // --- 2) FWModelActive() - modelo em uso no momento --------------------
+    Try
+        oModel := FWModelActive()
+        If ValType(oModel) == "O"
+            lModelOk := .T.
+            cRelatorio += "[OK  ] FWModelActive() retornou Object" + Chr(13) + Chr(10)
+        Else
+            cRelatorio += "[INFO] FWModelActive() retornou " + ValType(oModel) + ;
+                          " (normal fora do MATA110)" + Chr(13) + Chr(10)
+        EndIf
+    Catch oErr
+        cRelatorio += "[ERRO] FWModelActive(): " + oErr:Description + Chr(13) + Chr(10)
+    EndTry
+
+    // --- 3) GetModel("SC1DETAIL") - submodelo do grid ---------------------
+    If lModelOk
+        Try
+            oGrid := oModel:GetModel("SC1DETAIL")
+            If ValType(oGrid) == "O"
+                lGridOk := .T.
+                cRelatorio += "[OK  ] GetModel(SC1DETAIL) retornou Object" + Chr(13) + Chr(10)
+            Else
+                cRelatorio += "[FAIL] GetModel(SC1DETAIL) retornou " + ValType(oGrid) + Chr(13) + Chr(10)
+            EndIf
+        Catch oErr
+            cRelatorio += "[ERRO] GetModel(): " + oErr:Description + Chr(13) + Chr(10)
+        EndTry
+    Else
+        cRelatorio += "[SKIP] GetModel() - modelo nao ativo (execute dentro do MATA110)" + Chr(13) + Chr(10)
+    EndIf
+
+    // --- 4) Verificacao dos metodos via ClassData() -----------------------
+    cRelatorio += cSep
+    cRelatorio += "Verificacao de metodos no RPO:" + Chr(13) + Chr(10)
+
+    lGetModel  := VerificaMetodo("MPFORMMODEL",    "GETMODEL")
+    lIsLineNew := VerificaMetodo("FWFORMGRIDMODEL", "ISLINENEW")
+    lSetValue  := VerificaMetodo("FWFORMGRIDMODEL", "SETVALUE")
+    lGetValue  := VerificaMetodo("FWFORMGRIDMODEL", "GETVALUE")
+
+    cRelatorio += MontaLinha("MPFormModel:GetModel()",      lGetModel)
+    cRelatorio += MontaLinha("FWFormGridModel:IsLineNew()", lIsLineNew)
+    cRelatorio += MontaLinha("FWFormGridModel:SetValue()",  lSetValue)
+    cRelatorio += MontaLinha("FWFormGridModel:GetValue()",  lGetValue)
+
+    // --- 5) Veredicto final -----------------------------------------------
+    cRelatorio += cSep
+    If lGetModel .And. lIsLineNew .And. lSetValue
+        cRelatorio += "VEREDICTO: APROVADO - MT110LOK v3.0 pode ser usado neste RPO." + Chr(13) + Chr(10)
+    Else
+        cRelatorio += "VEREDICTO: ATENCAO - Uma ou mais APIs estao ausentes." + Chr(13) + Chr(10)
+        cRelatorio += "Verificar versao do Protheus e build do RPO." + Chr(13) + Chr(10)
+    EndIf
+
+    MsgInfo(cRelatorio, "ZDIAG110 - MT110LOK API Check")
+
+Return
+
+/*/{Protheus.doc} VerificaMetodo
+Verifica se um metodo existe numa classe do RPO usando ClassData().
+Retorna .T. se o metodo for encontrado, .F. caso contrario.
+
+@type   function
+@author Suprimentos
+@since  07/06/2026
+@param  cClasse, character, Nome da classe a verificar (ex: "FWFORMMODELGRID")
+@param  cMetodo, character, Nome do metodo a localizar (ex: "ISLINENEW")
+@return logical, .T. = metodo disponivel | .F. = metodo ausente
+/*/
+Static Function VerificaMetodo(cClasse as Character, cMetodo as Character) as Logical
+
+    Local lEncontrou := .F. as Logical
+    Local aData      := {}  as Array
+    Local nX         := 0   as Numeric
+
+    Try
+        aData := ClassData(cClasse)
+        If ValType(aData) == "A"
+            For nX := 1 To Len(aData)
+                If ValType(aData[nX]) == "A" .And. Len(aData[nX]) >= 1
+                    If Upper(AllTrim(cValToChar(aData[nX][1]))) == Upper(AllTrim(cMetodo))
+                        lEncontrou := .T.
+                        Exit
+                    EndIf
+                EndIf
+            Next nX
+        EndIf
+    Catch oErrIgn
+        // ClassData indisponivel neste build - ignora
+        lEncontrou := .F.
+    EndTry
+
+Return lEncontrou
+
+/*/{Protheus.doc} MontaLinha
+Formata uma linha do relatorio de diagnostico com status OK/FAIL.
+
+@type   function
+@author Suprimentos
+@since  07/06/2026
+@param  cDescricao, character, Descricao do item verificado
+@param  lOk,        logical,   .T. = disponivel | .F. = indisponivel
+@return character, Linha formatada com CRLF
+/*/
+Static Function MontaLinha(cDescricao as Character, lOk as Logical) as Character
+
+    Local cStatus := "" as Character
+
+    If lOk
+        cStatus := "[DISPONIVEL  ] "
+    Else
+        cStatus := "[INDISPONIVEL] "
+    EndIf
+
+Return cStatus + cDescricao + Chr(13) + Chr(10)

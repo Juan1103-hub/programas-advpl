@@ -1,0 +1,11 @@
+[    2656ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:20128/dashboard/tools?_rsc=MelC2C-uHZu9oh32:0
+[   42498ms] [WARNING] WebSocket connection to 'ws://localhost:20128/api/tools/traffic-inspector/ws' failed: WebSocket is closed before the connection is established. @ http://localhost:20128/_next/static/chunks/09ym6q6lv92sw.js:11
+[   75623ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/providers/ollama-local/models:0
+[   75848ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/providers/ollama-local/models:0
+[   90811ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/providers/ollama-local/models:0
+[   95521ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/chat/completions:0
+[  100484ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/providers/ollama-local/models:0
+[  140033ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:20128/dashboard/providers/ollama-local:0
+[  345659ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:20128/api/health/degradation?summary=true:0
+[  345662ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:20128/api/token-health:0
+[  345669ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:20128/api/sync/cloud:0

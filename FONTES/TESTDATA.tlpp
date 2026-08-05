@@ -1,0 +1,26 @@
+#include "tlpp-core.th"
+#include "totvs.ch"
+
+/*/{Protheus.doc} TESTDATA
+Funcao de teste para confirmar a data real do calendario no servidor
+Protheus e o valor atual da variavel de trabalho dDataBase.
+
+Execute via: U_TESTDATA() no Console TOTVS ou em qualquer User Function.
+
+@type     function
+@author   Suprimentos
+@since    07/06/2026
+@version  1.0 - 07/06/2026
+@return   variant, Sem retorno - exibe MsgInfo com diagnostico de data
+/*/
+User Function TESTDATA() as Variant
+
+    Local cMsg As Character
+
+    cMsg := "Data SERVIDOR (Date())   : " + DToC(Date())        + Chr(10) + ;
+            "Data TRABALHO (dDataBase): " + DToC(dDataBase)     + Chr(10) + ;
+            "nOpcEnchoice             : " + cValToChar(IIF(Type("nOpcEnchoice") == "N", nOpcEnchoice, -1))
+
+    MsgInfo(cMsg, "Diagnostico de Data - MATA110")
+
+Return Nil

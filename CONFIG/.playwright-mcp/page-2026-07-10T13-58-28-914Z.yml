@@ -1,0 +1,404 @@
+- generic [active] [ref=f2e8]:
+  - link "Skip to content" [ref=f2e1] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f2e9]:
+    - complementary [ref=f2e11]:
+      - link "__MISSING__:Skip to content" [ref=f2e12] [cursor=pointer]:
+        - /url: "#main-content"
+      - link "OmniRoute v3.8.46" [ref=f2e18] [cursor=pointer]:
+        - /url: /home
+        - generic [ref=f2e32]:
+          - heading "OmniRoute" [level=1] [ref=f2e33]
+          - generic [ref=f2e34]: v3.8.46
+      - navigation "Main navigation" [ref=f2e35]:
+        - link "home Início Visão geral do painel" [ref=f2e37] [cursor=pointer]:
+          - /url: /home
+          - generic [ref=f2e38]: home
+          - generic [ref=f2e39]:
+            - generic [ref=f2e40]: Início
+            - generic [ref=f2e41]: Visão geral do painel
+        - generic [ref=f2e42]:
+          - button "OmniProxy push_pin expand_more" [expanded] [ref=f2e43] [cursor=pointer]:
+            - generic [ref=f2e44]: OmniProxy
+            - button "push_pin" [ref=f2e45]
+            - generic: expand_more
+          - generic [ref=f2e46]:
+            - link "api Endpoints Seus URLs de conexão de IA" [ref=f2e47] [cursor=pointer]:
+              - /url: /dashboard/endpoint
+              - generic [ref=f2e48]: api
+              - generic [ref=f2e49]:
+                - generic [ref=f2e50]: Endpoints
+                - generic [ref=f2e51]: Seus URLs de conexão de IA
+            - link "vpn_key Gerenciador API Gerenciar chaves de API e acesso" [ref=f2e52] [cursor=pointer]:
+              - /url: /dashboard/api-manager
+              - generic [ref=f2e53]: vpn_key
+              - generic [ref=f2e54]:
+                - generic [ref=f2e55]: Gerenciador API
+                - generic [ref=f2e56]: Gerenciar chaves de API e acesso
+            - link "dns Provedores Gerenciar provedores de IA" [ref=f2e57] [cursor=pointer]:
+              - /url: /dashboard/providers
+              - generic [ref=f2e58]: dns
+              - generic [ref=f2e59]:
+                - generic [ref=f2e60]: Provedores
+                - generic [ref=f2e61]: Gerenciar provedores de IA
+            - link "deployed_code Serviços Embarcados Gerenciar serviços de proxy locais" [ref=f2e62] [cursor=pointer]:
+              - /url: /dashboard/providers/services
+              - generic [ref=f2e63]: deployed_code
+              - generic [ref=f2e64]:
+                - generic [ref=f2e65]: Serviços Embarcados
+                - generic [ref=f2e66]: Gerenciar serviços de proxy locais
+            - link "layers Combos Provedores de grupo para failover" [ref=f2e67] [cursor=pointer]:
+              - /url: /dashboard/combos
+              - generic [ref=f2e68]: layers
+              - generic [ref=f2e69]:
+                - generic [ref=f2e70]: Combos
+                - generic [ref=f2e71]: Provedores de grupo para failover
+            - link "account_tree Combo Studio Live routing cascade" [ref=f2e72] [cursor=pointer]:
+              - /url: /dashboard/combos/live
+              - generic [ref=f2e73]: account_tree
+              - generic [ref=f2e74]:
+                - generic [ref=f2e75]: Combo Studio
+                - generic [ref=f2e76]: Live routing cascade
+            - link "tune Provider Quota Acompanhar limites de uso por provedor" [ref=f2e77] [cursor=pointer]:
+              - /url: /dashboard/quota
+              - generic [ref=f2e78]: tune
+              - generic [ref=f2e79]:
+                - generic [ref=f2e80]: Provider Quota
+                - generic [ref=f2e81]: Acompanhar limites de uso por provedor
+            - link "pie_chart Compartilhamento de Cota Compartilhe cotas de provedor entre chaves" [ref=f2e82] [cursor=pointer]:
+              - /url: /dashboard/costs/quota-share
+              - generic [ref=f2e83]: pie_chart
+              - generic [ref=f2e84]:
+                - generic [ref=f2e85]: Compartilhamento de Cota
+                - generic [ref=f2e86]: Compartilhe cotas de provedor entre chaves
+            - generic [ref=f2e87]:
+              - generic [ref=f2e88]: Compression Context
+              - link "settings Compression Settings Global defaults" [ref=f2e91] [cursor=pointer]:
+                - /url: /dashboard/context/settings
+                - generic [ref=f2e92]: settings
+                - generic [ref=f2e93]:
+                  - generic [ref=f2e94]: Compression Settings
+                  - generic [ref=f2e95]: Global defaults
+              - link "hub Combos de Engines Combinar engines de compressão" [ref=f2e96] [cursor=pointer]:
+                - /url: /dashboard/context/combos
+                - generic [ref=f2e97]: hub
+                - generic [ref=f2e98]:
+                  - generic [ref=f2e99]: Combos de Engines
+                  - generic [ref=f2e100]: Combinar engines de compressão
+              - link "compress Caveman Compactação imediata" [ref=f2e101] [cursor=pointer]:
+                - /url: /dashboard/context/caveman
+                - generic [ref=f2e102]: compress
+                - generic [ref=f2e103]:
+                  - generic [ref=f2e104]: Caveman
+                  - generic [ref=f2e105]: Compactação imediata
+              - link "filter_alt RTK Filtragem de saída" [ref=f2e106] [cursor=pointer]:
+                - /url: /dashboard/context/rtk
+                - generic [ref=f2e107]: filter_alt
+                - generic [ref=f2e108]:
+                  - generic [ref=f2e109]: RTK
+                  - generic [ref=f2e110]: Filtragem de saída
+              - link "table_rows Headroom Tabular compaction" [ref=f2e111] [cursor=pointer]:
+                - /url: /dashboard/context/headroom
+                - generic [ref=f2e112]: table_rows
+                - generic [ref=f2e113]:
+                  - generic [ref=f2e114]: Headroom
+                  - generic [ref=f2e115]: Tabular compaction
+              - link "content_copy Session Dedup Cross-turn dedup" [ref=f2e116] [cursor=pointer]:
+                - /url: /dashboard/context/session-dedup
+                - generic [ref=f2e117]: content_copy
+                - generic [ref=f2e118]:
+                  - generic [ref=f2e119]: Session Dedup
+                  - generic [ref=f2e120]: Cross-turn dedup
+              - link "archive CCR Retrieve markers" [ref=f2e121] [cursor=pointer]:
+                - /url: /dashboard/context/ccr
+                - generic [ref=f2e122]: archive
+                - generic [ref=f2e123]:
+                  - generic [ref=f2e124]: CCR
+                  - generic [ref=f2e125]: Retrieve markers
+              - link "psychology LLMLingua Semantic pruning" [ref=f2e126] [cursor=pointer]:
+                - /url: /dashboard/context/llmlingua
+                - generic [ref=f2e127]: psychology
+                - generic [ref=f2e128]:
+                  - generic [ref=f2e129]: LLMLingua
+                  - generic [ref=f2e130]: Semantic pruning
+              - link "compress Lite Fast whitespace cleanup" [ref=f2e131] [cursor=pointer]:
+                - /url: /dashboard/context/lite
+                - generic [ref=f2e132]: compress
+                - generic [ref=f2e133]:
+                  - generic [ref=f2e134]: Lite
+                  - generic [ref=f2e135]: Fast whitespace cleanup
+              - link "speed Aggressive Summary + aging" [ref=f2e136] [cursor=pointer]:
+                - /url: /dashboard/context/aggressive
+                - generic [ref=f2e137]: speed
+                - generic [ref=f2e138]:
+                  - generic [ref=f2e139]: Aggressive
+                  - generic [ref=f2e140]: Summary + aging
+              - link "bolt Ultra Heuristic pruning" [ref=f2e141] [cursor=pointer]:
+                - /url: /dashboard/context/ultra
+                - generic [ref=f2e142]: bolt
+                - generic [ref=f2e143]:
+                  - generic [ref=f2e144]: Ultra
+                  - generic [ref=f2e145]: Heuristic pruning
+              - link "monitoring Compression Studio Live engine cascade" [ref=f2e146] [cursor=pointer]:
+                - /url: /dashboard/compression/studio
+                - generic [ref=f2e147]: monitoring
+                - generic [ref=f2e148]:
+                  - generic [ref=f2e149]: Compression Studio
+                  - generic [ref=f2e150]: Live engine cascade
+            - generic [ref=f2e151]:
+              - generic [ref=f2e152]: Tools
+              - link "terminal CLI Code's Ferramentas de código que apontam para o OmniRoute" [ref=f2e155] [cursor=pointer]:
+                - /url: /dashboard/cli-code
+                - generic [ref=f2e156]: terminal
+                - generic [ref=f2e157]:
+                  - generic [ref=f2e158]: CLI Code's
+                  - generic [ref=f2e159]: Ferramentas de código que apontam para o OmniRoute
+              - link "smart_toy CLI Agents Agentes autônomos com CLI" [ref=f2e160] [cursor=pointer]:
+                - /url: /dashboard/cli-agents
+                - generic [ref=f2e161]: smart_toy
+                - generic [ref=f2e162]:
+                  - generic [ref=f2e163]: CLI Agents
+                  - generic [ref=f2e164]: Agentes autônomos com CLI
+              - link "device_hub ACP Agents CLIs spawnadas pelo OmniRoute" [ref=f2e165] [cursor=pointer]:
+                - /url: /dashboard/acp-agents
+                - generic [ref=f2e166]: device_hub
+                - generic [ref=f2e167]:
+                  - generic [ref=f2e168]: ACP Agents
+                  - generic [ref=f2e169]: CLIs spawnadas pelo OmniRoute
+              - link "cloud Agentes de nuvem Gerenciar agentes na nuvem" [ref=f2e170] [cursor=pointer]:
+                - /url: /dashboard/cloud-agents
+                - generic [ref=f2e171]: cloud
+                - generic [ref=f2e172]:
+                  - generic [ref=f2e173]: Agentes de nuvem
+                  - generic [ref=f2e174]: Gerenciar agentes na nuvem
+              - link "link Agent Bridge Interceptar tráfego de agentes IDE" [ref=f2e175] [cursor=pointer]:
+                - /url: /dashboard/tools/agent-bridge
+                - generic [ref=f2e176]: link
+                - generic [ref=f2e177]:
+                  - generic [ref=f2e178]: Agent Bridge
+                  - generic [ref=f2e179]: Interceptar tráfego de agentes IDE
+              - link "network_check Inspector de Tráfego Monitorar chamadas LLM + debugar tráfego HTTPS" [ref=f2e180] [cursor=pointer]:
+                - /url: /dashboard/tools/traffic-inspector
+                - generic [ref=f2e181]: network_check
+                - generic [ref=f2e182]:
+                  - generic [ref=f2e183]: Inspector de Tráfego
+                  - generic [ref=f2e184]: Monitorar chamadas LLM + debugar tráfego HTTPS
+              - link "travel_explore Discovery Scan providers for free access" [ref=f2e185] [cursor=pointer]:
+                - /url: /dashboard/discovery
+                - generic [ref=f2e186]: travel_explore
+                - generic [ref=f2e187]:
+                  - generic [ref=f2e188]: Discovery
+                  - generic [ref=f2e189]: Scan providers for free access
+            - generic [ref=f2e190]:
+              - generic [ref=f2e191]: Integrations
+              - link "api API Endpoints Expor endpoints customizados" [ref=f2e194] [cursor=pointer]:
+                - /url: /dashboard/api-endpoints
+                - generic [ref=f2e195]: api
+                - generic [ref=f2e196]:
+                  - generic [ref=f2e197]: API Endpoints
+                  - generic [ref=f2e198]: Expor endpoints customizados
+              - link "webhook Webhooks Seja notificado sobre eventos" [ref=f2e199] [cursor=pointer]:
+                - /url: /dashboard/webhooks
+                - generic [ref=f2e200]: webhook
+                - generic [ref=f2e201]:
+                  - generic [ref=f2e202]: Webhooks
+                  - generic [ref=f2e203]: Seja notificado sobre eventos
+            - link "dns Proxy Configurações do proxy HTTP" [ref=f2e204] [cursor=pointer]:
+              - /url: /dashboard/system/proxy
+              - generic [ref=f2e205]: dns
+              - generic [ref=f2e206]:
+                - generic [ref=f2e207]: Proxy
+                - generic [ref=f2e208]: Configurações do proxy HTTP
+        - button "Analytics push_pin expand_more" [ref=f2e210] [cursor=pointer]:
+          - generic [ref=f2e211]: Analytics
+          - button "push_pin" [ref=f2e212]
+          - generic: expand_more
+        - button "Custos push_pin expand_more" [ref=f2e214] [cursor=pointer]:
+          - generic [ref=f2e215]: Custos
+          - button "push_pin" [ref=f2e216]
+          - generic: expand_more
+        - button "Monitoring push_pin expand_more" [ref=f2e218] [cursor=pointer]:
+          - generic [ref=f2e219]: Monitoring
+          - button "push_pin" [ref=f2e220]
+          - generic: expand_more
+        - button "Dev Tools push_pin expand_more" [ref=f2e222] [cursor=pointer]:
+          - generic [ref=f2e223]: Dev Tools
+          - button "push_pin" [ref=f2e224]
+          - generic: expand_more
+        - button "Agentic Features push_pin expand_more" [ref=f2e226] [cursor=pointer]:
+          - generic [ref=f2e227]: Agentic Features
+          - button "push_pin" [ref=f2e228]
+          - generic: expand_more
+        - button "Other Features push_pin expand_more" [ref=f2e230] [cursor=pointer]:
+          - generic [ref=f2e231]: Other Features
+          - button "push_pin" [ref=f2e232]
+          - generic: expand_more
+        - button "Configuration push_pin expand_more" [ref=f2e234] [cursor=pointer]:
+          - generic [ref=f2e235]: Configuration
+          - button "push_pin" [ref=f2e236]
+          - generic: expand_more
+        - button "Help push_pin expand_more" [ref=f2e238] [cursor=pointer]:
+          - generic [ref=f2e239]: Help
+          - button "push_pin" [ref=f2e240]
+          - generic: expand_more
+      - 'button "Remote settings sync status: Sync Off" [ref=f2e241] [cursor=pointer]':
+        - generic: cloud_off
+        - generic [ref=f2e242]: Sync Off
+      - generic [ref=f2e243]:
+        - button "restart_alt Reiniciar" [ref=f2e244]:
+          - generic: restart_alt
+          - generic [ref=f2e245]: Reiniciar
+        - button "power_settings_new Desligar" [ref=f2e246]:
+          - generic: power_settings_new
+          - generic [ref=f2e247]: Desligar
+    - main [ref=f2e248]:
+      - generic [ref=f2e249]:
+        - button "menu" [ref=f2e251]
+        - generic [ref=f2e252]:
+          - button "Open quick navigation" [ref=f2e253]:
+            - generic: search
+            - generic [ref=f2e254]: Quick nav
+          - button "Português (Brasil) PT-BR expand_more" [ref=f2e256]:
+            - img "Português (Brasil)" [ref=f2e257]
+            - generic [ref=f2e258]: PT-BR
+            - generic: expand_more
+          - button "Switch to dark mode" [ref=f2e259]:
+            - generic: dark_mode
+          - button "check_circle" [ref=f2e261]
+          - button "logout" [ref=f2e262]
+      - generic [ref=f2e264]:
+        - navigation "Breadcrumb" [ref=f2e265]:
+          - link "Dashboard" [ref=f2e267] [cursor=pointer]:
+            - /url: /dashboard
+          - generic [ref=f2e268]:
+            - generic [ref=f2e269]: ›
+            - link "Providers" [ref=f2e8110] [cursor=pointer]:
+              - /url: /dashboard/providers
+          - generic [ref=f2e8111]:
+            - generic [ref=f2e8112]: ›
+            - generic [ref=f2e8113]: Ollama-local
+        - generic [ref=f2e8114]:
+          - generic [ref=f2e8115]:
+            - link "arrow_back Voltar para Provedores" [ref=f2e8116] [cursor=pointer]:
+              - /url: /dashboard/providers
+              - generic [ref=f2e8117]: arrow_back
+              - text: Voltar para Provedores
+            - generic [ref=f2e8124]:
+              - link "Ollama open_in_new" [ref=f2e8125] [cursor=pointer]:
+                - /url: https://ollama.com
+                - text: Ollama
+                - generic [ref=f2e8126]: open_in_new
+              - paragraph [ref=f2e8128]: 0 conexão
+          - generic [ref=f2e8129]:
+            - generic [ref=f2e8130]:
+              - generic [ref=f2e8131]:
+                - heading "Conexões" [level=2] [ref=f2e8132]
+                - button "vpn_lock Proxy do Provedor" [ref=f2e8133]:
+                  - generic: vpn_lock
+                  - text: Proxy do Provedor
+              - button "Adicionar" [ref=f2e8135] [cursor=pointer]:
+                - generic: add
+                - text: Adicionar
+            - generic [ref=f2e8136]:
+              - generic [ref=f2e8137]: key
+              - paragraph [ref=f2e8139]: Ainda não há conexões
+              - paragraph [ref=f2e8140]: Adicione sua primeira conexão para começar
+              - button "Adicionar Conexão" [ref=f2e8142] [cursor=pointer]:
+                - generic: add
+                - text: Adicionar Conexão
+          - generic [ref=f2e8143]:
+            - heading "Modelos Disponíveis" [level=2] [ref=f2e8144]
+            - generic [ref=f2e8145]:
+              - generic [ref=f2e8146]:
+                - button "Importar de /models" [disabled] [ref=f2e8147]:
+                  - generic: download
+                  - text: Importar de /models
+                - generic [ref=f2e8148]: Adicione uma conexão para habilitar importação.
+              - generic [ref=f2e8149]:
+                - paragraph [ref=f2e8150]: Ollama aceita IDs de modelo nativos do provedor. Importe de /models ou adicione IDs personalizados para roteamento.
+                - generic [ref=f2e8151]:
+                  - generic [ref=f2e8152]:
+                    - generic [ref=f2e8153]: ID do Modelo
+                    - textbox "ID do Modelo" [ref=f2e8154]:
+                      - /placeholder: gpt-4o
+                  - button "Adicionar" [disabled] [ref=f2e8155]:
+                    - generic: add
+                    - text: Adicionar
+            - generic [ref=f2e8156]:
+              - heading "tune Modelos Personalizados" [level=3] [ref=f2e8157]:
+                - generic [ref=f2e8158]: tune
+                - text: Modelos Personalizados
+              - paragraph [ref=f2e8159]: Adicione IDs de modelo que não estão na lista padrão. Eles ficarão disponíveis para roteamento.
+              - generic [ref=f2e8160]:
+                - generic [ref=f2e8161]:
+                  - generic [ref=f2e8162]:
+                    - generic [ref=f2e8163]: ID do Modelo
+                    - textbox "ID do Modelo" [ref=f2e8164]:
+                      - /placeholder: "ex.: gpt-4.5-turbo"
+                  - generic [ref=f2e8165]:
+                    - generic [ref=f2e8166]: Nome de Exibição
+                    - textbox "Nome de Exibição" [ref=f2e8167]:
+                      - /placeholder: Opcional
+                  - button "Adicionar" [disabled] [ref=f2e8168]:
+                    - generic: add
+                    - text: Adicionar
+                - generic [ref=f2e8169]:
+                  - generic [ref=f2e8170]:
+                    - generic [ref=f2e8171]: API Format
+                    - combobox "API Format" [ref=f2e8172]:
+                      - option "Chat Completions" [selected]
+                      - option "API de Respostas"
+                      - option "Embeddings"
+                      - option "Rerank"
+                      - option "Audio Transcriptions"
+                      - option "Audio Speech"
+                      - option "Images Generations"
+                  - generic [ref=f2e8173]:
+                    - generic [ref=f2e8174]: __MISSING__:Target Format
+                    - combobox "__MISSING__:Target Format" [ref=f2e8175]:
+                      - option "__MISSING__:Default (auto)" [selected]
+                      - option "OpenAI Chat Completions"
+                      - option "OpenAI Responses API"
+                      - option "Anthropic Messages"
+                      - option "__MISSING__:Gemini"
+                      - option "__MISSING__:Antigravity"
+                  - generic [ref=f2e8176]:
+                    - generic [ref=f2e8177]: Endpoints Suportados
+                    - generic [ref=f2e8178]:
+                      - generic [ref=f2e8179] [cursor=pointer]:
+                        - checkbox "💬 Chat" [checked] [ref=f2e8180]
+                        - text: 💬 Chat
+                      - generic [ref=f2e8181] [cursor=pointer]:
+                        - checkbox "📐 Embeddings" [ref=f2e8182]
+                        - text: 📐 Embeddings
+                      - generic [ref=f2e8183] [cursor=pointer]:
+                        - checkbox "Rerank" [ref=f2e8184]
+                        - text: Rerank
+                      - generic [ref=f2e8185] [cursor=pointer]:
+                        - checkbox "🖼️ Imagens" [ref=f2e8186]
+                        - text: 🖼️ Imagens
+                      - generic [ref=f2e8187] [cursor=pointer]:
+                        - checkbox "🔊 Áudio" [ref=f2e8188]
+                        - text: 🔊 Áudio
+              - paragraph [ref=f2e8189]: Nenhum modelo personalizado adicionado ainda.
+          - generic [ref=f2e8190]:
+            - heading "Playground" [level=2] [ref=f2e8191]
+            - generic [ref=f2e8192]:
+              - generic [ref=f2e8193]:
+                - generic [ref=f2e8194]:
+                  - generic [ref=f2e8195]: "Modelo:"
+                  - combobox [ref=f2e8196]:
+                    - option "—" [selected]
+                - generic [ref=f2e8197]:
+                  - generic [ref=f2e8198]: "Selecionar chave:"
+                  - combobox [ref=f2e8199]:
+                    - option "(default)" [selected]
+                    - option "opencode"
+              - generic [ref=f2e8201]:
+                - generic [ref=f2e8202]: forum
+                - paragraph [ref=f2e8204]: Send a message to start the conversation
+                - paragraph [ref=f2e8205]: Shift+Enter for newline · Enter to send
+              - generic [ref=f2e8206]:
+                - textbox "Enviar…" [ref=f2e8207]
+                - button "arrow_upward" [disabled] [ref=f2e8208]
+  - alert [ref=f2e7]

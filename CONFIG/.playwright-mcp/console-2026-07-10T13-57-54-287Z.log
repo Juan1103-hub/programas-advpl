@@ -1,0 +1,19 @@
+[   30029ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/providers/ollama-local/models:0
+[   50738ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:20128/dashboard/providers/ollama-local:0
+[   60227ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/providers/ca9026e7-42ba-4e96-9a11-4423c5231879/sync-models:0
+[  108034ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:20128/dashboard/providers/ollama-local:0
+[  267591ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/providers/4fd011ad-d2a9-4317-a4cc-b1062f336334/sync-models:0
+[  875071ms] [ERROR] Access to XMLHttpRequest at 'http://gc.kes.v2.scr.kaspersky-labs.com/04131225-E9AA-40BF-8F13-5E9F9795113F/9641ABC3-FACE-40DB-9043-105C6C0BE862/from?get&nocache=17dcd&tm=2026-07-10T14%3A08%3A14.729Z' from origin 'http://localhost:20128' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:20128/dashboard/providers/ollama-local:0
+[  875193ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://gc.kes.v2.scr.kaspersky-labs.com/04131225-E9AA-40BF-8F13-5E9F9795113F/9641ABC3-FACE-40DB-9043-105C6C0BE862/from?get&nocache=17dcd&tm=2026-07-10T14%3A08%3A14.729Z:0
+[  875219ms] [ERROR] Access to XMLHttpRequest at 'http://gc.kes.v2.scr.kaspersky-labs.com/04131225-E9AA-40BF-8F13-5E9F9795113F/9641ABC3-FACE-40DB-9043-105C6C0BE862/from?get&nocache=17da6&tm=2026-07-10T14%3A12%3A29.370Z&second=true' from origin 'http://localhost:20128' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:20128/dashboard/providers/ollama-local:0
+[  875402ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://gc.kes.v2.scr.kaspersky-labs.com/04131225-E9AA-40BF-8F13-5E9F9795113F/9641ABC3-FACE-40DB-9043-105C6C0BE862/from?get&nocache=17da6&tm=2026-07-10T14%3A12%3A29.370Z&second=true:0
+[ 1025556ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:20128/dashboard/providers/ollama-local:0
+[ 1048460ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/chat/completions:0
+[ 1054561ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/chat/completions:0
+[ 1142809ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/providers/ollama-local/models:0
+[ 1142888ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/providers/ollama-local/models:0
+[ 1149475ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/providers/ollama-local/models:0
+[ 1151837ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/chat/completions:0
+[ 1160822ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/providers/ollama-local/models:0
+[ 1203940ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/v1/chat/completions:0
+[ 1231087ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:20128/api/providers/4fd011ad-d2a9-4317-a4cc-b1062f336334/models?refresh=true:0

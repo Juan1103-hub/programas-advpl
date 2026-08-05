@@ -1,0 +1,44 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "totvs_language_debug",
+			"request": "launch",
+			"name": "TIDev - Ferramenta Dev",
+			"program": "U_TIDEV",
+			"cwb": "${workspaceFolder}",
+			"smartclientBin": "C:\\totvs\\cloud\\smartclient\\smartclient.exe",
+			"isMultiSession": true,
+			"enableTableSync": true,
+			"extendFeatures": {
+				"charDetails": false
+			}
+		},
+		{
+			"type": "totvs_language_debug",
+			"request": "launch",
+			"name": "ZLANCDIE - Diesel",
+			"program": "U_ZLANCDIE",
+			"cwb": "${workspaceFolder}",
+			"smartclientBin": "C:\\totvs\\cloud\\smartclient\\smartclient.exe",
+			"isMultiSession": true,
+			"enableTableSync": true,
+			"extendFeatures": {
+				"charDetails": false
+			}
+		},
+		{
+			"type": "totvs_language_debug",
+			"request": "launch",
+			"name": "Depuração do idioma TOTVS",
+			"program": "${command:AskForProgramName}",
+			"cwb": "${workspaceFolder}",
+			"smartclientBin": "C:\\totvs\\cloud\\smartclient\\smartclient.exe",
+			"isMultiSession": true,
+			"enableTableSync": true,
+			"extendFeatures": {
+				"charDetails": false
+			}
+		}
+	]
+}

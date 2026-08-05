@@ -1,0 +1,8 @@
+- generic [active]:
+  - link "Skip to content" [ref=f2e1] [cursor=pointer]:
+    - /url: "#main-content"
+  - status [ref=f2e2]:
+    - status "Carregando..." [ref=f2e3]:
+      - generic [ref=f2e5]: progress_activity
+    - paragraph [ref=f2e6]: Loading OmniRoute...
+  - alert [ref=f2e7]

@@ -1,0 +1,70 @@
+#include "tlpp-core.th"
+#include "totvs.ch"
+
+/*/{Protheus.doc} MT110EMI
+User Function chamada pelo Gatilho SX7 configurado no campo C1_PROD
+da Solicitacao de Compra (SC1 / MATA110).
+
+Responsabilidade:
+  Retornar sempre a data REAL do servidor (Date()) para C1_EMISSAO.
+
+  POR QUE RETORNAR Date() SEMPRE (sem distinguir inclusao/alteracao):
+    O trigger SX7 e responsavel apenas pela exibicao visual imediata
+    na tela enquanto o usuario digita. A protecao definitiva ocorre
+    nas camadas de save:
+      - MT110CON (pre-save):  restaura C1_EMISSAO original dos itens
+                              EXISTENTES a partir do snapshot do banco.
+      - M110STTS (pos-save):  reescreve C1_EMISSAO no SC1 gravado para
+                              neutralizar o X3_RELACAO pos-gravacao.
+    Portanto, mesmo que o trigger sobrescreva C1_EMISSAO de um item
+    existente ao alterar C1_PROD, o MT110CON corrige antes de gravar.
+
+    Tentativas anteriores de distinguir inclusao/alteracao no trigger:
+      - IsInclui()     -> indisponivel neste RPO (nao esta no AppMap)
+      - DbSeek SC1     -> falha em SC nova (C1_NUM ainda vazio)
+      - nOpcEnchoice   -> vale 4 (Alteracao) ao adicionar item novo
+                          em SC ja existente; nao detecta item novo
+                          no nivel do grid
+    Conclusao: nao ha API confiavel para detectar item-novo no nivel
+    do trigger. A correcao definitiva fica no MT110CON + M110STTS.
+
+  POR QUE X7_CONDIC DEVE FICAR EM BRANCO:
+    X3_RELACAO = "dDataBase" preenche C1_EMISSAO antes do trigger,
+    logo EMPTY(M->C1_EMISSAO) nunca seria verdadeiro.
+
+Configuracao do Gatilho (SX7) - via SIGACFG > Gatilhos (SX7):
+  Campo       (X7_CAMPO)   : C1_PROD
+  Sequencia   (X7_SEQUENC) : 003
+  Tipo        (X7_TIPO)    : P    (Primario)
+  Cnt.Dominio (X7_CDOMIN)  : C1_EMISSAO
+  Regra       (X7_REGRA)   : U_MT110EMI()
+  Condicao    (X7_CONDIC)  :      (DEIXAR EM BRANCO)
+  Posiciona   (X7_SEEK)    : 2 - Nao
+  Propriedade (X7_PROPRI)  : U
+
+Fluxo completo:
+  1. Usuario preenche C1_PROD -> trigger retorna Date() -> C1_EMISSAO
+     exibe a data real do servidor imediatamente na tela
+  2. Pre-save (MT110CON v7): aCols corrigido
+       item novo     -> C1_EMISSAO = Date()
+       item existente-> C1_EMISSAO = data original do snapshot
+  3. Pos-save (M110STTS v3): SC1 corrigido no banco apos gravacao
+
+@type     function
+@author   Suprimentos
+@since    07/06/2026
+@version  5.1 - 08/06/2026 - Forca M->C1_EMISSAO := Date() antes do Return
+@return   date, Data real do servidor (Date())
+@see      MT110CON, M110STTS, MT110LOK
+/*/
+User Function MT110EMI() as Date
+
+    // Forca a variavel de interface diretamente alem do retorno do trigger
+    // Garante NaoVazio(M->C1_EMISSAO) e neutraliza qualquer reprocessamento
+    // do X3_RELACAO que ocorra antes de o framework aplicar o valor de retorno
+    If Type("M->C1_EMISSAO") != "U"
+        M->C1_EMISSAO := Date()
+    EndIf
+
+Return Date()
+
