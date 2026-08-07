@@ -1,0 +1,121 @@
+#include "msobject.ch"
+#include "totvs.ch"
+#Include "totvs.framework.treports.integratedprovider.th"
+
+/*/{Protheus.doc} SC7TREP
+Objeto de Negocio (ON) SmartView para o Pedido de Compra (SC7).
+Expoe os campos do cabecalho do pedido de compra mais dados do
+fornecedor (SA2), incluindo a Inscricao Estadual (A2_INSCR).
+
+Permite usar o pedido de compra como fonte de dados nativa para
+relatorios do SmartView/TReports, com filtros definidos na interface,
+paginacao automatica via IDs #QueryFields#/#QueryWhere#.
+
+Requisito: TL++ e LIB Label >= 12.1.2210 (recomendado >= 12.1.2310).
+Apos compilar, reiniciar o AppServer para o ON ficar disponivel em REST.
+
+@type    class
+@author  Suprimentos
+@since   06/08/2026
+@version 1.0
+@see     patterns-smartview-integratedprovider.md
+/*/
+
+namespace custom.compras.pedidocompra.integratedprovider
+
+@totvsFrameworkTReportsIntegratedProvider(active=.T., team="SIGACOM", tables="SC7,SA2", name="Pedido de Compra", country="ALL", initialRelease="12.1.2210")
+
+class SC7TReportsBusinessObject from totvs.framework.treports.integratedprovider.IntegratedProvider
+    public method new() as object
+    public method getDisplayName() as character
+    public method getAreas() as array
+    public method getData() as object
+    public method getSchema() as object
+endclass
+
+/*/{Protheus.doc} new
+Construtor padrao do ON: define area, nome e descricao.
+
+@type   Method
+@return Object, self
+/*/
+method new() as object class SC7TReportsBusinessObject
+    _Super:new()
+    self:appendArea("Compras")
+    self:setDisplayName("Pedido Compra")
+    self:setDescription("Pedido de Compra com Inscricao Estadual do Fornecedor")
+return self
+
+/*/{Protheus.doc} getDisplayName
+Retorna o nome de exibicao do ON no SmartView.
+
+@type   Method
+@return character, Nome de exibicao
+/*/
+method getDisplayName() as character class SC7TReportsBusinessObject
+return "Pedido Compra"
+
+/*/{Protheus.doc} getAreas
+Retorna a lista de areas do ON.
+
+@type   Method
+@return array, Lista de areas
+/*/
+method getAreas() as array class SC7TReportsBusinessObject
+return {"Compras"}
+
+/*/{Protheus.doc} getSchema
+Monta o schema do relatorio: cabecalho do pedido (SC7) e dados
+do fornecedor (SA2). O cRealName vira qualificado (tabela.campo)
+para o framework resolver o #QueryFields# em queries com join.
+
+@type   Method
+@return object, self:oSchema
+/*/
+method getSchema() as object class SC7TReportsBusinessObject
+    self:addParameter("C7_NUM",     "Numero Pedido",     "string", .F., "SC7.C7_NUM")
+    self:addParameter("C7_FORNECE", "Codigo Fornecedor", "string", .F., "SC7.C7_FORNECE")
+
+    self:addProperty("C7_NUM",     "Pedido",             "string", "Numero do Pedido",     "SC7.C7_NUM")
+    self:addProperty("C7_EMISSAO", "Emissao",            "date",   "Data de Emissao",      "SC7.C7_EMISSAO")
+    self:addProperty("C7_FORNECE", "Fornecedor",         "string", "Codigo do Fornecedor", "SC7.C7_FORNECE")
+    self:addProperty("C7_LOJA",    "Loja",               "string", "Loja do Fornecedor",   "SC7.C7_LOJA")
+
+    self:addProperty("A2_NOME",    "Razao Social",       "string", "Nome do Fornecedor",   "SA2.A2_NOME")
+    self:addProperty("A2_CGC",     "CNPJ",               "string", "CNPJ do Fornecedor",   "SA2.A2_CGC")
+    self:addProperty("A2_INSCR",   "Inscricao Estadual", "string", "Inscricao Estadual",   "SA2.A2_INSCR")
+    self:addProperty("A2_INSCRM",  "Inscricao Municipal","string", "Inscricao Municipal",  "SA2.A2_INSCRM")
+return self:oSchema
+
+/*/{Protheus.doc} getData
+Retorna os dados do Pedido de Compra com join SC7 + SA2.
+Usa #QueryFields#/#QueryWhere# na query para o framework paginar,
+filtrar e projetar conforme o schema.
+
+@type   Method
+@param  nPage,   numeric, Numero da pagina solicitada
+@param  oFilter, object,  Filtro do relatorio montado pelo SmartView
+@return object, self:oData
+/*/
+method getData(nPage as numeric, oFilter as object) class SC7TReportsBusinessObject
+    Local cQuery  as character
+    Local cFilial as character
+
+    self:setPageSize(200)
+
+    cFilial := FWxFilial("SC7")
+
+    cQuery := "SELECT #QueryFields# " +;
+              "FROM " + RetSqlName("SC7") + " SC7 " +;
+              "LEFT JOIN " + RetSqlName("SA2") + " SA2 " +;
+              " ON SC7.C7_FILIAL  = SA2.A2_FILIAL " +;
+              "AND SC7.C7_FORNECE = SA2.A2_COD " +;
+              "AND SC7.C7_LOJA    = SA2.A2_LOJA " +;
+              "AND SA2.D_E_L_E_T_ = ' ' " +;
+              "WHERE #QueryWhere# "
+
+    self:setQuery(cQuery)
+    self:setOrder("SC7.C7_NUM")
+    self:setWhere("SC7.D_E_L_E_T_ = ' ' " +;
+                  "AND SC7.C7_FILIAL = '" + cFilial + "' ")
+return self:oData

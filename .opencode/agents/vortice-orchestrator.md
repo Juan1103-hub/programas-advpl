@@ -1,7 +1,7 @@
 ---
 name: vortice-orchestrator
 description: "Orquestrador Vortice — carrega automaticamente as skills AdvPL/Protheus e delega para subagentes especializados conforme a Tabela de Roteamento."
-mode: subagent
+mode: primary
 tools:
   Read: true
   Edit: true

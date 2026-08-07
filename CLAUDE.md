@@ -2,6 +2,22 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Note**: this workspace is used with both **Claude Code** and **OpenCode**. Both tools read `AGENTS.md` (root); Claude Code prioritizes `CLAUDE.md`. Keep the two files in sync — rules live in `AGENTS.md`, this file mirrors them.
+
+---
+
+## Hierarchy of Documentation (precedence)
+
+In case of conflict between documentation files, this order wins:
+1. **User instructions** (always above any doc)
+2. `CONFIG/AGENTS.md` (SUPER SIGAEST/workspace rules — core tables, data access)
+3. Root `AGENTS.md` (code conventions, standards, checklist)
+4. `CLAUDE.md` / `DOCUMENTACAO/` (references and kits)
+5. Skills (`SKILLS/` and mirror `.opencode/skills/`)
+6. Official TDN (tdn.totvs.com) + trusted web sources
+
+> **Single source of truth for code**: the repository itself. If a doc conflicts with the real source, **code wins** — record the divergence as a finding, don't ignore it.
+
 ---
 
 ## Language and Ecosystem
@@ -40,7 +56,9 @@ Testes/Automação Protheus/<Country>/
 
 ### Type System
 
-#### AdvPL Types (optional static typing — type annotations with `as`)
+#### AdvPL Types
+
+> **Attention**: `as` does NOT exist in AdvPL — it is TLPP-only. In `.prw`, typing is via Hungarian prefix only.
 
 | Type | Indicator | Description |
 |------|-----------|-------------|
@@ -210,7 +228,8 @@ return
 
 - **Modern standard:** `#include "totvs.ch"` — consolidates all framework definitions for Protheus development
 - **For TLPP files:** Add `#include "tlpp-core.th"` as the **first include**, then `#include "totvs.ch"`
-- **NEVER use legacy obsolete includes** — all replaced by `totvs.ch`:
+- **Precedence rule**: new code and refactors use `#include "totvs.ch"`. Legacy PEs/sources already using `#include "Protheus.ch"` keep their current include (do not migrate by style-hunting; migrate only if the file is touched in a refactor). Ex.: `MT120TFR.PRW`, `MT120OK.PRW` keep `Protheus.ch`.
+- **NEVER use legacy obsolete includes in new code** — all replaced by `totvs.ch`:
 
 | Obsolete Include | Modern Class/API Replacement |
 |---|---|

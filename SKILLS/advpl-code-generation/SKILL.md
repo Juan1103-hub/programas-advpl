@@ -17,6 +17,7 @@ Patterns and templates for generating clean, standardized ADVPL and TLPP code fo
 - Implementing REST API endpoints
 - Writing entry points (pontos de entrada)
 - Creating SOAP Web Services
+- Creating SmartView Objetos de Negocio (IntegratedProvider/TLPP)
 - Any new .prw or .tlpp file creation
 
 ## Critical Rules (MANDATORY)
@@ -160,6 +161,7 @@ ErrorBlock(bErrorOld)
 | REST API | .prw or .tlpp | patterns-rest.md |
 | Ponto de Entrada | .prw | patterns-pontos-entrada.md |
 | Web Service SOAP | .prw | patterns-soap.md |
+| SmartView Objeto de Negocio | .tlpp | patterns-smartview-integratedprovider.md |
 
 ## Common Mistakes
 

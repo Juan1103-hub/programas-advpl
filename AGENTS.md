@@ -2,366 +2,264 @@
 
 ## Language and Ecosystem
 
-This workspace contains source code for **TOTVS Protheus ERP** in the **AdvPL** (`.prw`, `.prg`, `.prx`) and **TLPP** (`.tlpp`) languages, as well as automated tests in **Python** (TIR - Interface and e2e tests).
+This workspace contains source code for **TOTVS Protheus ERP** in the **AdvPL** (`.prw`, `.prg`, `.prx`, `.ppx`) and **TLPP** (`.tlpp`) languages, plus automated tests in **Python** (TIR — interface/e2e via Webapp).
 
-> **Default language**: All interactions, documentation, comments, commit messages, and reviews must be in **Brazilian Portuguese**, except for code identifiers (variable names, functions, classes) that follow technical conventions in English/Protheus abbreviations.
+Foco do cliente: **Vortice Consultoria Mineral** — módulo **Suprimentos/Compras** (SC7 tomadas centrais) sobre **Protheus 12**, build `7.00.240223P`, banco SQL Server.
+
+> **Idioma padrão**: todas as interações, documentação, comentários, mensagens de commit e revisões em **português brasileiro**; identificadores seguem convenção técnica (inglês/abreviaturas Protheus).
+
+## Hierarchy of Documentation (precedência)
+
+Em caso de conflito entre arquivos de documentação, vale nesta ordem:
+1. **Instruções do usuário** (sempre acima de qualquer doc)
+2. `CONFIG/AGENTS.md` (SUPER-regras SIGAEST/workspace — tabelas core, acesso a dados)
+3. Este `AGENTS.md` (raiz — convenções de código, padrões, checklist)
+4. `CLAUDE.md` / `DOCUMENTACAO/` (referências e kits)
+5. Skills (`SKILLS/` e espelho `.opencode/skills/`)
+6. TDN oficial (tdn.totvs.com) + fontes web confiáveis
+
+> **Fonte de verdade única de código**: o próprio repositório. Se doc conflita com fonte real, o **código vence** — registrar a divergência como achado, não ignorar.
+
+> **[PENDENTE] OpenSpec**: referências a `openspec` e comandos `opsx-*` removidos de `opencode.json` (não usados). Se necessário no futuro, reavaliar e documentar aqui.
 
 ---
 
-## Project Structure
+## Project Structure (real)
 
 ```
-Fontes_Doc/Master/Fontes/   → Main source code (~60+ business modules)
-  ├── <Module>/              → E.g.: Financeiro/, Compras/, Faturamento/
-  │   └── *.prw, *.tlpp     → Module sources
-  ├── *.PRJ                  → Build manifests (source lists per module)
-  └── Rdmake Padrao/         → RDMake compiler
-Testes/Automação Protheus/<Country>/
-  ├── <MODULE>/Scripts Web/  → TIR tests (Python) — end-to-end via Webapp
-  └── <MODULE>/Dados/        → Test data
-.agents/skills/   → AI agent skills for code generation, refactoring, documentation, tests, etc.
+PROGRAMAS_ADVPL/                   # raiz deste workspace
+├── FONTES/              # fontes principais (62): MT*/MTA* (Entry Points), Z* (custom),
+│                        #   CAD* (cadastros), VO*/V* (Vortice), *.tlpp (TLPP moderno), PE*
+│   │                    #   nome arquivo = nome do PE. Ex.: MTA110OK.PRW, MT110TOK.PRW
+├── INCLUDES/            # includes binários (_binary_class.prw, _binary_functions.prw)
+├── PATCHES/
+│   ├── PATCH/           # patch original (~13 fontes)
+│   └── PATCH_01/        # MT110TOK + custom25-06-2026.ptm
+├── SKILLS/              # skills locais do repo (cada <nome>/SKILL.md) — catálogo em skills-registry.json
+├── DOCUMENTACAO/        # CLAUDE-SKILLS-REF.md, CLAUDE-SOLUTION-PATTERNS.md, listas (*.txt)
+├── CONFIG/              # configuração do workspace:
+│   ├── servers.json     # AppServer TOTVS (conexão/compilação)
+│   ├── references_sonarqube-rules-reference.md        # regras SonarQube G1–G5 (AUTORMENTE)
+│   ├── references_advpl-tlpp-skills-reference.md      # catálogo completo de skills
+│   ├── AGENTS.md        # SUPER-regras SIGAEST/workspace (ver abaixo)
+│   ├── tir/             # scripts TIR (testes python)
+│   ├── .vscode/         # settings.json, launch.json, snippets
+│   └── .advpl/          # includes AdvPL
+├── opencode.json        # configuração principal OpenCode (default_agent: vortice-orchestrator)
+├── .opencode/           # agents/, skills/ (espelho), memory.md
+└── .vscode/             # settings.json, launch.json, snippets (projeto)
 ```
+
+Skills de agentes também existem (espelhadas) em `.opencode/skills/`. Nunca assumir skill sem localizá-la em `SKILLS/`, `.opencode/skills/` ou nas skills globais do OpenCode.
+
+> **ORIENTAÇÃO**: Leia `CONFIG/AGENTS.md` (regras de workspace SIGAEST) antes de tocar em tabelas core — inclui regras de acesso a dados, `GetArea()/RestArea()`, `xFilial()`, `RecLock` SÓ em tabelas `Z*`, `MSExecAuto` para tables core, e histórico de workarounds (SXB/ZZ4/FWBrowse). Doc não substitui o trade.
+
+---
+
+## Build and Compilation
+
+- **Compilador**: RDMake (TOTVS) via extensão **TOTVS Language Server** (tds-vscode) no VS Code, ou headless via CLI `advpls.exe` (skill `advpl-tds-ls`).
+- **Servidor**: AppServer TOTVS `CINVJ6_DEV` (`vortice192877.protheus.cloudtotvs.com.br:10771`, build `7.00.240223P`), config em `CONFIG/servers.json`.
+- **Includes do compilador**: `C:\totvs\includes` (definido em servers.json e `.vscode/settings.json`).
+- **Workflow pós-geração obrigatório**:
+  1. Gerar código (cria UTF-8)
+  2. Converter **UTF-8 → CP-1252** (skill `utf8-to-cp1252-conversion`) — o RDMake ignora/corrompe UTF-8
+  3. Compilar contra o AppServer (skill `advpl-tlpp-compile`)
+  4. Code review (`advpl-code-review` / `code-review`)
+- `.PRJ` aponta fontes por módulo (não há Makefile/Gradle); output `.O` no RPO.
 
 ---
 
 ## Code Conventions
 
 ### Naming
-
-- **Mandatory Hungarian notation**: `c` (character), `n` (numeric), `l` (logical), `a` (array), `o` (object), `d` (date), `b` (codeblock), `x` (variant), `j` (json)
-- **Source file names**: Module prefix (4 chars) + number (3 digits) — e.g.: `MATA010`, `FINA138`, `ATFA002`
-- **Table fields**: Table prefix (2-3 chars) + `_` + name — e.g.: `A1_COD`, `E1_FILIAL`
-- **Tables**: Alias (2-3 chars) — e.g.: `SA1` (customers), `SE1` (accounts receivable), `SD1` (purchase invoice items)
-- **Multilingual constants**: `STR0001` to `STR9999` defined in `.ch`
+- **Notação húngara obrigatória**: `c` (char), `n` (num), `d` (date), `l` (logical), `a` (array), `o` (object), `b` (codeblock), `x` (variat), `j` (json)
+- **Arquivos fonte**: prefixo módulo (4 letras) + número (3 dígitos) — ex.: `MATA010`, `FINA138`; fontes Z* e VO* não seguem.
+- **Campos de tabela**: prefixo tabela (2-3 letras) + `_` + nome — ex.: `A1_COD`, `C7_QUANT`.
+- **Convenções deste repo** (README): `MT*`/`MTA*` = PE de rotinas MATA*, `Z*` = custom, `CAD*` = cadastro, `V*`/`VO*` = Ventice.
 
 ### Type System
 
-#### AdvPL Types (optional static typing — type annotations with `as`)
+#### AdvPL Types
+> **Atenção**: `as` NÃO existe em AdvPL — é exclusivo de TLPP. Em `.prw`, tipagem é apenas por prefixo húngaro.
+| Type | Indicator | Descrição |
+|------|-----------|-----------|
+| Character (C) | `C` | strings até 65.535 chars (64 KB). Delimitadores `" "` ou `' '` |
+| Memo (M) | `M` | como Character, tamanho livre; armazenado em dados (SYP) |
+| Numeric (N) | `N` | ponto flutuante; precisão 15 dígitos |
+| Logical (L) | `L` | `.T.`/`.Y.` (true), `.F.`/`.N.` (false) |
+| Date (D) | `D` | datas em juliano interno |
+| Fixed Size Decimal (F) | `F` | decimais de tamanho fixo, alta precisão |
+| Array (A) | `A` | arrays multidimensionais |
+| Code Block (B) | `B` | código executável armazenável |
+| Undefined (U) | `U` | tipo indefinido (NIL) |
+| Object (O) | `O` | instâncias de classes |
 
-| Type | Indicator | Description |
-|------|-----------|-------------|
-| Character (C) | `C` | Character strings from 0 to 65,535 characters (64 KB). Delimiters: `" "` or `' '` |
-| Memo (M) | `M` | Equivalent to Character but with no defined size. Stored in data files (SYP) |
-| Numeric (N) | `N` | Floating-point numeric values (integer and fractional). Guaranteed precision of 15 digits |
-| Logical (L) | `L` | Logical values: `.T.` or `.Y.` (true), `.F.` or `.N.` (false) |
-| Date (D) | `D` | Dates stored internally as Julian date |
-| Fixed Size Decimal (F) | `F` | Fixed-size decimals for high precision |
-| Array (A) | `A` | N-dimensional array of values |
-| Code Block (B) | `B` | Executable code block that can be stored in variables |
-| Undefined (U) | `U` | Undefined type (NIL) |
-| Object (O) | `O` | Class objects |
+### TLPP Types (typing estático — anotações com `as`)
+| Tipo | Indicador | Default | Descrição |
+|------|-----------|---------|-----------|
+| `numeric` | `N` | `0` | ponto flutuante |
+| `integer` | `N` | `0` | inteiro (contadores, loops) |
+| `decimal` | `F` | `Nil` | alta precisão — **dinheiro** |
+| `character` | `C` | `""` | texto |
+| `logical` | `L` | `.F.` | `.T.`/`.F.` |
+| `date` | `D` | `31/12/1899` | datas |
+| `json` | `J` | `Nil` | JSON |
+| `array` | `A` | `Nil` | arrays |
+| `object` | `O` | `Nil` | classes |
+| `codeblock` | `B` | `Nil` | code blocks |
+| `variant` | `U` | `Nil` | autopolimórfico |
+| `variadic` | `J` | `-` | parâmetros de comprimento variável (não instanciável) |
 
-#### TLPP Types (static typing — type annotations with `as`)
-
-| Type | Indicator | Default Value | Description |
-|------|-----------|---------------|-------------|
-| `numeric` | `N` | `0` | Floating-point numeric values, positive or negative. Default numeric type |
-| `integer` | `N` | `0` | Integer numeric values, positive or negative. Ideal for counters and loops |
-| `double` | `N` | `0` | Floating-point numeric values, positive or negative |
-| `decimal` | `F` | `Nil` | High-precision numeric values, essential for monetary calculations |
-| `character` | `C` | `""` | Text values (alphanumeric, punctuation, special characters) |
-| `logical` | `L` | `.F.` | Logical values: true (`.T.`) or false (`.F.`) |
-| `date` | `D` | `31/12/1899` | Date storage |
-| `array` | `A` | `Nil` | N-dimensional array of values |
-| `object` | `O` | `Nil` | Interface or class objects |
-| `json` | `J` | `Nil` | JSON objects |
-| `codeblock` | `B` | `Nil` | Executable code blocks |
-| `variant` | `U` | `Nil` | Variant and self-polymorphic type, can assume any available type |
-| `variadic` | `J` | `-` | Used in function declarations for variable-length parameters (cannot instantiate variable) |
-
-#### Key Differences
-
-| Aspect | AdvPL | TLPP |
-|--------|-------|------|
-| Typing | Dynamic or optional static (not strongly typed) | Static (strongly typed) |
-| Numeric Types | Only `numeric` | `numeric`, `integer`, `double`, `decimal` |
-| Special Types | — | `json`, `variant`, `variadic` |
-| Initialization | `Nil` by default | Automatic default values |
-| Nil Comparison | Allowed | Restricted (`numeric`, `character`, `date`) |
-
-#### Variable Declaration Syntax (TLPP)
-
+#### TLPP — declaração de variável
 ```tlpp
-// CORRECT: assignment BEFORE type annotation
-Local cName   := "" as Character
-Local nTotal  := 0  as Numeric
-Local lFound  := .F. as Logical
-Local aItems  := {} as Array
-Local oModel  as Object          // without assignment is also valid
-
-// WRONG: type annotation BEFORE assignment
-Local cName as Character := ""   // does not compile
-
-// WRONG: invalid type names
-Local cName as String            // use Character
-Local nVal  as Number            // use Numeric
-Local lOk   as Boolean           // use Logical
+// CERTA'?  atrás do tipo
+Local cName  := "" as Character
+Local nTotal := 0  as Numeric
+Local oModel as Object          // sem atribuição — válido
+// ERRADO: 'as' antes da atribuição — não compila
+Local cX as Character := ""     // não compila
 ```
 
-Every function or method **must** follow this order, without exception:
-
+#### Ordem obrigatória em toda função/método
 ```advpl
-User Function MyFunction()     // 1. header
-    Local  cVar := ""          // 2. Local  variables (all here)
-    Private cPriv := ""        // 3. Private variables (all here)
-    // executable code          // 4. logic
-Return xValue                  // 5. Return
+User Function MyFunction()      // 1. cabeçalho
+    Local  cVar := ""           // 2. todos os Local
+    Private cPriv := ""         // 3. todos os Private (logo após)
+    // ... código               // 4. lógica
+Return xValue                   // 5. Return
 ```
+Nunca declarar `Local`/`Private` no meio do fluxo (dentro de `If`, `For`, após chamada).
 
-- **All** `Local` declarations come before any executable line of code.
-- **All** `Private` declarations come right after the `Local` ones, still before the code.
-- Never declare `Local` or `Private` in the middle of the flow (inside `If`, `For`, after a function call, etc.).
-
-#### Class & Method Syntax Rules (AdvPL/TLPP)
-
-AdvPL/TLPP has a **two-part** class structure: the **declaration** (inside `class`/`endclass`) and the **implementation** (outside, after `endclass`). The syntax rules differ between these two parts and are unique compared to other languages (Java, C#, TypeScript).
-
-**Key rule**: Method **implementations** NEVER carry access modifiers (`public`, `private`, `protected`) or the `static` keyword. These modifiers are **ONLY** used in the class **declaration** block. The implementation always uses bare `method` followed by the method name, parameters, optional return type, and `class ClassName`.
-
+#### Classes (AdvPL/TLPP estrutura em duas partes)
+- Declaração dentro de `class`/`endclass` **tem** modificadores de acesso (`public`, `private`, `protected`, `static`).
+- Implementação (fora `endclass`) **nunca** tem modificador nem `static` — apenas `method`, nome, parâmetros, retorno e `class Classe`.
 ```tlpp
-// ═══════════════════════════════════════════════════════════════
-// CORRECT: declaration with modifiers, implementation WITHOUT
-// ═══════════════════════════════════════════════════════════════
-class MyClass
-    public method new() as object            // declaration: has "public"
-    public method calculate() as numeric     // declaration: has "public"
-    private method validate() as logical     // declaration: has "private"
-    static method callback()                 // declaration: has "static"
-    private data nValue as numeric            // declaration: has "private"
+class MinhaClasse
+    public method new() as object
+    private method valida() as logical
+    private data nVal as numeric
 endclass
 
-method new() as object class MyClass         // implementation: just "method" — NO "public"
+method new() as object class MinhaClasse
 return self
 
-method calculate() as numeric class MyClass  // implementation: just "method" — NO "public"
-return ::nValue * 2
-
-method validate() as logical class MyClass   // implementation: just "method" — NO "private"
-return ::nValue > 0
-
-method callback() class MyClass              // implementation: just "method" — NO "static"
-return
+method valida() as logical class MinhaClasse
+return ::nVal > 0
 ```
+- Herança usa **`from`** (não `extends`/`inherits`/`of`).
+- Construtor de classe filha chama `_Super:new()`.
+- `static method` — na declaração aceita apenas `()` vazio (sem params/retorno); params e retorno vão SÓ na implementação.
 
-```tlpp
-// ═══════════════════════════════════════════════════════════════
-// WRONG: access modifiers or static in the implementation
-// ═══════════════════════════════════════════════════════════════
-public method new() as object class MyClass    // WRONG: "public" before method
-private method validate() class MyClass        // WRONG: "private" before method
-static method callback() class MyClass         // WRONG: "static" before method
-protected method process() class MyClass       // WRONG: "protected" before method
-```
-
-**Inheritance uses `from` (not `extends`, `inherits`, or `of`)**:
-
-```tlpp
-// CORRECT:
-class ChildClass from ParentClass
-
-// WRONG:
-class ChildClass extends ParentClass    // does not compile
-class ChildClass of ParentClass         // wrong keyword
-```
-
-**Constructor pattern** — always call `_Super:new()` for inherited classes:
-
-```tlpp
-method new() as object class ChildClass
-_Super:new()       // call parent constructor
-return self
-```
-
-**`static method` declaration syntax** — Inside the class body, `static method` accepts **only the method name with empty `()`** — no parameters, no return type annotation. Both parameters and typed return go **exclusively in the implementation** (outside `endclass`). This is a declaration-block restriction only; the implementation IS allowed to have both:
-
-> **Common misconception**: "If I need parameters, I must use `public method`" — this is **WRONG**. `static method` CAN have parameters and return types; they are declared only in the implementation, not in the class body.
-
-```tlpp
-// ═══════════════════════════════════════════════════════════════
-// WRONG: parameters or return type in static method declaration
-// ═══════════════════════════════════════════════════════════════
-class View
-    static method showConsulta(cFilial as character, cCod as character)   // WRONG — parameters forbidden in the declaration
-    static method showCopia(cFilial as character, cCod as character)      // WRONG
-endclass
-
-// ═══════════════════════════════════════════════════════════════
-// CORRECT: empty () in declaration; params and return type in implementation
-// ═══════════════════════════════════════════════════════════════
-class View
-    static method showConsulta()   // CORRECT — only empty () in the declaration
-    static method showCopia()      // CORRECT
-endclass
-
-method showConsulta(cFilial as character, cCod as character) class View   // parameters ONLY here
-return
-
-method showCopia(cFilial as character, cCod as character) class View      // parameters ONLY here
-return
-```
-
-> **Source**: Official TOTVS TDN documentation — "Estrutura" (pageId 821588162), "Método Estático" (pageId 334341656), "Declaração de herança" (pageId 822220426).
+> Fonte: TDN TOTVS (TDN pageId 821588162 / 334341656 / 822220426).
 
 ### Include Files
+- Padrão moderno: `#include "totvs.ch"`.
+- TLPP: `#include "tlpp-core.th"` **primeiro**, depois `totvs.ch`.
+- **Regra de precedência**: códigos novos e refactors usam `#include "totvs.ch"`. PE/fontes legados que já usam `#include "Protheus.ch"` **mantêm** o include atual (não migrar por caça ao estilo; migrar apenas se o arquivo for tocado em refactor). Ex.: `MT120TFR.PRW`, `MT120OK.PRW` continuam `Protheus.ch`.
+- NÃO use includes obsoletos em código novo: `protheus.ch`, `Ap5Mail.ch`, `ApWizard.ch`, `FileIO.ch`, `Font.ch`, `ParmType.ch`, `RWMake.ch` (substituídos por apis modernas em `totvs.ch`).
 
-- **Modern standard:** `#include "totvs.ch"` — consolidates all framework definitions for Protheus development
-- **For TLPP files:** Add `#include "tlpp-core.th"` as the **first include**, then `#include "totvs.ch"`
-- **NEVER use legacy obsolete includes** — all replaced by `totvs.ch`:
-
-| Obsolete Include | Modern Class/API Replacement |
-|---|---|
-| `protheus.ch` | — (all definitions consolidated in `totvs.ch`) |
-| `Ap5Mail.ch` | `TMailMessage()` |
-| `ApWizard.ch` | `FWWizardControl()` |
-| `FileIO.ch` | `FWFileWriter()` / `FWFileReader()` |
-| `Font.ch` | `TFont()` |
-| `ParmType.ch` | `Default` prefix for parameter handling |
-| `RWMake.ch` | — (legacy compatibility only) |
-
-### Mandatory Standards
-
-- Always filter `D_E_L_E_T_ = ' '` in SQL queries (Protheus soft-delete)
-- Always filter by branch: `XX_FILIAL = xFilial('XXX')` or equivalent
-- Use `FWExecStatement` or `ChangeQuery()` for SQL injection prevention
-- Use `RetSqlName()` to get the physical table name (e.g.: `SA1010`)
-- Add `%nolock%` in read queries to avoid unnecessary locks
-- Never call `GetMV()`, `SuperGetMV()`, `ExistBlock()`, `Type()`, or `Pergunte()` inside loops
-- **`Function` is forbidden**: Customizations **MUST NOT** use `Function` (public scope) — **ALWAYS** use `User Function` (prefix `U_`) or `Static Function` (file-private). The standard RPO reserves the `Function` scope for the product; customizations must use `User Function` for public routines and `Static Function` for file-internal helper functions.
-- **Entry Points — `U_` prefix forbidden in the function name**: When declaring an Entry Point, **NEVER** add the `U_` prefix to the function name in the source code. The declared name must match **exactly** the EP name defined by the standard routine (e.g., `User Function MT410INC()`, **never** `User Function U_MT410INC()`). The compiler resolves the `U_` prefix automatically at runtime via `ExistBlock()`; declaring it with `U_` prevents the EP from being located by the standard routine.
-- **Entry Points — file name must match the EP name (mandatory)**: Every file implementing an Entry Point **MUST** have a file name equal to the Entry Point name, in uppercase, with the appropriate extension (`.prw` for AdvPL, `.tlpp` for TLPP). Examples: `MT410INC.tlpp`, `FA080BUT.tlpp`, `A010TOK.prw`. **DO NOT** use namespaces or prefixes/suffixes in the file name (e.g., no `custom.sigafat.pedidovenda.mt410inc.tlpp`).
-- **File encoding**: All AdvPL/TLPP source files (`.prw`, `.prg`, `.prx`, `.tlpp`, `.ch`, `.aph`) **MUST** use **CP-1252 (Windows-1252)** encoding — **NEVER** UTF-8 or any other encoding. The RDMake/AppServer compiler expects Windows-1252; accented and special characters will be corrupted in UTF-8
-- **Object destruction**: ALWAYS use the class's `Destroy()` method to destroy the instantiated object and free memory, whenever this method is available in the class. **NEVER** use `FwFreeObj()`, `FreeObj()`, or `FwFreeArray()` as a substitute when the class provides `Destroy()`. The `Destroy()` method ensures correct release of the object's internal resources, whereas generic functions may not perform a complete cleanup
-- **`IIF` is forbidden**: Never use `IIF()` or `IF()` inline expressions — always use explicit `If/Else/EndIf` blocks for readability and testability (SonarQube CA4000)
-- **No UI inside transactions**: Never call `MsgAlert()`, `MsgYesNo()`, `MsgInfo()`, `Aviso()`, `Help()`, `Pergunte()`, or `ParamBox()` inside `Begin Transaction / End Transaction` blocks — UI calls block multi-user scenarios and can deadlock (SonarQube CA1002)
-- **No ISAM drivers**: Never use `MSCREATE()`, `DBCREATE()`, or `CRIATRAB()` — use `FWTemporaryTable` instead; ISAM drivers are prohibited in Cloud/SmartERP environments (SonarQube CA1000)
-- **No console output**: Never use `ConOut()`, `OutErr()`, or `?` for logging — always use `FWLogMsg()` (SonarQube CA1004)
-- **`cFilial` is forbidden**: Never use the variable `cFilial` directly — it is a reserved system variable. Use variations like `cFilAux`, `cFilBkp`, `cFilSA1`, etc., or obtain the branch value via `xFilial('XXX')` or `FWxFilial('XXX')`
-- **REST API consumption MUST use `FWRest`**: All code that **consumes** external REST APIs (HTTP client) **MUST** use the framework class `FWRest`. **NEVER** use legacy functions `HTTPCGet()`, `HTTPCPost()`, or `HTTPQuote()` for new code — these are only acceptable for workstation-side calls that require WebAgent, or when PATCH is needed (FWRest does not support PATCH). The `FWRest` client provides SSL encapsulation, standardized header handling, timeout control (`SetTimeOut`), HTTP code inspection (`GetHTTPCode`), and 2xx-range success detection (`SetLegacySuccess(.F.)`). Secrets MUST be read from `GetMV()` parameters — never hardcoded. See the `fwrest-client-generator` skill for templates and authentication patterns (Basic, Bearer/JWT, OAuth 2.0). Note: `FWRest` is the **client** (consumer). For **exposing** endpoints from Protheus, use the annotation-based REST framework (`@Get`, `@Post`, `@Put`, `@Patch`, `@Delete`) — see the `tlpp-rest-endpoint-generator` skill
+### Mandatory Standards (SonarQube + TOTVS)
+- SQL: sempre `D_E_L_E_T_ = ' '` (soft-delete), filtro por filial `XX_FILIAL = xFilial('XXX')`, `FWExecStatement`/`ChangeQuery()` (anti-injection), `RetSqlName()` na tabela física, `%nolock%` em leitura.
+- Nunca chamar `GetMV()`, `SuperGetMV()`, `ExistBlock()`, `Type()`, `Pergunte()` dentro de loop.
+- **`Function` proibido** em customização — use `User Function` (público) ou `Static Function` (interno ao arquivo). Escopo `Function` é reservado ao produto.
+- **Entry Points**: nome NÃO tem prefixo `U_` (`User Function MT410INC()`, nunca `U_MT410INC()`). Nome do arquivo = nome do PE, maiúsculo (ex.: `MT410INC.tlpp`, `A010TOK.prw`).
+- **Encoding**: arquivos `.prw/.prg/.prx/.tlpp/.ch/.aph` em **CP-1252** — nunca UTF-8.
+- **Destruição**: use `Destroy()` da própria class; nunca `FwFetchObj()`/`FreeObj()`/`FwFreeArray()` se a class tem `Destroy()`.
+- **`IIF` proibido** — use `If/Else/EndIf` explícito (SonarQube CA4000).
+- **Sem UI dentro de transação** (`MsgAlert`, `MsgYesNo`, `Aviso`, `Help`, `Pergunte`...) — deadlock multi-user (CA1002).
+- **No ISAM/`MSCREATE`/`DBCREATE`/`CRIATRAB`** — use `FWTemporaryTable` (CA1000).
+- **Sem `ConOut()`/`OutErr()`/`?`** — use `FWLogMsg()` (CA1004).
+- **Nunca use variável `cFilial` direta** (reservada) — use `cFilAux`, ou `xFilial('XXX')`/`FWxFilial('XXX')`.
+- **REST client externo** — sempre via `FWRest`. Proibido `HTTPCGet/HTTPCPost/HTTPQuote` para novo código (exceto workstation+WebAgent ou PATCH, que FWRest não suporta). Secrets de `GetMV()`, nunca hardcode.
 
 ### MVC Pattern
+`MenuDef()` → `ModelDef()` (FWFormModel) → `ViewDef()` (FWFormView) → `BrowseDef()`. Modelo 1 (única entidade) e Modelo 3 (mestre-detate).
 
-The Protheus MVC framework follows: `MenuDef()` → `ModelDef()` → `ViewDef()` → `BrowseDef()`
-- `ModelDef` returns `FWFormModel` (business rules)
-- `ViewDef` returns `FWFormView` (visual layout)
-- Model 1 pattern (single entity) and Model 3 (master-detail)
-
-### Modern TLPP (preferred for new code)
-
-- Use namespaces, type annotations, Try-Catch
-- `.tlpp` extension mandatory with `#include "tlpp-core.th"` or exclusive TLPP features
-- REST via annotations: `@Get`, `@Post`, `@Put`, `@Patch`, `@Delete`
-- **`using namespace` required**: In `.tlpp` files, always declare `using namespace` at the top of the file to import framework namespaces. **NEVER** use fully qualified namespace prefixes before each class in the code. Example:
-
-```tlpp
-// CORRECT: declare using namespace and use the class directly
-using namespace totvs.framework.structure.interface
-
-::oInterface := BuildContract():new("MATA010")
-```
-
-```tlpp
-// WRONG: fully qualified namespace on the call
-::oInterface := totvs.framework.structure.interface.BuildContract():new("MATA010")
-```
+### Modern TLPP (preferido p/ códigos novos)
+- `using namespace` obrigatório no topo de `.tlpp`; nunca namespace fully qualified no call.
+- Tipagem estática, Try-Catch, REST por anotação (`@Get`, `@Post`, `@Put`, `@Patch`, `@Delete`).
 
 ---
 
 ## SonarQube AdvPL/TLPP Compliance
 
-**All** implementation, refactoring, code review, optimization, and improvement activities **MUST** comply with the SonarQube rules for AdvPL/TLPP. This applies to any code generated, modified, or reviewed — no exceptions.
+Todas as atividades de implementação, refatoração, review e otimização **devem** atender às regras SonarQube para AdvPL/TLPP (sem excessões).
 
-- **Code generation**: Must not introduce CRITICAL or MAJOR violations. INFO-level security rules (CA2050, CA2051, CA2052) are also mandatory.
-- **Code review**: Explicitly check for violations and flag them with the rule ID (e.g., `CA2050 — SQL Injection`).
-- **Refactoring**: Fix violations found in modified lines/functions. Never introduce new ones.
-- **Optimization**: Respect performance rules (G2). Never use prohibited APIs or bypass framework abstractions.
+- **Geração**: sem violação CRITICAL/MAJOR; INFO é obrigatória (CA2050 SQL Injection, CA2051, CA2052).
+- **Review**: apontar explicitamente violação com o ID da regra (ex.: `CA2050 — SQL Injection`).
+- **Refactor**: corrigir violações das linhas tocadas; nunca introduzir novas.
+- **Otimização**: respeitar regras de performance (G2); não usar API proibida.
 
-> **Full rules reference** (G1–G5: Security, Performance, Legacy/Deprecated, Metadata Access, Compilation): read [.agents/skills/references/sonarqube-rules-reference.md](.agents/skills/references/sonarqube-rules-reference.md) or [.agents/skills/references/sonarqube-rules-reference.md](.agents/skills/references/sonarqube-rules-reference.md) before generating or reviewing code.
-
----
-
-## API Symbol Validation (Mandatory)
-
-Before generating, migrating, or refactoring code, the agent MUST validate that **every class, method, function, namespace, and parameter signature referenced in the output truly exists** in the target framework/version. This rule is generic and applies to AdvPL, TLPP, MVC, REST, ExecAuto, and any other API used in the project.
-
-The most common cause of `Cannot find method ...` and `Class not found ...` runtime errors is reusing a symbol name from one framework (e.g. legacy MVC `FWFormModel`/`FWFormView`/`FWMBrowse`) under the assumption that an equivalent exists in another. Symbols must NEVER be inferred from internal model knowledge.
-
-Validation procedure:
-
-1. **Identify every external symbol** in the planned code: classes (`FWFormModel`, ...), methods (`getOperation`, ...), functions (`xFilial`, `RetSqlName`, `FwAliasInDic`, ...), and global namespaces.
-2. **Lookup each symbol** in the official TOTVS documentation (TDN — tdn.totvs.com) or in the actual codebase before writing the call. Confirm signatures and patterns through real usage examples when documentation is ambiguous.
-3. **Skill references and code examples are also authoritative**: a symbol is considered valid if it appears in the body, templates, or code examples of any `.agents/skills/**/references/*.md` or `.agents/skills/**/SKILL.md` file. Some real framework APIs are undocumented on TDN but are demonstrated in skill references and used by production code; treat skill references and codebase examples as complementary sources.
-4. **Reject symbols not found in official documentation, codebase, or skill references**. If no documented alternative exists, document the gap (see Completeness Verification §1) instead of inventing a call.
-5. **Validate the full signature** (parameter order, types, default values, return type) against the documented contract or skill example. Do not assume parameters are optional unless the source states so.
-6. **Validate execution context**: a method that exists may still be invalid in the chosen context. Confirm the lifecycle in the documentation or in the skill reference.
-7. **For migrations**, never assume a legacy symbol was ported under the same name into the new framework. Each symbol used in the migrated output must be independently validated against the **target** framework's documentation or skill references, not the source framework's.
-
-This validation runs **before** code generation, complementing the post-task Completeness Verification below.
+> **Referência completa (G1–G5)**: `CONFIG/references_sonarqube-rules-reference.md` — leia antes de gerar/revisar código.
 
 ---
 
-## Completeness Verification (Mandatory)
+## API Symbol Validation (Obrigatório)
 
-After any **code generation, migration, or refactoring** task, the agent MUST perform a completeness verification step before declaring the task finished. This rule is generic and applies to all skills and agents.
+Antes de gerar/migrar/refatorar código, validar que **todo** símbolo externo (class, method, function, namespace, parâmetros) existe de fato no framework/versão alvo.
 
-1. **Mandatory gap analysis**: Compare item by item ALL features of the original code (or requirements) with the generated/migrated code. Explicitly list each feature as: ✅ migrated, ⚠️ not-migratable (with documented justification referencing framework limitation), or 🔄 preserved in legacy layer.
-2. **No behavior may be silently omitted**: If a feature from the original code was not migrated, there MUST be an explicit justification referencing the documentation or technical limitation that prevents the migration. "I forgot" or "I assumed the framework handles it" are NOT valid justifications.
-3. **Conditional logic MUST be replicated**: Access checks (`VerifyAccess`, `MPUserHasAccess`), parameters (`SuperGetMv`), table access mode (`FWModeAccess`), table existence (`FwAliasInDic`), module (`nModulo`), country (`cPaisLoc`), and feature flags (`FindFunction`) are NEVER handled automatically by frameworks — they MUST be explicitly coded.
-4. **Present the gap analysis to the user** before considering the task complete. The user must be able to validate that nothing was left out.
+- Fonte de verdade para validar (em ordem): código existente → skill files (o corpo/templates/exemplos de `SKILLS/**/SKILL.md` e `SKILLS/**/references/**`) → `AGENTS.md`/`CLAUDE.md` → TDN (tdn.totvs.com) → web confiável → **perguntar ao usuário** (nunca inventar).
+- Símbolos NÃO encontrados na doc, codebase ou skill → NÃO inventar; documentar o gap.
+- Validar também a **assinatura completa** (ordem de parâmetros, tipos, retorno) e o **contexto de execução** (ciclo de vida).
+- Migração: validar cada símbolo no framework **alvo**, nunca assumir portagem com mesmo nome.
 
 ---
 
-## Build and Compilation
+## Completeness Verification (Obrigatório)
 
-- **Compiler**: RDMake (TOTVS proprietary) via TOTVS Language Server in VS Code
-- **Manifests**: `.PRJ` files list sources for each module (no Makefile/Gradle)
-- **Output**: `.O` files (compiled objects) in the RPO (Protheus Object Repository)
+Depois de qualquer **geração, migração ou refactor**, antes de considerar concluído:
+
+1. **Gap analysis**: comparar item-a-item features originais vs migradas — lista explícita: ✅ migrado, ⚠️ não-migrável (justificativa da limitação framework), 🔄 preservado na layer legado.
+2. **Nunca omitir comportamento em silêncio**. "Esqueci" ou "assumi que o framework cuida" NÃO são justificativas.
+3. **Lógica condicional deve ser replicada**: `VerifyAccess`, `MPUserHasAccess`, `SuperGetMV`, `FWModeAccess`, `FwAliasInDic`, `nModulo`, `cPaisLoc`, `FindFunction` — nada disso é automático, precisa estar explícito.
+4. Apresentar o gap analysis ao usuário antes de declarar o fim da tarefa.
 
 ---
 
 ## Tests
 
-| Type | Framework | Language | Usage |
-|------|-----------|----------|-------|
-| **TIR** | `tir.Webapp` | Python (`.py`) | End-to-end via SmartClient/Webapp (CRUD, grids, reports) |
-
-- TIR: `unittest.TestCase` with `setUpClass()`, `test_CTNNN()`, `tearDownClass()`
+- **TIR** (e2e Webapp/SmartClient): Python `unittest.TestCase` com `setUpClass()`, `test_CTNNN()`, `tearDownClass()`. Scripts deste repo ficam em `CONFIG/tir/`. Gerar usando `tir-test-generator`.
+- **Testes unitários**: ProBat para TLPP (`probat-testing`).
+- Verificação de dados para código: validar via **APSDU** antes de hardcoding (ver `CONFIG/AGENTS.md`) — nunca assumir campo/valor inexistente.
 
 ---
 
-## Available Agent Skills
+## Skills disponíveis
 
-See [.agents/skills/references-skills-reference.md](.agents/skills/references-skills-reference.md) or [.agents/skills/references-skills-reference.md](.agents/skills/references-skills-reference.md) for the full catalog. Summary:
+- Catálogo completo: `DOCUMENTACAO/CLAUDE-SKILLS-REF.md`, `CONFIG/references_advpl-tlpp-skills-reference.md` e `skills-registry.json`.
+- Skills com contexto: catálogo (resumo):
+  | Categoria | Skills |
+  |---|---|
+  | SDD | `advpl-tlpp-sdd` |
+  | Migração | `advpl-to-tlpp-migration` |
+  | Qualidade | `code-review`, `advpl-code-review`, `sql-code-review`, `anon...` |
+  | Testes | `tir-test-generator`, `tir-setup-and-best-practices` |
+  | Compilação | `advpl-tlpp-compile`, `advpl-tds-ls` |
+  | Documentação/Plano | `documentation-writer`, `context-concept`, `create-implementation-plan`, `data-dictionary-lookup`, `entry-point-designer`, `mvc-generator`, `query-builder`, `fwrest-client-generator`, `tlpp-rest-endpoint-generator` |
+  | Encoding | `utf8-to-cp1252-conversion` |
+  | Vária | `changelog-patterns`, `sx-configuration`, `sql-safe`, `sql-optimization`, `advpl-tela-consulta`, `advpl-debugging`, `advpl-protheus`, `advpl-empresa` |
 
-| Category | Skills |
-|----------|--------|
-| **Code Generation** | `mvc-generator`, `tlpp-rest-endpoint-generator`, `entry-point-designer`, `query-builder` |
-| **Migration** | `advpl-to-tlpp-migration` |
-| **Quality** | `code-review`, `sql-code-review`, `refactor`, `refactor-method-complexity-reduce`, `sql-optimization` |
-| **Tests** | `tir-test-generator` |
-| **Build & Compilation** | `advpl-tlpp-compile` |
-| **Documentation & Planning** | `documentation-writer`, `context-map`, `create-implementation-plan`, `data-dictionary-lookup`, `advpl-tlpp-sdd` |
-
-
----
-
-## ProtheusDOC Documentation
-
-All new code must include a `/*/{Protheus.doc}` block with at minimum: `@type`, `@author`, `@since`, `@param` (if applicable), `@return` (if applicable). See the `documentation-writer` skill for full reference.
+### SmartView — Objetos de Negocio (IntegratedProvider)
+Ao criar/**alterar** um ON do SmartView (**qualquer** mudança: campo, parâmetro, filtro, lookup, página/consist), consultar OBRIGATORIAMENTE `SKILLS/advpl-code-generation/patterns-smartview-integratedprovider.md` antes de editar. Essências:
+- Campo novo: `addProperty(...)` no `getSchema()` (via existente, sem alterar `self:oSchema`) e incluir na `SELECT`/`#QueryFields#` do `getData()`. Campo fora do `schema` **o SmartView ignora**.
+- Schema dinâmico: `getSchema()` montado do SX3 (`X3_TIPO` → tipo de schema) e `getData()` com `#QueryFields#`/`#QueryWhere#`.
+- `addProperty(...)`: `cRealName` = nome real do campo (após. qualificado `SB1.B1_DESC` em JOINs).
+- **Métodos**: manter as assinaturas públicas dos métodos do `IntegratedProvider` preservadas; para ampliar comportamento, criar subclasse de `IntegratedProvider`.
+- **Após compilar ON, reiniciar o AppServer** para o SmartView enxergar via REST.
 
 ---
 
 ## Fallback Escalation Chain
 
-When information is not found in one source, escalate to the next:
+1. Codebase — código e convenções no projeto (ex.: `FONTES/`)
+   ↓ não achou
+2. Skill references (`SKILLS/**/references/*.md`, `SKILLS/**/SKILL.md`) e `CONFIG/references_*.md`
+   ↓
+3. `AGENTS.md`/`CLAUDE.md`/`CONFIG/AGENTS.md`
+   ↓
+4. TDN oficial (tdn.totvs.com) + fontes web confiáveis
+   ↓
+5. Perguntar ao usuário — nunca inventar/gorjejar
 
-```
-1. Codebase — existing code, conventions, and patterns in the project
-   ↓ not found or insufficient
-2. Skill reference files (references/*.md bundled with each skill)
-   ↓ not found or insufficient
-3. AGENTS.md / CLAUDE.md rules (global conventions)
-   ↓ not found or insufficient
-4. Official TOTVS documentation (TDN — tdn.totvs.com) and trusted web sources
-   ↓ not found or insufficient
-5. Ask the user for clarification — NEVER guess or fabricate
-```
+

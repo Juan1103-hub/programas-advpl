@@ -230,8 +230,8 @@ Ao trabalhar com AdvPL, sempre verificar:
 
 | Arquivo | Caminho | Descrição |
 |---------|---------|-----------|
-| `opencode.json` | `CONFIG/opencode.json` | Configuração principal OpenCode |
-| `servers.json` | `CONFIG/.opencode/servers.json` | Servidores AppServer |
+| `opencode.json` | `opencode.json` | Configuração principal OpenCode |
+| `servers.json` | `CONFIG/servers.json` | Servidores AppServer |
 | `settings.json` | `CONFIG/.vscode/settings.json` | Configurações VS Code |
 | `launch.json` | `CONFIG/.vscode/launch.json` | Configurações de depuração |
 | `package.json` | `CONFIG/package.json` | Dependências Node.js |
@@ -241,16 +241,16 @@ Ao trabalhar com AdvPL, sempre verificar:
 
 | Agente | Caminho | Descrição |
 |--------|---------|-----------|
-| `vortice-orchestrator` | `CONFIG/.opencode/agents/` | Orquestrador principal |
-| `code-reviewer` | `CONFIG/.opencode/agents/` | Revisor de código |
-| `debugger` | `CONFIG/.opencode/agents/` | Depurador |
-| `doc-generator` | `CONFIG/.opencode/agents/` | Gerador de documentação |
-| `migrator` | `CONFIG/.opencode/agents/` | Migrador de código |
-| `refactorer` | `CONFIG/.opencode/agents/` | Refatorador |
-| `sx-configurator` | `CONFIG/.opencode/agents/` | Configurador SX |
-| `changelog-generator` | `CONFIG/.opencode/agents/` | Gerador de changelog |
-| `docs-reference` | `CONFIG/.opencode/agents/` | Referência de documentação |
-| `process-consultant` | `CONFIG/.opencode/agents/` | Consultor de processos |
+| `vortice-orchestrator` | `.opencode/agents/` | Orquestrador principal |
+| `code-reviewer` | `.opencode/agents/` | Revisor de código |
+| `debugger` | `.opencode/agents/` | Depurador |
+| `doc-generator` | `.opencode/agents/` | Gerador de documentação |
+| `migrator` | `.opencode/agents/` | Migrador de código |
+| `refactorer` | `.opencode/agents/` | Refatorador |
+| `sx-configurator` | `.opencode/agents/` | Configurador SX |
+| `changelog-generator` | `.opencode/agents/` | Gerador de changelog |
+| `docs-reference` | `.opencode/agents/` | Referência de documentação |
+| `process-consultant` | `.opencode/agents/` | Consultor de processos |
 
 ## Comandos Úteis
 

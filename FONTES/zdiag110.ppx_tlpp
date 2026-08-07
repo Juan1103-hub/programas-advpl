@@ -1,0 +1,171 @@
+#line 1 "c:/totvs/includes\tlpp-core.th"
+#line 1 "c:/totvs/includes\fw-tlpp-object.th"
+#line 1 "c:/totvs/includes\tlpp-object.th"
+#line 12 "fw-tlpp-object.th"
+#line 11 "tlpp-core.th"
+#line 1 "c:/totvs/includes\fw-tlpp-rest.th"
+#line 1 "c:/totvs/includes\tlpp-rest.th"
+#line 12 "fw-tlpp-rest.th"
+#line 13 "tlpp-core.th"
+#line 2 "c:/totvs/advpl/.vscode/programas_advpl/fontes/zdiag110.tlpp"
+#line 1 "c:/totvs/includes\totvs.ch"
+#line 1 "c:/totvs/includes\protheus.ch"
+#line 1 "c:/totvs/includes\dialog.ch"
+#line 29 "protheus.ch"
+#line 1 "c:/totvs/includes\font.ch"
+#line 30 "protheus.ch"
+#line 1 "c:/totvs/includes\ptmenu.ch"
+#line 32 "protheus.ch"
+#line 1 "c:/totvs/includes\print.ch"
+#line 34 "protheus.ch"
+#line 1 "c:/totvs/includes\colors.ch"
+#line 36 "protheus.ch"
+#line 1 "c:/totvs/includes\folder.ch"
+#line 38 "protheus.ch"
+#line 1 "c:/totvs/includes\msobject.ch"
+#line 39 "protheus.ch"
+#line 1 "c:/totvs/includes\vkey.ch"
+#line 43 "protheus.ch"
+#line 1 "c:/totvs/includes\winapi.ch"
+#line 45 "protheus.ch"
+#line 1 "c:/totvs/includes\fwcommand.ch"
+#line 48 "protheus.ch"
+#line 1 "c:/totvs/includes\fwcss.ch"
+#line 51 "protheus.ch"
+#line 25 "c:/totvs/advpl/.vscode/programas_advpl/fontes/zdiag110.tlpp"
+Function U_ZDIAG110()
+
+    Local cRelatorio := "" as  Character
+    Local cSep       := Replicate("-", 50) + Chr(13) + Chr(10) as  Character
+    Local oModel     := Nil as  Object
+    Local oGrid      := Nil as  Object
+    Local lModelOk   := .F.  as  Logical
+    Local lGridOk    := .F.  as  Logical
+    Local lIsLineNew := .F.  as  Logical
+    Local lSetValue  := .F.  as  Logical
+    Local lGetModel  := .F.  as  Logical
+    Local lGetValue  := .F.  as  Logical
+
+    cRelatorio := "ZDIAG110 - Validacao API MVC (MT110LOK)" + Chr(13) + Chr(10)
+    cRelatorio += cSep
+
+
+    cRelatorio += "Versao AppServer : " + cValToChar(GetBuild()) + Chr(13) + Chr(10)
+    cRelatorio += "Empresa/Filial   : " + cEmpAnt + "/" + cFilAnt     + Chr(13) + Chr(10)
+    cRelatorio += cSep
+
+
+    Try
+        oModel := FWModelActive()
+        If ValType(oModel) == "O"
+            lModelOk := .T. 
+            cRelatorio += "[OK  ] FWModelActive() retornou Object" + Chr(13) + Chr(10)
+        Else
+
+            cRelatorio += "[INFO] FWModelActive() retornou " + ValType(oModel) + " (normal fora do MATA110)" + Chr(13) + Chr(10)
+        EndIf
+    Catch oErr
+        cRelatorio += "[ERRO] FWModelActive(): " + oErr:Description + Chr(13) + Chr(10)
+    EndTry
+
+
+    If lModelOk
+        Try
+            oGrid := oModel:GetModel("SC1DETAIL")
+            If ValType(oGrid) == "O"
+                lGridOk := .T. 
+                cRelatorio += "[OK  ] GetModel(SC1DETAIL) retornou Object" + Chr(13) + Chr(10)
+            Else
+                cRelatorio += "[FAIL] GetModel(SC1DETAIL) retornou " + ValType(oGrid) + Chr(13) + Chr(10)
+            EndIf
+        Catch oErr
+            cRelatorio += "[ERRO] GetModel(): " + oErr:Description + Chr(13) + Chr(10)
+        EndTry
+    Else
+        cRelatorio += "[SKIP] GetModel() - modelo nao ativo (execute dentro do MATA110)" + Chr(13) + Chr(10)
+    EndIf
+
+
+    cRelatorio += cSep
+    cRelatorio += "Verificacao de metodos no RPO:" + Chr(13) + Chr(10)
+
+    lGetModel  := VerificaMetodo("MPFORMMODEL",    "GETMODEL")
+    lIsLineNew := VerificaMetodo("FWFORMGRIDMODEL", "ISLINENEW")
+    lSetValue  := VerificaMetodo("FWFORMGRIDMODEL", "SETVALUE")
+    lGetValue  := VerificaMetodo("FWFORMGRIDMODEL", "GETVALUE")
+
+    cRelatorio += MontaLinha("MPFormModel:GetModel()",      lGetModel)
+    cRelatorio += MontaLinha("FWFormGridModel:IsLineNew()", lIsLineNew)
+    cRelatorio += MontaLinha("FWFormGridModel:SetValue()",  lSetValue)
+    cRelatorio += MontaLinha("FWFormGridModel:GetValue()",  lGetValue)
+
+
+    cRelatorio += cSep
+    If lGetModel .And.  lIsLineNew .And.  lSetValue
+        cRelatorio += "VEREDICTO: APROVADO - MT110LOK v3.0 pode ser usado neste RPO." + Chr(13) + Chr(10)
+    Else
+        cRelatorio += "VEREDICTO: ATENCAO - Uma ou mais APIs estao ausentes." + Chr(13) + Chr(10)
+        cRelatorio += "Verificar versao do Protheus e build do RPO." + Chr(13) + Chr(10)
+    EndIf
+
+    Iif(FindFunction("APMsgInfo"), APMsgInfo(cRelatorio, "ZDIAG110 - MT110LOK API Check"), MsgInfo(cRelatorio, "ZDIAG110 - MT110LOK API Check"))
+
+Return
+
+
+
+
+
+
+
+
+
+
+
+
+Static Function VerificaMetodo(cClasse as  Character, cMetodo as  Character) as  Logical
+
+    Local lEncontrou := .F.  as  Logical
+    Local aData      := {} as  Array
+    Local nX         := 0 as  Numeric
+
+    Try
+        aData := ClassData(cClasse)
+        If ValType(aData) == "A"
+            For nX := 1 To Len(aData)
+                If ValType(aData[nX]) == "A" .And.  Len(aData[nX]) >= 1
+                    If Upper(AllTrim(cValToChar(aData[nX][1]))) == Upper(AllTrim(cMetodo))
+                        lEncontrou := .T. 
+                        Exit
+                    EndIf
+                EndIf
+            next
+        EndIf
+    Catch oErrIgn
+
+        lEncontrou := .F. 
+    EndTry
+
+Return lEncontrou
+
+
+
+
+
+
+
+
+
+
+
+Static Function MontaLinha(cDescricao as  Character, lOk as  Logical) as  Character
+
+    Local cStatus := "" as  Character
+
+    If lOk
+        cStatus := "[DISPONIVEL  ] "
+    Else
+        cStatus := "[INDISPONIVEL] "
+    EndIf
+
+Return cStatus + cDescricao + Chr(13) + Chr(10)
