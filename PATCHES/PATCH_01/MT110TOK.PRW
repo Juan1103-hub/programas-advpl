@@ -36,9 +36,12 @@ User Function MT110TOK()
     Local aUsersLib  := {"000047", "000080", "000095", "000057"}
     Local lUserLib   := .F.
     Local cMsgItens  := ""
+    Local cMsgPref   := ""
     Local lBloqueado := .F.
+    Local lBloqPref  := .F.
     Local lLinhaNova := .T.
     Local dEmissNova := Date()             // data real do servidor (nao dDataBase)
+    Local cPrefixo   := "MC.9998"
 
     cUserMat := RetCodUsr()
     lUserLib := (aScan(aUsersLib, {|x| AllTrim(x) == AllTrim(cUserMat)}) > 0)
@@ -80,6 +83,12 @@ User Function MT110TOK()
             EndIf
         EndIf
 
+        // Bloqueia itens cujo codigo inicia com o prefixo (ex.: MC.9998...)
+        If Left(AllTrim(cProduto), Len(cPrefixo)) == cPrefixo
+            cMsgPref  += AllTrim(cProduto) + CRLF
+            lBloqPref := .T.
+        EndIf
+
         // Ajuste de emissao por linha: novo => Date() | existente => data original do banco
         If nPosEmiss > 0
             lLinhaNova := .T.
@@ -113,6 +122,15 @@ User Function MT110TOK()
                 "Itens bloqueados:" + CRLF + CRLF + ;
                 cMsgItens + CRLF + ;
                 "SOLICITE LIBERACAO AO SUPRIMENTOS.", ;
+                "Acesso Negado")
+        lRet := .F.
+    EndIf
+
+    If lBloqPref
+        MsgStop("CODIGO INICIADO COM [" + cPrefixo + "] NAO PODE SER SOLICITADO." + CRLF + CRLF + ;
+                "Itens bloqueados:" + CRLF + CRLF + ;
+                cMsgPref + CRLF + ;
+                "ABRA UMA SOLICITACAO DE CADASTRO PARA O NOVO CODIGO.", ;
                 "Acesso Negado")
         lRet := .F.
     EndIf

@@ -8,15 +8,55 @@ Foco do cliente: **Vortice Consultoria Mineral** — módulo **Suprimentos/Compr
 
 > **Idioma padrão**: todas as interações, documentação, comentários, mensagens de commit e revisões em **português brasileiro**; identificadores seguem convenção técnica (inglês/abreviaturas Protheus).
 
+## Base de Conhecimento — Obsidian (consultar ANTES de codar ou debugar)
+
+Vault com memória técnica do projeto — bugs resolvidos, padrões, tabelas, PEs:
+`C:\Users\Vortice 0097\Desktop\BKP_JUAN\Memoria\Memoria\ADVPL-Protheus\`
+
+| Situação | Nota |
+|----------|------|
+| Bug / erro desconhecido | `06 - Bugs Resolvidos.md` |
+| Padrão de código | `07 - Padrões de Código ADVPL.md` |
+| Tabelas e filtros canônicos | `08 - Tabelas-Chave e Filtros.md` |
+| Regras e boas práticas | `09 - Regras e Boas Práticas.md` |
+| MVC / ModelDef / ViewDef | `02 - MVC no Protheus.md` |
+| SX3 / dicionário | `03 - SX3 e Dicionário de Dados.md` |
+| ZZ4 / ZD1 / SA2 custom | `04 - Tabelas Customizadas.md` |
+| Pontos de Entrada | `05 - Pontos de Entrada (PE).md` |
+
+Ao resolver bug novo → registrar em `06 - Bugs Resolvidos.md`.
+
+### Fallback quando o vault Obsidian estiver indisponível
+
+O vault externo (`C:\Users\Vortice 0097\Desktop\BKP_JUAN\Memoria\Memoria\ADVPL-Protheus\`) pode
+ficar inacessível no runtime (máquina sem o BKP, caminho movido, permissão). Nesse caso,
+**consultar/registrar** segue a rota alternativa abaixo — a precedência da hierarquia de docs
+(seção seguinte) permanece intacta; apenas a fonte 2 (Obsidian) é substituída pelo fallback:
+
+| Situação | Fallback de consulta | Fallback de registro |
+|----------|----------------------|----------------------|
+| Bug / erro desconhecido | `.kiro/steering/bugs-resolvidos.md` (versionado no repo) | Adicionar o caso resolvido ao `.kiro/steering/bugs-resolvidos.md` e registrar em `.opencode/memory.md`; sincronizar para o Obsidian quando voltar |
+| Padrão de código | `.kiro/steering/padroes-codigo.md` | — |
+| Contexto/regras do projeto | `.kiro/steering/projeto-advpl.md`, `.opencode/memory.md` | Atualizar `.opencode/memory.md` |
+| Busca por tabela/filtro/PE | TDN oficial (tdn.totvs.com) + fontes web confiáveis + `CONFIG/.opencode/skills/tabelas-protheus` | Registrar achado em `.kiro/steering/` |
+
+- `.kiro/steering/*.md` são **versionados no repositório** e espelham os resumos do vault.
+- Ao resolver bug novo com o vault indisponível: registrar **imediatamente** no fallback e
+  sincronizar para `06 - Bugs Resolvidos.md` (Obsidian) quando o caminho voltar.
+- Se o vault estiver disponível, **prevalece o vault** (hierarquia de docs inalterada).
+
+---
+
 ## Hierarchy of Documentation (precedência)
 
 Em caso de conflito entre arquivos de documentação, vale nesta ordem:
 1. **Instruções do usuário** (sempre acima de qualquer doc)
-2. `CONFIG/AGENTS.md` (SUPER-regras SIGAEST/workspace — tabelas core, acesso a dados)
-3. Este `AGENTS.md` (raiz — convenções de código, padrões, checklist)
-4. `CLAUDE.md` / `DOCUMENTACAO/` (referências e kits)
-5. Skills (`SKILLS/` e espelho `.opencode/skills/`)
-6. TDN oficial (tdn.totvs.com) + fontes web confiáveis
+2. **Obsidian** (`06 - Bugs Resolvidos.md` — solução já documentada tem precedência)
+3. `CONFIG/AGENTS.md` (SUPER-regras SIGAEST/workspace — tabelas core, acesso a dados)
+4. Este `AGENTS.md` (raiz — convenções de código, padrões, checklist)
+5. `CLAUDE.md` / `DOCUMENTACAO/` (referências e kits)
+6. Skills (`SKILLS/` e espelho `.opencode/skills/`)
+7. TDN oficial (tdn.totvs.com) + fontes web confiáveis
 
 > **Fonte de verdade única de código**: o próprio repositório. Se doc conflita com fonte real, o **código vence** — registrar a divergência como achado, não ignorar.
 
@@ -45,9 +85,12 @@ PROGRAMAS_ADVPL/                   # raiz deste workspace
 │   ├── tir/             # scripts TIR (testes python)
 │   ├── .vscode/         # settings.json, launch.json, snippets
 │   └── .advpl/          # includes AdvPL
-├── opencode.json        # configuração principal OpenCode (default_agent: vortice-orchestrator)
 ├── .opencode/           # agents/, skills/ (espelho), memory.md
 └── .vscode/             # settings.json, launch.json, snippets (projeto)
+
+> Config principal OpenCode (`opencode.json`, default_agent) fica em
+> `~/.config/opencode/opencode.jsonc` (global), NÃO na raiz do repo.
+> `CONFIG/.opencode/README.md` documenta o estado real da configuração.
 ```
 
 Skills de agentes também existem (espelhadas) em `.opencode/skills/`. Nunca assumir skill sem localizá-la em `SKILLS/`, `.opencode/skills/` ou nas skills globais do OpenCode.
@@ -172,6 +215,7 @@ return ::nVal > 0
 - **Sem `ConOut()`/`OutErr()`/`?`** — use `FWLogMsg()` (CA1004).
 - **Nunca use variável `cFilial` direta** (reservada) — use `cFilAux`, ou `xFilial('XXX')`/`FWxFilial('XXX')`.
 - **REST client externo** — sempre via `FWRest`. Proibido `HTTPCGet/HTTPCPost/HTTPQuote` para novo código (exceto workstation+WebAgent ou PATCH, que FWRest não suporta). Secrets de `GetMV()`, nunca hardcode.
+- **Sem lixo/fontes órfãos** — quando um fonte deixar de ser necessário, ou quando código de um PE for incorporado/migrado para outro fonte existente, **excluir o fonte antigo** (e remover gatilhos SX7/configs que apontem para ele). Nunca deixar arquivo morto "por segurança". Se houver risco de perder histórico, registrar no changelog/commit antes da exclusão.
 
 ### MVC Pattern
 `MenuDef()` → `ModelDef()` (FWFormModel) → `ViewDef()` (FWFormView) → `BrowseDef()`. Modelo 1 (única entidade) e Modelo 3 (mestre-detate).

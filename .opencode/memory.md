@@ -1,7 +1,62 @@
 # Memory — Vortice AdvPL/Protheus Workspace
 
 > Contexto permanente do projeto. **Ler no inicio de cada sessao** antes de qualquer tarefa.
-> Ultima atualizacao: 02/07/2026
+> Ultima atualizacao: 15/08/2026
+
+## Base de Conhecimento — Obsidian (consultar sempre)
+
+Vault local com notas organizadas de ADVPL/Protheus e Web:
+`C:\Users\Vortice 0097\Desktop\BKP_JUAN\Memoria\Memoria\`
+
+| Situacao | Nota a consultar |
+|----------|-----------------|
+| Bug estranho / erro desconhecido | `ADVPL-Protheus\06 - Bugs Resolvidos.md` |
+| Duvida sobre padrao de codigo | `ADVPL-Protheus\07 - Padroes de Codigo ADVPL.md` |
+| Nome de tabela / filtro canonico | `ADVPL-Protheus\08 - Tabelas-Chave e Filtros.md` |
+| Regras e boas praticas | `ADVPL-Protheus\09 - Regras e Boas Praticas.md` |
+| MVC / ModelDef / ViewDef | `ADVPL-Protheus\02 - MVC no Protheus.md` |
+| SX3 / dicionario de dados | `ADVPL-Protheus\03 - SX3 e Dicionario de Dados.md` |
+| ZZ4 / ZD1 / SA2 customizada | `ADVPL-Protheus\04 - Tabelas Customizadas.md` |
+| Lista de programas do projeto | `ADVPL-Protheus\01 - Programas Customizados.md` |
+| Pontos de Entrada (PE) | `ADVPL-Protheus\05 - Pontos de Entrada (PE).md` |
+
+**Instrucao**: Ao iniciar qualquer tarefa de desenvolvimento ou debug, ler a nota relevante acima ANTES de responder.
+Para registrar um bug resolvido: gravar em `ADVPL-Protheus\06 - Bugs Resolvidos.md`.
+
+## Regras de Eficiencia (usuario VCM37)
+
+Conclusao rapida, sem rodeios. Obrigatorio:
+
+1. **Validar funcoes/simbolos nativos AdvPL ANTES de gerar codigo** (ex.: `Round(nVal,nDec)` — `nRound` NAO existe; fonte: TDN / protheusadvpl / codebase).
+2. **Consultar TDN/Central TOTVS no INICIO** da investigacao (ex.: IMP0058 resolveu base IPI bruto/liquido).
+3. **1 pergunta bloqueadora por vez**; confirmar hipotese com sim/nao.
+4. **Usuario NAO tem APSDU/AppServer** — ele roda as queries SQL que eu fornecer e devolve resultado. Nunca assumir dado de banco.
+5. **Extrair objetivo quantificado no 1o prompt** (ex.: total pedido = 17.040, IPI 6,5% sobre base liquida).
+6. **Restricoes de negocio desde o inicio** (ex.: TES intocavel).
+7. **Exclusao de fontes orfaos**: avisar o usuario ANTES (nome + motivo) para ele excluir do RPO; so depois apagar o arquivo local. Nunca apagar fonte antes da confirmacao da exclusao do RPO.
+
+## Casos Arquivados (consultar antes de debugar)
+
+### MATA120 IPI bruto/liquido (13/08/2026) — resolvido (grid+gravacao) | pendente impressao
+
+**Objetivo**: total pedido = 17.040 (IPI sobre base liquida, total - desconto). Restricao: TES (F4_TPIPI) intocavel.
+
+**Solucao — 3 camadas**:
+
+1. **Gatilho SX7** (`MT120TFR.PRW` — `U_MT120IPI`): executa em tempo real na digitacao. Calcula base liquida (C7_TOTAL - C7_VLDESC), atualiza aCols E chama `MaFisRef("IT_VALIPI","MT120",...)` / `MaFisRef("IT_BASEIPI","MT120",...)` para atualizar o motor fiscal (rodape "Total do Pedido"). Retorna `"L"` para contra-dominio C7_IPIBRUT. Gatilhos SX7: C7_VLDESC->001, C7_IPI->001, C7_PRODUTO->003.
+
+2. **PE gravacao** (`MTA120G3.PRW`): roda no loop A120GRAVA, sobrescreve o que o framework gravou:
+   - `SC7->C7_IPIBRUT := "L"`
+   - `SC7->C7_BASEIPI := SC7->C7_TOTAL - SC7->C7_VLDESC`
+   - `SC7->C7_VALIPI  := Round(SC7->C7_BASEIPI * SC7->C7_IPI / 100, 2)`
+
+3. **(PENDENTE) Impressao**: o formulario "ORDEM DE COMPRAS" (padrao TOTVS/MISCC) recalcula IPI do zero usando `C7_TOTAL * C7_IPI/100` (bruto), ignorando C7_VALIPI gravado. SC7 esta correto (C7_BASEIPI=16.000, C7_VALIPI=1.040, C7_IPIBRUT=L) mas o print mostra 17.072,50. Aguarda identificar rotina de impressao.
+
+**Licoes**: (a) `nRound` NAO existe em AdvPL, usar `Round(nVal, nDec)`; (b) `MaFisRef("IT_VALIPI","MT120",...)` atualiza motor fiscal — necessario para rodape em tempo real; (c) Gatilho SX7 roda DEPOIS do framework calcular — por isso consegue corrigir; (d) C7_IPIBRUT = "Cons. Desc. Considera Desconto p/IPI" (TDN IMP0058); (e) Impressao TOTVS pode recalcular impostos do zero — verificar se le campos gravados.
+
+**SQL validacao APSDU**: `SELECT C7_BASEIPI, C7_VALIPI, C7_IPIBRUT FROM SC7010 WHERE C7_NUM='<NUM>' AND D_E_L_E_T_=' '`
+
+**Complementos MATA120 ativos**: `MT120TFR.PRW` (gatilhos SX7 U_MT120IPI + frete), `MTA120G3.PRW` (gravacao), `MT120OK.PRW` (pre-save).
 
 ## Casos Arquivados (consultar antes de debugar)
 
@@ -41,6 +96,37 @@
 
 ## Fontes de Codigo
 
+### CADPOSIC — FWMBrowse com Pesquisa Rápida (30/08/2026) — resolvido
+
+**Problema**: Tela FWMBrowse da tabela customizada ZC1 (Posições de Estoque do Item) sem barra de pesquisa e sem botões CRUD.
+
+**3 erros encadeados resolvidos**:
+1. `SetSeek(.T.)` sem array `aSeek` → barra de pesquisa não aparece. **Solução**: `SetSeek(.T., aSeek)` com array de definição dos campos.
+2. `SetFieldSeek()` **não existe** em FWMBrowse → erro de method. Usar `SetSeek` com 2º parâmetro.
+3. `Private aRotina` e `Private cCadastro` não declarados → `AxInclui`/`AxAltera`/`AxDeleta` falham com "variable does not exist CCADASTRO".
+
+**Estrutura correta**:
+```advpl
+Private aRotina  := {{"Visualizar", "AxVisual", 0, 2},;
+                     {"Incluir",    "AxInclui", 0, 3},;
+                     {"Alterar",    "AxAltera", 0, 4},;
+                     {"Excluir",    "AxDeleta", 0, 5}}
+Private cCadastro := "Titulo do Browse"
+
+aSeek := {;
+    {"Filial",    {{"ZC1_FILIAL", "C", 2,  0, "Filial",    "@!"}}, 1, .T.},;
+    {"Codigo",    {{"ZC1_ITEM",   "C", 13, 0, "Codigo",    "@!"}}, 2, .T.},;
+    {"Descricao", {{"ZC1_DESCRI", "C", 50, 0, "Descricao", "@!"}}, 3, .T.};
+}
+oBrowse:SetSeek(.T., aSeek)
+```
+
+**Campos ZC1 confirmados**: ZC1_FILIAL (2), ZC1_ITEM (13), ZC1_DESCRI (50), ZC1_POSIC, ZC1_SALDO, ZC1_LOCAL.
+
+**Regras derivadas**:
+- `TamSx3()` e `FWSizeFilial()` NÃO devem ser chamados inline no array literal de `SetSeek` para tabelas Z* (causa "array out of bounds").
+- Sempre conferir nomes dos campos no Configurador (SIGACFG) — nomes podem ser diferentes do esperado.
+
 ### Arquivos na raiz do workspace (49 .PRW + 2 .TLPP)
 
 **Funcoes customizadas (Z*.PRW) — 20 arquivos:**
@@ -53,8 +139,8 @@ MT100TOK, MT100OK, MT020ATE, MT010ALT, M020EXC, MT20FOPOS, MT160GRPC,
 MT150GET, MT120OK, MT110TOK, MT101OK, MTA105OK, MTA094RO, MTA020,
 MTA131C8, MTA110OK, MTALCFIM
 
-**Telas/Cadastros (CAD*.PRW) — 3 arquivos:**
-CADSZ3, CADSOLIC, CADFORN
+**Telas/Cadastros (CAD*.PRW) — 4 arquivos:**
+CADSZ3, CADSOLIC, CADFORN, CADPOSIC
 
 **Outros .PRW:**
 AVALCOT, CORCITEM, FALTFPED, FFZZ4A2, OPENZZ4, RLCOMPRAS, TIDEV,
@@ -253,6 +339,15 @@ Hierarquia de regras:
 4. `.opencode/skills/advpl-quality-checklist/SKILL.md` — checklist obrigatorio pre-conclusao
 
 ## Changelog
+
+### 30/08/2026
+- **CADPOSIC**: criado tela FWMBrowse para tabela ZC1 (Posições de Estoque do Item) com pesquisa rápida. 3 erros resolvidos: SetSeek com aSeek, aRotina+cCadastro para CRUD, nomes de campos ZC1 conferidos no Configurador.
+- **Atualizado**: `06 - Bugs Resolvidos.md` (Obsidian) com caso FWMBrowse SetSeek.
+- **Atualizado**: `07 - Padrões de Código ADVPL.md` (Obsidian) com padrão FWMBrowse + pesquisa rápida.
+
+### 15/08/2026
+- **MATA120 IPI**: solucao completa em 3 camadas — gatilho SX7 U_MT120IPI (tempo real + MaFisRef para rodape), MTA120G3 (gravacao), impressao pendente (form recalcula IPI bruto). SC7 validado via APSDU.
+- **Atualizado**: `06 - Bugs Resolvidos.md` (Obsidian) com solucao completa e pendencia de impressao.
 
 ### 02/07/2026
 - **Caso arquivado: FWBUILDFEATURE / SSYacc0105e** — bug em `PROTHEUSFUNCTIONMVC.PRX` quando `X3_PICTVAR` tem `@!`

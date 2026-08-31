@@ -4,6 +4,23 @@
 > `C:\totvs\advpl\.vscode\` (programas_vortice, Suprimentos, PATCH, etc).
 > Regras de projeto especifico estao em cada `AGENTS.md` de FILHO.
 
+## Base de Conhecimento — Obsidian
+
+Vault com bugs resolvidos, padroes e tabelas do projeto — consultar ANTES de codar ou debugar:
+`C:\Users\Vortice 0097\Desktop\BKP_JUAN\Memoria\Memoria\ADVPL-Protheus\`
+
+| Situacao | Nota |
+|----------|------|
+| Bug / erro desconhecido | `06 - Bugs Resolvidos.md` |
+| Padrao de codigo | `07 - Padroes de Codigo ADVPL.md` |
+| Tabelas e filtros canonicos | `08 - Tabelas-Chave e Filtros.md` |
+| MVC / ModelDef / ViewDef | `02 - MVC no Protheus.md` |
+| SX3 / dicionario | `03 - SX3 e Dicionario de Dados.md` |
+| ZZ4 / ZD1 / SA2 custom | `04 - Tabelas Customizadas.md` |
+| Pontos de Entrada | `05 - Pontos de Entrada (PE).md` |
+
+Ao resolver bug novo → registrar em `06 - Bugs Resolvidos.md`.
+
 ## Model Routing (referencia)
 
 Modelos configurados globalmente em `~/.config/opencode/opencode.jsonc`:

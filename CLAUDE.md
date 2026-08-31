@@ -6,15 +6,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## Knowledge Base — Obsidian (consult BEFORE coding or debugging)
+
+Local vault with resolved bugs, patterns, tables, and entry points:
+`C:\Users\Vortice 0097\Desktop\BKP_JUAN\Memoria\Memoria\ADVPL-Protheus\`
+
+| Situation | Note to read |
+|-----------|-------------|
+| Bug / unknown error | `06 - Bugs Resolvidos.md` — check if already solved |
+| Code patterns / structure | `07 - Padrões de Código ADVPL.md` |
+| Table names / canonical filters | `08 - Tabelas-Chave e Filtros.md` |
+| MVC / ModelDef / ViewDef | `02 - MVC no Protheus.md` |
+| SX3 / data dictionary | `03 - SX3 e Dicionário de Dados.md` |
+| ZZ4 / ZD1 / SA2 custom | `04 - Tabelas Customizadas.md` |
+| Entry Points (PE) | `05 - Pontos de Entrada (PE).md` |
+
+When solving a new bug → document it in `06 - Bugs Resolvidos.md`.
+
+---
+
 ## Hierarchy of Documentation (precedence)
 
 In case of conflict between documentation files, this order wins:
 1. **User instructions** (always above any doc)
-2. `CONFIG/AGENTS.md` (SUPER SIGAEST/workspace rules — core tables, data access)
-3. Root `AGENTS.md` (code conventions, standards, checklist)
-4. `CLAUDE.md` / `DOCUMENTACAO/` (references and kits)
-5. Skills (`SKILLS/` and mirror `.opencode/skills/`)
-6. Official TDN (tdn.totvs.com) + trusted web sources
+2. **Obsidian** (`06 - Bugs Resolvidos.md` — documented solution takes precedence)
+3. `CONFIG/AGENTS.md` (SUPER SIGAEST/workspace rules — core tables, data access)
+4. Root `AGENTS.md` (code conventions, standards, checklist)
+5. `CLAUDE.md` / `DOCUMENTACAO/` (references and kits)
+6. Skills (`SKILLS/` and mirror `.opencode/skills/`)
+7. Official TDN (tdn.totvs.com) + trusted web sources
 
 > **Single source of truth for code**: the repository itself. If a doc conflicts with the real source, **code wins** — record the divergence as a finding, don't ignore it.
 

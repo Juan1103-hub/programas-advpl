@@ -228,14 +228,21 @@ Ao trabalhar com AdvPL, sempre verificar:
 
 ## Configurações Importantes
 
+> Estado atual (2026-08-16): a configuração principal do OpenCode não fica mais em
+> `opencode.json` na raiz — foi movida/consolidada no global
+> `~/.config/opencode/opencode.jsonc` (default_agent: `vortice-orchestrator`).
+> O `.vscode/` da raiz do projeto guarda `settings.json` e `launch.json`.
+
 | Arquivo | Caminho | Descrição |
 |---------|---------|-----------|
-| `opencode.json` | `opencode.json` | Configuração principal OpenCode |
-| `servers.json` | `CONFIG/servers.json` | Servidores AppServer |
-| `settings.json` | `CONFIG/.vscode/settings.json` | Configurações VS Code |
-| `launch.json` | `CONFIG/.vscode/launch.json` | Configurações de depuração |
-| `package.json` | `CONFIG/package.json` | Dependências Node.js |
+| Configuração OpenCode | `~/.config/opencode/opencode.jsonc` | Configuração principal OpenCode (global) |
+| `servers.json` | `CONFIG/servers.json` | Servidores AppServer TOTVS (TDS) |
+| `settings.json` | `CONFIG/settings.json` | Settings VS Code/workspace (TDS, encoding CP-1252, idioma) |
+| `settings.json` | `.vscode/settings.json` | Settings locais do projeto (includes do TDS) |
+| `launch.json` | `.vscode/launch.json` | Configurações de depuração |
+| `package.json` | `CONFIG/package.json` | Dependências Node.js + scripts de build (`npm run build`) |
 | `advpl.code-snippets` | `CONFIG/advpl.code-snippets` | Snippets VS Code |
+| Skills/memória | `CONFIG/.opencode/` | Skills locais e memória do OpenCode |
 
 ## Agentes Disponíveis
 

@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "1.0.0",
   "categories": {
     "spec-driven-development": {
@@ -32,9 +32,145 @@
     "superpowers": {
       "name": "Superpowers",
       "description": "Meta-workflow skills for orchestrating agents, planning, debugging, and code review processes"
+    },
+    "vortice": {
+      "name": "Vortice Consultoria Mineral",
+      "description": "Skills custom Vortice - SC7 Compras, SXB/ZZ4/FWBrowse workarounds, CINVJ6_DEV 7.00.240223P, contexto Vortice"
     }
   },
   "skills": [
+    {
+      "name": "advpl-code-generation",
+      "description": "Skill Vortice custom advpl-code-generation - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/advpl-code-generation",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-code-review",
+      "description": "Skill Vortice custom advpl-code-review - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/advpl-code-review",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-debugging",
+      "description": "Skill Vortice custom advpl-debugging - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/advpl-debugging",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-empresa",
+      "description": "Skill Vortice custom advpl-empresa - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/advpl-empresa",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-error-memory",
+      "description": "Skill Vortice custom advpl-error-memory - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/advpl-error-memory",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-fwbrowse-fwbldfeature-bug",
+      "description": "Skill Vortice custom advpl-fwbrowse-fwbldfeature-bug - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/advpl-fwbrowse-fwbldfeature-bug",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-protheus",
+      "description": "Skill Vortice custom advpl-protheus - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/advpl-protheus",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-quality-checklist",
+      "description": "Skill Vortice custom advpl-quality-checklist - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/advpl-quality-checklist",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-refactoring",
+      "description": "Skill Vortice custom advpl-refactoring - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/advpl-refactoring",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-tela-consulta",
+      "description": "Skill Vortice custom advpl-tela-consulta - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/advpl-tela-consulta",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-tlpp-compile",
+      "description": "Compile AdvPL/TLPP via RDMake / TDS LS",
+      "category": "migration",
+      "path": "advpl-tlpp/advpl-tlpp-compile",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "TOTVS",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-tlpp-reference-guide",
+      "description": "Skill Vortice custom advpl-tlpp-reference-guide - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/advpl-tlpp-reference-guide",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
     {
       "name": "advpl-tlpp-sdd",
       "description": "Plan and implement Protheus projects/features with 4 adaptive phases — Specify, Design, Tasks, Execute. Auto-sizes depth based on complexity. Creates atomic tasks with verification criteria, atomic commits, requirement traceability, and persistent memory across sessions. Specific to AdvPL/TLPP + Protheus. Use when: (1) Starting new Protheus projects, (2) Working on existing codebases (map modules, architecture, conventions), (3) Planning features (requirements, design, task breakdown), (4) Implementing with verification and atomic commits, (5) Quick tasks (bug fixes, entry points, config), (6) Tracking decisions/blockers/ideas across sessions, (7) Pausing/resuming work. Triggers on: 'initialize project', 'map codebase', 'specify feature', 'discuss feature', 'design', 'tasks', 'implement', 'validate', 'verify work', 'quick fix', 'pause work', 'resume work'.",
@@ -74,6 +210,39 @@
       ],
       "author": "Thalion Starforge",
       "version": "4.1.0"
+    },
+    {
+      "name": "brainstorming",
+      "description": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.",
+      "category": "superpowers",
+      "path": "superpowers/brainstorming",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "agent-skills",
+      "version": "1.0.0"
+    },
+    {
+      "name": "changelog-patterns",
+      "description": "Skill Vortice custom changelog-patterns - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/changelog-patterns",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "code-explanation",
+      "description": "Skill Vortice custom code-explanation - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/code-explanation",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
     },
     {
       "name": "code-review",
@@ -125,6 +294,28 @@
       "version": "4.1.0"
     },
     {
+      "name": "dispatching-parallel-agents",
+      "description": "Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies",
+      "category": "superpowers",
+      "path": "superpowers/dispatching-parallel-agents",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "agent-skills",
+      "version": "1.0.0"
+    },
+    {
+      "name": "documentation-patterns",
+      "description": "Skill Vortice custom documentation-patterns - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/documentation-patterns",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
       "name": "documentation-writer",
       "description": "Generate ProtheusDOC comment blocks for AdvPL and TLPP source code. Use when a user says \"document this function\", \"add ProtheusDOC\", \"write documentation block\", \"document this class/method\", or needs structured source-code documentation following the Protheus.doc standard for functions, classes, methods",
       "category": "planning",
@@ -134,6 +325,17 @@
       ],
       "author": "Thalion Starforge",
       "version": "4.1.0"
+    },
+    {
+      "name": "embedded-sql",
+      "description": "Skill Vortice custom embedded-sql - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/embedded-sql",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
     },
     {
       "name": "entry-point-designer",
@@ -149,6 +351,39 @@
       ],
       "author": "Thalion Starforge",
       "version": "5.1.0"
+    },
+    {
+      "name": "executing-plans",
+      "description": "Use when you have a written implementation plan to execute in a separate session with review checkpoints",
+      "category": "superpowers",
+      "path": "superpowers/executing-plans",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "agent-skills",
+      "version": "1.0.0"
+    },
+    {
+      "name": "finishing-a-development-branch",
+      "description": "Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup",
+      "category": "superpowers",
+      "path": "superpowers/finishing-a-development-branch",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "agent-skills",
+      "version": "1.0.0"
+    },
+    {
+      "name": "frontend-quality",
+      "description": "Skill Vortice custom frontend-quality - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/frontend-quality",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
     },
     {
       "name": "fwrest-client-generator",
@@ -178,6 +413,61 @@
       "version": "4.1.0"
     },
     {
+      "name": "pontos-entrada",
+      "description": "Skill Vortice custom pontos-entrada - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/pontos-entrada",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "probat-testing",
+      "description": "Skill Vortice custom probat-testing - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/probat-testing",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "protheus-business",
+      "description": "Skill Vortice custom protheus-business - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/protheus-business",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "protheus-reference",
+      "description": "Skill Vortice custom protheus-reference - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/protheus-reference",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "protheus-rules",
+      "description": "Skill Vortice custom protheus-rules - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/protheus-rules",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
       "name": "query-builder",
       "description": "Build optimized and safe SQL queries for Protheus tables. Automatically includes mandatory filters (D_E_L_E_T_, branch), suggests appropriate indexes from SIX patterns, generates both Embedded SQL (preferring FWExecStatement) and Workarea (DBSelectArea/DBSeek) versions, and warns about common Protheus SQL pitfalls. Use when user says 'build query', 'SQL for Protheus table', 'FWExecStatement', 'TCQuery', 'Workarea vs SQL'.",
       "category": "code-generation",
@@ -189,6 +479,17 @@
       ],
       "author": "Thalion Starforge",
       "version": "4.2.0"
+    },
+    {
+      "name": "receiving-code-review",
+      "description": "Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation",
+      "category": "superpowers",
+      "path": "superpowers/receiving-code-review",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "agent-skills",
+      "version": "1.0.0"
     },
     {
       "name": "refactor",
@@ -212,6 +513,29 @@
       ],
       "author": "Thalion Starforge",
       "version": "4.1.0"
+    },
+    {
+      "name": "requesting-code-review",
+      "description": "Use when completing tasks, implementing major features, or before merging to verify work meets requirements",
+      "category": "superpowers",
+      "path": "superpowers/requesting-code-review",
+      "files": [
+        "SKILL.md",
+        "code-reviewer.md"
+      ],
+      "author": "agent-skills",
+      "version": "1.0.0"
+    },
+    {
+      "name": "solucoes-consultas",
+      "description": "Skill Vortice custom solucoes-consultas - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/solucoes-consultas",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
     },
     {
       "name": "sql-code-review",
@@ -241,6 +565,86 @@
       "version": "4.2.0"
     },
     {
+      "name": "sql-safe",
+      "description": "Skill Vortice custom sql-safe - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/sql-safe",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "subagent-driven-development",
+      "description": "Use when executing implementation plans with independent tasks in the current session",
+      "category": "superpowers",
+      "path": "superpowers/subagent-driven-development",
+      "files": [
+        "SKILL.md",
+        "code-quality-reviewer-prompt.md",
+        "implementer-prompt.md",
+        "spec-reviewer-prompt.md"
+      ],
+      "author": "agent-skills",
+      "version": "1.0.0"
+    },
+    {
+      "name": "sx-configuration",
+      "description": "Skill Vortice custom sx-configuration - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/sx-configuration",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "systematic-debugging",
+      "description": "Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes",
+      "category": "superpowers",
+      "path": "superpowers/systematic-debugging",
+      "files": [
+        "SKILL.md",
+        "condition-based-waiting-example.ts",
+        "condition-based-waiting.md",
+        "CREATION-LOG.md",
+        "defense-in-depth.md",
+        "find-polluter.sh",
+        "root-cause-tracing.md",
+        "test-academic.md",
+        "test-pressure-1.md",
+        "test-pressure-2.md",
+        "test-pressure-3.md"
+      ],
+      "author": "agent-skills",
+      "version": "1.0.0"
+    },
+    {
+      "name": "tabelas-protheus",
+      "description": "Skill Vortice custom tabelas-protheus - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/tabelas-protheus",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "test-driven-development",
+      "description": "Use when implementing any feature or bugfix, before writing implementation code",
+      "category": "superpowers",
+      "path": "superpowers/test-driven-development",
+      "files": [
+        "SKILL.md",
+        "testing-anti-patterns.md"
+      ],
+      "author": "agent-skills",
+      "version": "1.0.0"
+    },
+    {
       "name": "tir-test-generator",
       "description": "Generate TIR (TOTVS Interface Robot) end-to-end test scripts in Python for Protheus SmartClient/Webapp screens. Supports CRUD screen tests, MVC screen tests, grid interaction, report tests, field validation, and message box assertions. Use when a user says \"TIR test\", \"interface test\", \"e2e test Protheus\", \"SmartClient test\", \"Webapp test\", \"screen test\", \"create Python test for Protheus screen\", or \"automate Protheus UI test\".",
       "category": "testing",
@@ -268,133 +672,6 @@
       "version": "4.2.0"
     },
     {
-      "name": "utf8-to-cp1252-conversion",
-      "description": "Convert AdvPL/TLPP source files from UTF-8 encoding to Windows-1252 (CP1252) after code generation. The Protheus compiler only supports CP1252 encoded files — any source created or modified by an AI agent will be in UTF-8 and must be converted before compilation. Use when user says 'convert encoding', 'fix encoding', 'convert to CP1252', 'convert to Windows-1252', 'encoding conversion', 'fix file encoding', or after any code generation skill creates .prw/.prg/.tlpp/.prx files.",
-      "category": "quality",
-      "path": "advpl-tlpp/utf8-to-cp1252-conversion",
-      "files": [
-        "SKILL.md",
-        "scripts/convert-encoding.bat",
-        "scripts/convert-encoding.sh"
-      ],
-      "author": "Thalion Starforge",
-      "version": "4.1.0"
-    },
-    {
-      "name": "brainstorming",
-      "description": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.",
-      "category": "superpowers",
-      "path": "superpowers/brainstorming",
-      "files": [
-        "SKILL.md"
-      ],
-      "author": "agent-skills",
-      "version": "1.0.0"
-    },
-    {
-      "name": "dispatching-parallel-agents",
-      "description": "Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies",
-      "category": "superpowers",
-      "path": "superpowers/dispatching-parallel-agents",
-      "files": [
-        "SKILL.md"
-      ],
-      "author": "agent-skills",
-      "version": "1.0.0"
-    },
-    {
-      "name": "executing-plans",
-      "description": "Use when you have a written implementation plan to execute in a separate session with review checkpoints",
-      "category": "superpowers",
-      "path": "superpowers/executing-plans",
-      "files": [
-        "SKILL.md"
-      ],
-      "author": "agent-skills",
-      "version": "1.0.0"
-    },
-    {
-      "name": "finishing-a-development-branch",
-      "description": "Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup",
-      "category": "superpowers",
-      "path": "superpowers/finishing-a-development-branch",
-      "files": [
-        "SKILL.md"
-      ],
-      "author": "agent-skills",
-      "version": "1.0.0"
-    },
-    {
-      "name": "receiving-code-review",
-      "description": "Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation",
-      "category": "superpowers",
-      "path": "superpowers/receiving-code-review",
-      "files": [
-        "SKILL.md"
-      ],
-      "author": "agent-skills",
-      "version": "1.0.0"
-    },
-    {
-      "name": "requesting-code-review",
-      "description": "Use when completing tasks, implementing major features, or before merging to verify work meets requirements",
-      "category": "superpowers",
-      "path": "superpowers/requesting-code-review",
-      "files": [
-        "SKILL.md",
-        "code-reviewer.md"
-      ],
-      "author": "agent-skills",
-      "version": "1.0.0"
-    },
-    {
-      "name": "subagent-driven-development",
-      "description": "Use when executing implementation plans with independent tasks in the current session",
-      "category": "superpowers",
-      "path": "superpowers/subagent-driven-development",
-      "files": [
-        "SKILL.md",
-        "code-quality-reviewer-prompt.md",
-        "implementer-prompt.md",
-        "spec-reviewer-prompt.md"
-      ],
-      "author": "agent-skills",
-      "version": "1.0.0"
-    },
-    {
-      "name": "systematic-debugging",
-      "description": "Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes",
-      "category": "superpowers",
-      "path": "superpowers/systematic-debugging",
-      "files": [
-        "SKILL.md",
-        "condition-based-waiting-example.ts",
-        "condition-based-waiting.md",
-        "CREATION-LOG.md",
-        "defense-in-depth.md",
-        "find-polluter.sh",
-        "root-cause-tracing.md",
-        "test-academic.md",
-        "test-pressure-1.md",
-        "test-pressure-2.md",
-        "test-pressure-3.md"
-      ],
-      "author": "agent-skills",
-      "version": "1.0.0"
-    },
-    {
-      "name": "test-driven-development",
-      "description": "Use when implementing any feature or bugfix, before writing implementation code",
-      "category": "superpowers",
-      "path": "superpowers/test-driven-development",
-      "files": [
-        "SKILL.md",
-        "testing-anti-patterns.md"
-      ],
-      "author": "agent-skills",
-      "version": "1.0.0"
-    },
-    {
       "name": "using-git-worktrees",
       "description": "Use when starting feature work that needs isolation from current workspace or before executing implementation plans - creates isolated git worktrees with smart directory selection and safety verification",
       "category": "superpowers",
@@ -417,6 +694,19 @@
       "version": "1.0.0"
     },
     {
+      "name": "utf8-to-cp1252-conversion",
+      "description": "Convert AdvPL/TLPP source files from UTF-8 encoding to Windows-1252 (CP1252) after code generation. The Protheus compiler only supports CP1252 encoded files — any source created or modified by an AI agent will be in UTF-8 and must be converted before compilation. Use when user says 'convert encoding', 'fix encoding', 'convert to CP1252', 'convert to Windows-1252', 'encoding conversion', 'fix file encoding', or after any code generation skill creates .prw/.prg/.tlpp/.prx files.",
+      "category": "quality",
+      "path": "advpl-tlpp/utf8-to-cp1252-conversion",
+      "files": [
+        "SKILL.md",
+        "scripts/convert-encoding.bat",
+        "scripts/convert-encoding.sh"
+      ],
+      "author": "Thalion Starforge",
+      "version": "4.1.0"
+    },
+    {
       "name": "verification-before-completion",
       "description": "Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always",
       "category": "superpowers",
@@ -425,6 +715,28 @@
         "SKILL.md"
       ],
       "author": "agent-skills",
+      "version": "1.0.0"
+    },
+    {
+      "name": "verification-evidence",
+      "description": "Skill Vortice custom verification-evidence - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/verification-evidence",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "vortice-workflow",
+      "description": "Skill Vortice custom vortice-workflow - preservada de SKILLS flat legacy",
+      "category": "vortice",
+      "path": "vortice/vortice-workflow",
+      "files": [
+        "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
       "version": "1.0.0"
     },
     {

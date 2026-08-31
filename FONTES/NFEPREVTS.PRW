@@ -1,4 +1,4 @@
-﻿#include "protheus.ch"
+#include "protheus.ch"
 #include "topconn.ch"
 #include "rptdef.ch"
 #include "fwprintsetup.ch"

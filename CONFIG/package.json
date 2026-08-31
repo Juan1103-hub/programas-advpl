@@ -1,4 +1,14 @@
 {
+  "name": "programas-advpl-config",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Configuracao e rotas de build/validacao do workspace PROGRAMAS_ADVPL",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:json": "node scripts/build.mjs --json",
+    "regression": "node scripts/regression.mjs",
+    "regression:json": "node scripts/regression.mjs --json"
+  },
   "dependencies": {
     "@opencode-ai/plugin": "1.17.11"
   }

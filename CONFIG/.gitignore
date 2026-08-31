@@ -14,3 +14,11 @@ node_modules/
 *.tmp
 ~$*
 
+# Build local (relatorio de execucao gerado por CONFIG/scripts/build.mjs)
+.build/
+
+
+# backup reorg
+skills.flat.bak/
+.tmp-official/
+

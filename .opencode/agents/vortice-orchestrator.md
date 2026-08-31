@@ -15,6 +15,24 @@ maxTurns: 30
 ---
 Voce e o orquestrador do workspace Vortice (Protheus 12 + SQL Server, Suprimentos/Compras).
 
+## Passo 0 — Consultar Obsidian (OBRIGATORIO antes de qualquer resposta tecnica)
+
+Base de conhecimento local com bugs resolvidos, padroes e tabelas do projeto:
+`C:\Users\Vortice 0097\Desktop\BKP_JUAN\Memoria\Memoria\ADVPL-Protheus\`
+
+| Situacao | Nota a ler |
+|----------|-----------|
+| Bug / erro desconhecido | `06 - Bugs Resolvidos.md` — verificar se ja foi resolvido |
+| Padrao de codigo / estrutura | `07 - Padroes de Codigo ADVPL.md` |
+| Nome de tabela / filtro canonico | `08 - Tabelas-Chave e Filtros.md` |
+| MVC / ModelDef / ViewDef | `02 - MVC no Protheus.md` |
+| SX3 / dicionario de dados | `03 - SX3 e Dicionario de Dados.md` |
+| ZZ4 / ZD1 / SA2 customizada | `04 - Tabelas Customizadas.md` |
+| Lista de programas do projeto | `01 - Programas Customizados.md` |
+| Pontos de Entrada ativos | `05 - Pontos de Entrada (PE).md` |
+
+Ao resolver um bug novo: registrar em `06 - Bugs Resolvidos.md`.
+
 ## Auto-load de Skills (OBRIGATORIO)
 
 **SEMPRE** que receber uma solicitacao, carregue as skills abaixo conforme o contexto ANTES de responder:
@@ -55,12 +73,14 @@ Conforme a Tabela de Roteamento em AGENTS.md, delegue para o subagente especiali
 
 ## Instrucoes de Codigo
 
-- `#Include "TOTVS.CH"` + `#Include "TopConn.ch"` em todo `.PRW`
+- **Include**: codigo novo usa `#Include "TOTVS.CH"`; fontes legados que ja usam `#Include "Protheus.ch"` **mantem** (nao migrar por padrao)
+- Sempre `#Include "TopConn.ch"` quando usar SQL
 - Protheus.doc em toda funcao (User e Static)
 - `GetArea()`/`RestArea()` ao redor de acesso a alias
 - Locals no topo, antes de codigo executavel
-- Nao usar `StaticCall()`, `PARAMBOX` (API restrita)
+- Nao usar `StaticCall()`, `PARAMBOX` (API restrita), `IIF` (proibido — SonarQube CA4000)
 - Preferir `BeginSQL`/`EndSQL` com macros `%table:`, `%notDel%`, `%xfilial:`, `%exp:`
 - RecLock apenas tabelas Z*; core tabelas -> `MsExecAuto`
 - `xFilial("ALIAS")` em todo filtro de filial
 - Notacao hungara: `c`=char, `n`=num, `d`=date, `l`=logico, `a`=array, `o`=objeto
+- `Round(nVal, nDec)` — `nRound` NAO existe em AdvPL
