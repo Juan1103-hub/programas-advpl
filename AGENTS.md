@@ -38,7 +38,7 @@ ficar inacessível no runtime (máquina sem o BKP, caminho movido, permissão). 
 | Bug / erro desconhecido | `.kiro/steering/bugs-resolvidos.md` (versionado no repo) | Adicionar o caso resolvido ao `.kiro/steering/bugs-resolvidos.md` e registrar em `.opencode/memory.md`; sincronizar para o Obsidian quando voltar |
 | Padrão de código | `.kiro/steering/padroes-codigo.md` | — |
 | Contexto/regras do projeto | `.kiro/steering/projeto-advpl.md`, `.opencode/memory.md` | Atualizar `.opencode/memory.md` |
-| Busca por tabela/filtro/PE | TDN oficial (tdn.totvs.com) + fontes web confiáveis + `CONFIG/.opencode/skills/tabelas-protheus` | Registrar achado em `.kiro/steering/` |
+| Busca por tabela/filtro/PE | TDN oficial (tdn.totvs.com) + fontes web confiáveis + `skills/vortice/tabelas-protheus` | Registrar achado em `.kiro/steering/` |
 
 - `.kiro/steering/*.md` são **versionados no repositório** e espelham os resumos do vault.
 - Ao resolver bug novo com o vault indisponível: registrar **imediatamente** no fallback e
@@ -55,7 +55,7 @@ Em caso de conflito entre arquivos de documentação, vale nesta ordem:
 3. `CONFIG/AGENTS.md` (SUPER-regras SIGAEST/workspace — tabelas core, acesso a dados)
 4. Este `AGENTS.md` (raiz — convenções de código, padrões, checklist)
 5. `CLAUDE.md` / `DOCUMENTACAO/` (referências e kits)
-6. Skills (`SKILLS/` e espelho `.opencode/skills/`)
+6. Skills (`skills/advpl-tlpp`, `skills/superpowers`, `skills/vortice` — catálogo `skills-registry.json`)
 7. TDN oficial (tdn.totvs.com) + fontes web confiáveis
 
 > **Fonte de verdade única de código**: o próprio repositório. Se doc conflita com fonte real, o **código vence** — registrar a divergência como achado, não ignorar.
@@ -75,7 +75,14 @@ PROGRAMAS_ADVPL/                   # raiz deste workspace
 ├── PATCHES/
 │   ├── PATCH/           # patch original (~13 fontes)
 │   └── PATCH_01/        # MT110TOK + custom25-06-2026.ptm
-├── SKILLS/              # skills locais do repo (cada <nome>/SKILL.md) — catálogo em skills-registry.json
+├── skills/              # skills canônicos lowercase (60 = 19 advpl-tlpp + 14 superpowers + 27 vortice)
+│   ├── advpl-tlpp/      # mirror oficial totvs/engpro-advpl-tlpp-skills
+│   ├── superpowers/     # mirror oficial
+│   └── vortice/         # extensões custom Vortice (SC7, CINVJ6_DEV)
+├── instructions/        # mirror oficial (AGENTS.md, CLAUDE.md, README.md)
+├── .github/workflows/   # ci.yml oficial
+├── ci/scripts/          # validation-scan.sh, security-scan.sh, build.sh (oficial)
+├── skills-registry.json # catálogo 60 skills (categoria vortice estendida)
 ├── DOCUMENTACAO/        # CLAUDE-SKILLS-REF.md, CLAUDE-SOLUTION-PATTERNS.md, listas (*.txt)
 ├── CONFIG/              # configuração do workspace:
 │   ├── servers.json     # AppServer TOTVS (conexão/compilação)
@@ -83,17 +90,15 @@ PROGRAMAS_ADVPL/                   # raiz deste workspace
 │   ├── references_advpl-tlpp-skills-reference.md      # catálogo completo de skills
 │   ├── AGENTS.md        # SUPER-regras SIGAEST/workspace (ver abaixo)
 │   ├── tir/             # scripts TIR (testes python)
-│   ├── .vscode/         # settings.json, launch.json, snippets
-│   └── .advpl/          # includes AdvPL
-├── .opencode/           # agents/, skills/ (espelho), memory.md
-└── .vscode/             # settings.json, launch.json, snippets (projeto)
+│   └── .advpl/          # includes AdvPL (legado)
+├── .opencode/           # opencode.json (skills.paths) + agents/ + memory.md
+└── .vscode/             # settings.json, launch.json, .advpl/_binary_*.prw (projeto)
 
-> Config principal OpenCode (`opencode.json`, default_agent) fica em
-> `~/.config/opencode/opencode.jsonc` (global), NÃO na raiz do repo.
-> `CONFIG/.opencode/README.md` documenta o estado real da configuração.
+> Config OpenCode: `.opencode/opencode.json` (projeto) com `skills.paths` locais
+> + global `~/.config/opencode/opencode.jsonc` (fallback). Ver `CONFIG/.opencode/README.md`.
 ```
 
-Skills de agentes também existem (espelhadas) em `.opencode/skills/`. Nunca assumir skill sem localizá-la em `SKILLS/`, `.opencode/skills/` ou nas skills globais do OpenCode.
+Skills em `skills/advpl-tlpp`, `skills/superpowers` e `skills/vortice`. Nunca assumir skill sem localizá-la em `skills/` ou nas skills globais do OpenCode.
 
 > **ORIENTAÇÃO**: Leia `CONFIG/AGENTS.md` (regras de workspace SIGAEST) antes de tocar em tabelas core — inclui regras de acesso a dados, `GetArea()/RestArea()`, `xFilial()`, `RecLock` SÓ em tabelas `Z*`, `MSExecAuto` para tables core, e histórico de workarounds (SXB/ZZ4/FWBrowse). Doc não substitui o trade.
 
@@ -243,7 +248,7 @@ Todas as atividades de implementação, refatoração, review e otimização **d
 
 Antes de gerar/migrar/refatorar código, validar que **todo** símbolo externo (class, method, function, namespace, parâmetros) existe de fato no framework/versão alvo.
 
-- Fonte de verdade para validar (em ordem): código existente → skill files (o corpo/templates/exemplos de `SKILLS/**/SKILL.md` e `SKILLS/**/references/**`) → `AGENTS.md`/`CLAUDE.md` → TDN (tdn.totvs.com) → web confiável → **perguntar ao usuário** (nunca inventar).
+- Fonte de verdade para validar (em ordem): código existente → skill files (o corpo/templates/exemplos de `skills/**/SKILL.md` e `skills/**/references/**`) → `AGENTS.md`/`CLAUDE.md` → TDN (tdn.totvs.com) → web confiável → **perguntar ao usuário** (nunca inventar).
 - Símbolos NÃO encontrados na doc, codebase ou skill → NÃO inventar; documentar o gap.
 - Validar também a **assinatura completa** (ordem de parâmetros, tipos, retorno) e o **contexto de execução** (ciclo de vida).
 - Migração: validar cada símbolo no framework **alvo**, nunca assumir portagem com mesmo nome.
@@ -271,21 +276,23 @@ Depois de qualquer **geração, migração ou refactor**, antes de considerar co
 
 ## Skills disponíveis
 
-- Catálogo completo: `DOCUMENTACAO/CLAUDE-SKILLS-REF.md`, `CONFIG/references_advpl-tlpp-skills-reference.md` e `skills-registry.json`.
+- Catálogo completo: `DOCUMENTACAO/CLAUDE-SKILLS-REF.md`, `CONFIG/references_advpl-tlpp-skills-reference.md` e `skills-registry.json` (60 skills).
 - Skills com contexto: catálogo (resumo):
   | Categoria | Skills |
   |---|---|
   | SDD | `advpl-tlpp-sdd` |
   | Migração | `advpl-to-tlpp-migration` |
-  | Qualidade | `code-review`, `advpl-code-review`, `sql-code-review`, `anon...` |
-  | Testes | `tir-test-generator`, `tir-setup-and-best-practices` |
-  | Compilação | `advpl-tlpp-compile`, `advpl-tds-ls` |
-  | Documentação/Plano | `documentation-writer`, `context-concept`, `create-implementation-plan`, `data-dictionary-lookup`, `entry-point-designer`, `mvc-generator`, `query-builder`, `fwrest-client-generator`, `tlpp-rest-endpoint-generator` |
+  | Qualidade | `code-review`, `advpl-code-review`, `sql-code-review`, `sql-optimization`, `refactor` |
+  | Testes | `tir-test-generator` + `probat-testing` (vortice) |
+  | Compilação | `advpl-tlpp-compile` |
+  | Code-gen | `mvc-generator`, `tlpp-rest-endpoint-generator`, `fwrest-client-generator`, `query-builder` |
+  | Documentação/Plano | `documentation-writer`, `create-implementation-plan`, `data-dictionary-lookup`, `entry-point-designer`, `context-map` |
   | Encoding | `utf8-to-cp1252-conversion` |
-  | Vária | `changelog-patterns`, `sx-configuration`, `sql-safe`, `sql-optimization`, `advpl-tela-consulta`, `advpl-debugging`, `advpl-protheus`, `advpl-empresa` |
+  | Superpowers (14) | `brainstorming`, `systematic-debugging`, `dispatching-parallel-agents`, `writing-skills`… |
+  | Vortice (27) | `advpl-protheus`, `sx-configuration`, `tabelas-protheus`, `pontos-entrada`, `sql-safe`, `advpl-fwbrowse-fwbldfeature-bug`… |
 
 ### SmartView — Objetos de Negocio (IntegratedProvider)
-Ao criar/**alterar** um ON do SmartView (**qualquer** mudança: campo, parâmetro, filtro, lookup, página/consist), consultar OBRIGATORIAMENTE `SKILLS/advpl-code-generation/patterns-smartview-integratedprovider.md` antes de editar. Essências:
+Ao criar/**alterar** um ON do SmartView (**qualquer** mudança: campo, parâmetro, filtro, lookup, página/consist), consultar OBRIGATORIAMENTE `skills/vortice/advpl-code-generation/patterns-smartview-integratedprovider.md` antes de editar. Essências:
 - Campo novo: `addProperty(...)` no `getSchema()` (via existente, sem alterar `self:oSchema`) e incluir na `SELECT`/`#QueryFields#` do `getData()`. Campo fora do `schema` **o SmartView ignora**.
 - Schema dinâmico: `getSchema()` montado do SX3 (`X3_TIPO` → tipo de schema) e `getData()` com `#QueryFields#`/`#QueryWhere#`.
 - `addProperty(...)`: `cRealName` = nome real do campo (após. qualificado `SB1.B1_DESC` em JOINs).
@@ -298,7 +305,7 @@ Ao criar/**alterar** um ON do SmartView (**qualquer** mudança: campo, parâmetr
 
 1. Codebase — código e convenções no projeto (ex.: `FONTES/`)
    ↓ não achou
-2. Skill references (`SKILLS/**/references/*.md`, `SKILLS/**/SKILL.md`) e `CONFIG/references_*.md`
+2. Skill references (`skills/**/SKILL.md`, `skills/**/references/*.md`) e `CONFIG/references_*.md`
    ↓
 3. `AGENTS.md`/`CLAUDE.md`/`CONFIG/AGENTS.md`
    ↓
