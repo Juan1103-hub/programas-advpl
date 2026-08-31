@@ -240,7 +240,7 @@ Todas as atividades de implementação, refatoração, review e otimização **d
 - **Refactor**: corrigir violações das linhas tocadas; nunca introduzir novas.
 - **Otimização**: respeitar regras de performance (G2); não usar API proibida.
 
-> **Referência completa (G1–G5)**: `CONFIG/references_sonarqube-rules-reference.md` — leia antes de gerar/revisar código.
+> **Referência completa (G1–G5)**: `CONFIG/references_sonarqube-rules-reference.md` e `skills/advpl-tlpp/references/sonarqube-rules-reference.md` — leia antes de gerar/revisar código.
 
 ---
 
@@ -298,6 +298,12 @@ Ao criar/**alterar** um ON do SmartView (**qualquer** mudança: campo, parâmetr
 - `addProperty(...)`: `cRealName` = nome real do campo (após. qualificado `SB1.B1_DESC` em JOINs).
 - **Métodos**: manter as assinaturas públicas dos métodos do `IntegratedProvider` preservadas; para ampliar comportamento, criar subclasse de `IntegratedProvider`.
 - **Após compilar ON, reiniciar o AppServer** para o SmartView enxergar via REST.
+
+---
+
+## ProtheusDOC Documentation
+
+Todo código novo deve incluir bloco `/*/{Protheus.doc}` com no mínimo: `@type`, `@author`, `@since`, `@param` (se houver), `@return` (se houver). Ver skill `documentation-writer` para referência completa. Mantém padrão Vortice existente — não remove checklist de qualidade.
 
 ---
 
