@@ -66,8 +66,7 @@ Static Function ModelDef() as Object
 
   // Validations
   oModel:SetActivate({|oModel| OnModelActivate(oModel)})
-  oModel:SetCommit({|oModel| OnModelCommit(oModel)})
-  oModel:SetVldActive({|oModel| OnModelValidate(oModel)})
+    oModel:SetVldActivate({|oModel| OnModelValidate(oModel)})
 
   // Field-level validation
   // oModel:AddCalc("ZZ1_FIELD", "ZZ1MASTER", "ZZ1_FIELD", {|oModel| ValidateField(oModel)})
@@ -126,13 +125,7 @@ Static Function OnModelActivate(oModel as Object) as Logical
   // Called when the model is activated (screen opens)
 Return .T.
 
-Static Function OnModelCommit(oModel as Object) as Logical
-  // Called when the user confirms the operation
-  // Custom post-save logic here
-Return .T.
-
-Static Function OnModelValidate(oModel as Object) as Logical
-  // Called before commit to validate the entire model
+Static Function OnModelValidate(oModel as Object) as Logical  
   Local lValid := .T. as Logical
 
   // Example: Validate required business rule
@@ -163,7 +156,7 @@ Namespace company.module.feature
 User Function MYMOD03()
   Local oBrowse as Object
 
-  oBrowse := FWFormBrowse():New()
+  oBrowse := FWMBrowse():New()
   oBrowse:SetAlias("ZZ2")
   oBrowse:SetDescription("Orders Management")
   oBrowse:Activate()
@@ -213,7 +206,7 @@ Static Function ModelDef() as Object
   oModel:SetPrimaryKey({})
 
   // Validations
-  oModel:SetVldActive({|oModel| ValidateModel(oModel)})
+  oModel:SetVldActivate({|oModel| ValidateModel(oModel)})
   oModel:SetCommit({|oModel| CommitModel(oModel)})
 
   // Grid line validation

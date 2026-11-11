@@ -1,0 +1,1546 @@
+#Include "Protheus.ch"
+#Include "TopConn.ch"
+
+#Define ENTER  Chr(10) + Chr (13) // SALTO DE LINHA (CARRIAGE RETURN + LINE FEED)
+
+// Cache da SB1 usado pela verificacao de duplicidade (ver FCarregaSB1Z3).
+Static aCacheSB1 := {}
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} CADSZ3
+Solicitacao Cadastral de Produtos (SZ3).
+Tela padrao mBrowse com aRotina, apresentando no topo os botoes
+Incluir, Alterar, Visualizar e o menu "Outras Acoes" (Pesquisar,
+Excluir e Legenda).
+
+Para Fornecedores utilize o programa CADFORN (U_CADFORN).
+
+@type    User Function
+@version 12.1.33
+@author  Suprimentos
+@since   25/04/2024
+/*/
+//-------------------------------------------------------------------
+User Function CADSZ3()
+
+    Local aArea := GetArea()
+
+    If Select("SZ3") <= 0
+        ChkFile("SZ3")
+    EndIf
+
+    FCfgValZ3(.T.)
+    FSyncZ3Rej(.T.)
+
+    DbSelectArea("SZ3")
+    SZ3->(DbSetOrder(1))
+    SZ3->(DbGoTop())
+
+    Private cCadastro := "Solicitacao Cadastral de Produtos"
+    Private cString   := "SZ3"
+
+    // 0=Pendente (branco) | 1=Cadastrado (cinza) | 2=Rejeitado (preto)
+    Private aCores := { ;
+        {"SZ3->Z3_STATUS == '0'", "BR_BRANCO"}, ;
+        {"SZ3->Z3_STATUS == '1'", "DISABLE"  }, ;
+        {"SZ3->Z3_STATUS == '2'", "BR_PRETO" } }
+
+    Private aRotina := { ;
+        {"Incluir"   , "U_CADINSZ3", 0, 3}, ;
+        {"Alterar"   , "U_CPRDALT" , 0, 3}, ;
+        {"Visualizar", "U_CPRDVIS" , 0, 2}, ;
+        {"Pesquisar" , "AxPesqui"  , 0, 1}, ;
+        {"Excluir"   , "U_CPRDDEL" , 0, 5}, ;
+        {"Legenda"   , "U_CADLESZ3", 0, 6} }
+
+    mBrowse(6, 1, 22, 75, "SZ3", , , , , , aCores)
+
+    RestArea(aArea)
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} CADSZ3_Alt
+Abre formulario customizado de edicao para o produto selecionado.
+Bloqueia alteracao de registros que nao sejam Pendentes ('0').
+/*/
+//-------------------------------------------------------------------
+Static Function CADSZ3_Alt()
+
+    Local cSts := ""
+
+    DbSelectArea("SZ3")
+
+    If SZ3->(Eof()) .Or. SZ3->(Bof())
+        MsgStop("Nenhum registro selecionado.", "Alterar")
+        Return
+    EndIf
+
+    cSts := AllTrim(SZ3->Z3_STATUS)
+
+    If cSts != '0'
+        MsgStop("Somente solicitacoes PENDENTES podem ser alteradas." + Chr(13) + Chr(10) + ;
+                "Status atual: " + IIF(cSts == '1', 'Aprovado', 'Rejeitado'), "Alteracao Bloqueada")
+        Return
+    EndIf
+
+    FEditSZ3()
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FEditSZ3
+Formulario de edicao de solicitacao de produto (SZ3).
+/*/
+//-------------------------------------------------------------------
+Static Function FEditSZ3()
+
+    Local oButton1, oButton2, oButton3, oButton4
+    Local oGroup1, oGroup2, oGroup3, oGroup4, oGroup5, oGroup6, oGroup7
+    Local oGet1, oGet2, oGet3, oGet4, oGet5, oGet6, oGet7
+    Local oCombo
+    Local cGet1  := Space(120)
+    Local cGet2  := Space(120)
+    Local cGet3  := Space(150)
+    Local cGet4  := Space(254)
+    Local cGet5  := Space(02)
+    Local cGet6  := Space(100)
+    Local cGet7  := Space(100)
+    Local cCombo := ""
+    Local aItens := {"Sim", "Nao"}
+    Local nRecNo := SZ3->(RecNo())
+
+    Private oDlg
+    Private oMSNewGe1
+    Private aHeaderEx := {}
+    Private aColsEx   := {}
+
+    DbSelectArea("SZ3")
+    cGet2  := PadR(AllTrim(SZ3->Z3_DESCRI), 120)
+    cGet3  := PadR(AllTrim(SZ3->Z3_PN)    , 150)
+    cGet4  := PadR(AllTrim(SZ3->Z3_LINK)  , 254)
+    cGet5  := PadR(AllTrim(SZ3->Z3_UM)    ,   2)
+    cGet6  := PadR(AllTrim(SZ3->Z3_APLIC) , 100)
+    cGet7  := PadR(AllTrim(SZ3->Z3_MOTIVO), 100)
+    cCombo := IIF(SZ3->Z3_PRAZO == 'S', aItens[1], aItens[2])
+
+    DEFINE MSDIALOG oDlg TITLE "Alterar Solicitacao de Produto - " + AllTrim(SZ3->Z3_ID) ;
+        FROM 000, 000 TO 800, 800 COLORS 0, 16777215 PIXEL
+
+        @ 003, 005 GROUP oGroup1 TO 119, 351 PROMPT "Pesquise aqui se o produto ja existe no cadastro." OF oDlg COLOR 0, 16777215 PIXEL
+        @ 016, 011 MSGET oGet1 VAR cGet1 SIZE 253, 010 OF oDlg COLORS 0, 16777215 PIXEL
+        fMSNewGe1()
+        @ 015, 283 BUTTON oButton3 PROMPT "Pesquisar" SIZE 037, 012 OF oDlg PIXEL Action FPesProd(cGet1)
+
+        @ 128, 007 GROUP oGroup2 TO 161, 355 PROMPT "Descricao do material completa, de forma clara e concisa - Exemplo: PARAFUSO SEXTAVADO ACO 8.8 ROSCA INTEIRA M16 X 50" OF oDlg COLOR 0, 16777215 PIXEL
+        @ 139, 016 MSGET oGet2 VAR cGet2 SIZE 313, 010 OF oDlg COLORS 0, 16777215 PIXEL
+
+        @ 169, 007 GROUP oGroup3 TO 197, 355 PROMPT "PART NUMBER (PN) - No. referencia ou codigo do material - Exemplo: Macaco Hidropneumatico Tipo Garrafa 12 Toneladas - PN LPK-207Q" OF oDlg COLOR 0, 16777215 PIXEL
+        @ 181, 016 MSGET oGet3 VAR cGet3 SIZE 326, 010 OF oDlg COLORS 0, 16777215 PIXEL
+
+        @ 207, 007 GROUP oGroup4 TO 236, 355 PROMPT "LINK DE REFERENCIA - Informar o link do site do fabricante, exceto links de marketplaces - Exemplo:Mercado livre,Shoppe,Magazine luiza." OF oDlg COLOR 0, 16777215 PIXEL
+        @ 218, 016 MSGET oGet4 VAR cGet4 SIZE 321, 010 OF oDlg COLORS 0, 16777215 PIXEL
+
+        @ 242, 007 GROUP oGroup5 TO 270, 355 PROMPT "UNIDADE DE MEDIDA - Unidade na qual o material e medido. - Exemplo: pecas, metros, litros." OF oDlg COLOR 0, 16777215 PIXEL
+        @ 253, 016 MSGET oGet5 VAR cGet5 VALID FVldSAH(cGet5) SIZE 038, 010 OF oDlg COLORS 0, 16777215 PIXEL F3 "SAH"
+
+        @ 276, 007 GROUP oGroup6 TO 305, 300 PROMPT "Urgente - Sim para cadastro ate 24h uteis. / Nao urgente ate 72h uteis." OF oDlg COLOR 0, 16777215 PIXEL
+        oCombo := tComboBox():New(286,016,{|u|if(PCount()>0,cCombo:=u,cCombo)},;
+            aItens,30,10,oDlg,,,,,,.T.,,,,,,,,,'cCombo')
+        @ 286, 050 MSGET oGet7 VAR cGet7 SIZE 230, 010 OF oDlg COLORS 0, 16777215 PIXEL
+
+        @ 310, 007 GROUP oGroup7 TO 338, 300 PROMPT "APLICACAO - Onde o produto sera aplicado." OF oDlg COLOR 0, 16777215 PIXEL
+        @ 320, 016 MSGET oGet6 VAR cGet6 SIZE 200, 010 OF oDlg COLORS 0, 16777215 PIXEL
+
+        @ 282, 310 BUTTON oButton1 PROMPT "Confirmar" SIZE 037, 012 OF oDlg PIXEL ;
+            ACTION FConfirmaZ3(.T., nRecNo, cGet2, cGet3, cGet4, cGet5, SubStr(cCombo,1,1), cGet6, cGet7)
+        @ 302, 310 BUTTON oButton2 PROMPT "Cancelar"  SIZE 037, 012 OF oDlg PIXEL ;
+            ACTION oDlg:End()
+        @ 322, 310 BUTTON oButton4 PROMPT "Verificar Duplicidade" SIZE 080, 012 OF oDlg PIXEL ;
+            ACTION FVerifDupZ3(cGet2, cGet3, .T.)
+
+    ACTIVATE MSDIALOG oDlg CENTERED
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FSaveSZ3
+Grava alteracoes na solicitacao de produto existente (SZ3).
+/*/
+//-------------------------------------------------------------------
+Static Function FSaveSZ3(nRecNo, cDescProd, cPart, cLink, cUM, cUrg, cAplic, cMotivo)
+
+    If Empty(AllTrim(cDescProd))
+        MsgStop("A descricao do produto e obrigatoria!")
+        Return
+    EndIf
+
+    If Empty(AllTrim(cUM))
+        MsgStop("A unidade de medida e obrigatoria!")
+        Return
+    EndIf
+
+    If Empty(AllTrim(cPart)) .And. Empty(AllTrim(cLink))
+        MsgStop("Informe o Part Number ou o link de referencia!")
+        Return
+    EndIf
+
+    If Empty(AllTrim(cAplic))
+        MsgStop("A aplicacao e obrigatoria!")
+        Return
+    EndIf
+
+    If 'S' $ cUrg .And. Empty(AllTrim(cMotivo))
+        MsgStop("Se cadastro for urgente o motivo e obrigatorio!")
+        Return
+    EndIf
+
+    If 'S' $ cUrg .And. !Empty(AllTrim(cMotivo)) .And. Len(AllTrim(cMotivo)) <= 10
+        MsgStop("Por favor, detalhe melhor o motivo da urgencia!")
+        Return
+    EndIf
+
+    oDlg:End()
+
+    DbSelectArea("SZ3")
+    DbSetOrder(01)
+    DbGoTo(nRecNo)
+
+    If Reclock("SZ3", .F.)
+        Replace Z3_PN     With UPPER(AllTrim(cPart))
+        Replace Z3_LINK   With AllTrim(cLink)
+        Replace Z3_UM     With UPPER(AllTrim(cUM))
+        Replace Z3_DESCRI With UPPER(AllTrim(cDescProd))
+        Replace Z3_PRAZO  With cUrg
+        Replace Z3_APLIC  With UPPER(AllTrim(cAplic))
+        Replace Z3_MOTIVO With IIF('S' $ cUrg, AllTrim(cMotivo), "")
+        MsUnlock()
+    EndIf
+
+    MsgInfo("Solicitacao atualizada com sucesso!", "Sucesso")
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} CADSZ3_Vis
+Visualizacao (somente leitura) do produto selecionado.
+/*/
+//-------------------------------------------------------------------
+Static Function CADSZ3_Vis()
+
+    Local nRec     := 0
+    Local aARotina := {{"Visualizar", "AxVisual", 0, 3}}
+
+    DbSelectArea("SZ3")
+
+    If SZ3->(Eof()) .Or. SZ3->(Bof())
+        MsgStop("Nenhum registro selecionado.", "Visualizar")
+        Return
+    EndIf
+
+    nRec := SZ3->(RecNo())
+    AxVisual("SZ3", nRec, 3, aARotina)
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} CADSZ3_Del
+Exclui logicamente o produto selecionado se for Pendente.
+/*/
+//-------------------------------------------------------------------
+Static Function CADSZ3_Del()
+
+    Local cSts := ""
+
+    DbSelectArea("SZ3")
+
+    If SZ3->(Eof()) .Or. SZ3->(Bof())
+        MsgStop("Nenhum registro selecionado.", "Excluir")
+        Return
+    EndIf
+
+    cSts := AllTrim(SZ3->Z3_STATUS)
+
+    If cSts != '0'
+        MsgStop("Somente solicitacoes PENDENTES podem ser excluidas." + Chr(13) + Chr(10) + ;
+                "Status atual: " + IIF(cSts == '1', 'Aprovado', 'Rejeitado'), "Exclusao Bloqueada")
+        Return
+    EndIf
+
+    If !MsgYesNo("Confirma a exclusao desta solicitacao?", "Excluir")
+        Return
+    EndIf
+
+    If Reclock("SZ3", .F.)
+        DbDelete()
+        MsUnlock()
+    EndIf
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} CADINSZ3
+Tela de inclusao de solicitacao de cadastro de produto.
+Permite pesquisar produto existente no catalogo (SB1) antes de
+preencher os dados e gravar a solicitacao na SZ3.
+
+@type    User Function
+@version 12.1.33
+@author  Suprimentos
+@since   25/04/2024
+/*/
+//-------------------------------------------------------------------
+User Function CADINSZ3()
+
+    Local oButton1, oButton2, oButton3, oButton4
+    Local oGet1, oGet2, oGet3, oGet4, oGet5, oGet6, oGet7
+    Local cGet1 := Space(120)
+    Local cGet2 := Space(120)
+    Local cGet3 := Space(150)
+    Local cGet4 := Space(254)
+    Local cGet5 := Space(02)
+    Local cGet6 := Space(100)
+    Local cGet7 := Space(100)
+    Local oGroup1, oGroup2, oGroup3, oGroup4, oGroup5, oGroup6, oGroup7
+    Local oCombo
+    Local cCombo
+    Local aItens := {'Sim','Nao'}
+
+    Private oMSNewGe1
+    Private oDlg
+    Private aHeaderEx := {}
+    Private aColsEx   := {}
+
+    cCombo := aItens[2]
+
+    DEFINE MSDIALOG oDlg TITLE "Solicitacao de Cadastro de Produtos" FROM 000, 000 TO 800, 800 COLORS 0, 16777215 PIXEL
+
+        @ 003, 005 GROUP oGroup1 TO 119, 351 PROMPT "Pesquise aqui se o produto ja existe no cadastro." OF oDlg COLOR 0, 16777215 PIXEL
+        @ 016, 011 MSGET oGet1 VAR cGet1 SIZE 253, 010 OF oDlg COLORS 0, 16777215 PIXEL
+
+        fMSNewGe1()
+
+        @ 015, 283 BUTTON oButton1 PROMPT "Pesquisar" SIZE 037, 012 OF oDlg PIXEL Action FPesProd(cGet1)
+
+        @ 128, 007 GROUP oGroup2 TO 161, 355 PROMPT "Descricao do material completa, de forma clara e concisa - Exemplo: PARAFUSO SEXTAVADO ACO 8.8 ROSCA INTEIRA M16 X 50" OF oDlg COLOR 0, 16777215 PIXEL
+        @ 139, 016 MSGET oGet2 VAR cGet2 SIZE 313, 010 OF oDlg COLORS 0, 16777215 PIXEL
+
+        @ 169, 007 GROUP oGroup3 TO 197, 355 PROMPT "PART NUMBER (PN) - No. referencia ou codigo do material - Exemplo: Macaco Hidropneumatico Tipo Garrafa 12 Toneladas - PN LPK-207Q" OF oDlg COLOR 0, 16777215 PIXEL
+        @ 181, 016 MSGET oGet3 VAR cGet3 SIZE 326, 010 OF oDlg COLORS 0, 16777215 PIXEL
+
+        @ 207, 007 GROUP oGroup4 TO 236, 355 PROMPT "LINK DE REFERENCIA - Informar o link do site do fabricante, exceto links de marketplaces - Exemplo:Mercado livre,Shoppe,Magazine luiza." OF oDlg COLOR 0, 16777215 PIXEL
+        @ 218, 016 MSGET oGet4 VAR cGet4 SIZE 321, 010 OF oDlg COLORS 0, 16777215 PIXEL
+
+        @ 242, 007 GROUP oGroup5 TO 270, 355 PROMPT "UNIDADE DE MEDIDA - Unidade na qual o material e medido. - Exemplo: pecas, metros, litros." OF oDlg COLOR 0, 16777215 PIXEL
+        @ 253, 016 MSGET oGet5 VAR cGet5 VALID FVldSAH(cGet5) SIZE 038, 010 OF oDlg COLORS 0, 16777215 PIXEL F3 "SAH"
+
+        @ 276, 007 GROUP oGroup6 TO 305, 300 PROMPT "Urgente - Sim para cadastro ate 24h uteis. / Nao urgente ate 72h uteis." OF oDlg COLOR 0, 16777215 PIXEL
+
+        oCombo := tComboBox():New(286,016,{|u|if(PCount()>0,cCombo:=u,cCombo)},;
+            aItens,30,10,oDlg,,,;
+            ,,,.T.,,,,,,,,,'cCombo')
+
+        @ 286, 050 MSGET oGet7 VAR cGet7 SIZE 230, 010 OF oDlg COLORS 0, 16777215 PIXEL
+
+        @ 310, 007 GROUP oGroup7 TO 338, 300 PROMPT "APLICACAO - Onde o produto sera aplicado." OF oDlg COLOR 0, 16777215 PIXEL
+        @ 320, 016 MSGET oGet6 VAR cGet6 SIZE 200, 010 OF oDlg COLORS 0, 16777215 PIXEL
+
+        @ 282, 310 BUTTON oButton2 PROMPT "Confirmar" SIZE 037, 012 OF oDlg PIXEL Action FConfirmaZ3(.F., 0, cGet2,cGet3,cGet4,cGet5,SubStr(cCombo,1,1),cGet6,cGet7)
+        @ 302, 310 BUTTON oButton3 PROMPT "Cancelar"  SIZE 037, 012 OF oDlg PIXEL Action oDlg:End()
+        @ 322, 310 BUTTON oButton4 PROMPT "Verificar Duplicidade" SIZE 080, 012 OF oDlg PIXEL Action FVerifDupZ3(cGet2,cGet3,.T.)
+
+    ACTIVATE MSDIALOG oDlg CENTERED
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FVldSAH
+Valida se a unidade de medida informada existe na tabela SAH.
+/*/
+//-------------------------------------------------------------------
+Static Function FVldSAH(cGet5)
+
+    Local lRet := .T.
+
+    If !Empty(cGet5)
+        lRet := ExistCpo("SAH", UPPER(cGet5))
+    EndIf
+
+Return(lRet)
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} fMSNewGe1
+Inicializa o TCBrowse de pesquisa de produtos existentes (SB1).
+/*/
+//-------------------------------------------------------------------
+Static Function fMSNewGe1()
+
+    Local nX
+    Local aFieldFill := {}
+    Local aFields := {"B1_COD","B1_UM","B1_GRUPO","B1_POSIPI ","B1_DESC","B2_QATU"}
+
+    DbSelectArea("SX3")
+    SX3->(DbSetOrder(2))
+    For nX := 1 To Len(aFields)
+        If SX3->(DbSeek(aFields[nX]))
+            Aadd(aHeaderEx, {AllTrim(X3Titulo()),SX3->X3_CAMPO,SX3->X3_PICTURE,SX3->X3_TAMANHO,SX3->X3_DECIMAL,SX3->X3_VALID,;
+                             SX3->X3_USADO,SX3->X3_TIPO,SX3->X3_F3,SX3->X3_CONTEXT,SX3->X3_CBOX,SX3->X3_RELACAO})
+        EndIf
+    Next nX
+
+    For nX := 1 To Len(aFields)
+        If DbSeek(aFields[nX])
+            Aadd(aFieldFill, CriaVar(SX3->X3_CAMPO))
+        EndIf
+    Next nX
+
+    Aadd(aColsEx, aFieldFill)
+
+    oMSNewGe1 := TCBrowse():New( 34 , 11, 335, 80,,;
+                                {'Codigo        ','U.M.','Grupo    ','NCM         ','Descricao','Saldo'},{20,04,10,15,100,50},;
+                                oDlg,,,,,{||},,,,,,,.F.,,.T.,,.F.,,, )
+
+    oMSNewGe1:SetArray(aColsEx)
+
+    oMSNewGe1:bLine := {|| IIF(Len(aColsEx) > 0 .And. oMSNewGe1:nAt >= 1 .And. oMSNewGe1:nAt <= Len(aColsEx), ;
+                            { aColsEx[oMSNewGe1:nAt,01],;
+                              aColsEx[oMSNewGe1:nAt,02],;
+                              aColsEx[oMSNewGe1:nAt,03],;
+                              aColsEx[oMSNewGe1:nAt,04],;
+                              aColsEx[oMSNewGe1:nAt,05],;
+                              Transform(aColsEx[oMSNewGe1:nAt,06],PesqPict("SB2","B2_QATU"))}, ;
+                            {"","","","","",""}) }
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FPesProd
+Pesquisa produtos na tabela SB1 conforme texto digitado.
+/*/
+//-------------------------------------------------------------------
+Static Function FPesProd(cGetPesq)
+
+    Local cQuery := ""
+
+    aColsEx := {}
+
+    cQuery := "SELECT B1_COD, B1_DESC, B1_UM, B1_GRUPO, B1_POSIPI, "
+    cQuery += "(SELECT B2_QATU FROM " + RetSqlName("SB2") + " WHERE D_E_L_E_T_ <> '*' AND "
+    cQuery += "B2_FILIAL = '" + xFilial("SB2") + "' AND "
+    cQuery += "B2_COD = B1_COD AND B2_LOCAL = B1_LOCPAD) AS B2_QATU "
+    cQuery += "FROM " + RetSqlName("SB1") + " WHERE D_E_L_E_T_ <> '*' AND "
+    cQuery += "B1_MSBLQL <> '1' AND "
+    cQuery += "B1_FILIAL = '" + xFilial("SB1") + "' AND "
+    cQuery += "B1_DESC LIKE '"+AllTrim(Upper(cGetPesq))+"%' "
+    cQuery += "ORDER BY B1_DESC "
+
+    TcQuery cQuery Alias "TRB" New
+
+    dbSelectArea("TRB")
+    dbGoTop()
+    While !Eof()
+        AADD(aColsEx,{TRB->B1_COD,TRB->B1_UM,TRB->B1_GRUPO,TRB->B1_POSIPI,TRB->B1_DESC,TRB->B2_QATU})
+        dbSelectArea("TRB")
+        dbSkip()
+    EndDo
+
+    dbSelectArea("TRB")
+    dbCloseArea()
+
+    cQuery := "SELECT B1_COD, B1_DESC, B1_UM, B1_GRUPO, B1_POSIPI, "
+    cQuery += "(SELECT B2_QATU FROM " + RetSqlName("SB2") + " WHERE D_E_L_E_T_ <> '*' AND "
+    cQuery += "B2_FILIAL = '" + xFilial("SB2") + "' AND "
+    cQuery += "B2_COD = B1_COD AND B2_LOCAL = B1_LOCPAD) AS B2_QATU "
+    cQuery += "FROM " + RetSqlName("SB1") + " WHERE D_E_L_E_T_ <> '*' AND "
+    cQuery += "B1_MSBLQL <> '1' AND "
+    cQuery += "B1_FILIAL = '" + xFilial("SB1") + "' AND "
+    cQuery += "B1_DESC LIKE '%"+AllTrim(Upper(cGetPesq))+"%' AND "
+    cQuery += "B1_DESC NOT LIKE '"+AllTrim(Upper(cGetPesq))+"%' "
+    cQuery += "ORDER BY B1_DESC "
+
+    TcQuery cQuery Alias "TRC" New
+
+    dbSelectArea("TRC")
+    dbGoTop()
+    While !Eof()
+        AADD(aColsEx,{TRC->B1_COD,TRC->B1_UM,TRC->B1_GRUPO,TRC->B1_POSIPI,TRC->B1_DESC,TRC->B2_QATU})
+        dbSelectArea("TRC")
+        dbSkip()
+    EndDo
+
+    dbSelectArea("TRC")
+    dbCloseArea()
+
+    oMSNewGe1:SetArray(aColsEx)
+
+    oMSNewGe1:bLine := {|| IIF(Len(aColsEx) > 0 .And. oMSNewGe1:nAt >= 1 .And. oMSNewGe1:nAt <= Len(aColsEx), ;
+                              { aColsEx[oMSNewGe1:nAt,01],;
+                                aColsEx[oMSNewGe1:nAt,02],;
+                                aColsEx[oMSNewGe1:nAt,03],;
+                                aColsEx[oMSNewGe1:nAt,04],;
+                                aColsEx[oMSNewGe1:nAt,05],;
+                                Transform(aColsEx[oMSNewGe1:nAt,06],PesqPict("SB2","B2_QATU"))}, ;
+                              {"","","","","",""}) }
+
+    oMSNewGe1:Refresh()
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FGravDados
+Valida e grava a solicitacao de cadastro de produto na tabela SZ3.
+/*/
+//-------------------------------------------------------------------
+Static Function FGravDados(cDescProd,cPart,cLink,cUM,cUrg,cAplic,cMotivo)
+
+    Local cCodId := Space(06)
+
+    If Empty(cDescProd)
+       MsgStop("A descricao do produto e obrigatoria!")
+       Return
+    EndIf
+
+    If Empty(cUM)
+       MsgStop("A unidade de medida e obrigatoria!")
+       Return
+    EndIf
+
+    If Empty(cPart) .And. Empty(cLink)
+       MsgStop("Informe o Part Number ou o link de referencia!")
+       Return
+    EndIf
+
+    If Empty(cAPlic)
+       MsgStop("A aplicacao e obrigatoria!")
+       Return
+    EndIf
+
+    If 'S' $ cUrg .And. Empty(cMotivo)
+       MsgStop("Se cadastro for urgente o motivo e obrigatorio!")
+       Return
+    EndIf
+
+    If 'S' $ cUrg .And. !Empty(cMotivo) .And. Len(AllTrim(cMotivo)) <= 10
+       MsgStop("Por favor, detalhe melhor o motivo da urgencia!")
+       Return
+    EndIf
+
+    oDlg:End()
+
+    cCodId := FSEQSZ3()
+
+    dbSelectArea("SZ3")
+    dbSetOrder(01)
+    If Reclock("SZ3",.T.)
+       Replace Z3_FILIAL With xFilial("SZ3")
+       Replace Z3_ID     With cCodId
+       Replace Z3_PN     With UPPER(cPart)
+       Replace Z3_LINK   With cLink
+       Replace Z3_UM     With UPPER(cUM)
+       Replace Z3_DESCRI With UPPER(cDescProd)
+       Replace Z3_STATUS With '0'
+       Replace Z3_PRAZO  With cUrg
+       Replace Z3_APLIC  With UPPER(cAplic)
+       Replace Z3_USR    With Substr(cUsuario,7,15)
+       Replace Z3_ZDTSOL With dDataBase
+       If 'S' $ cUrg
+          Replace Z3_MOTIVO With cMotivo
+       EndIf
+       MsUnlock()
+    EndIf
+
+    MsgInfo("Solicitacao de cadastro de produto registrada com sucesso!" + Chr(10) + Chr(13) + ;
+            "Codigo: " + cCodId, "Sucesso")
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FSEQSZ3
+Retorna o proximo sequencial disponivel para SZ3 (MAX(Z3_ID)+1).
+/*/
+//-------------------------------------------------------------------
+Static Function FSEQSZ3()
+
+    Local cAls   := GetNextAlias()
+    Local cQuery := ""
+    Local cMax   := "000000"
+    Local cNext  := "000001"
+
+    cQuery := "SELECT MAX(Z3_ID) AS MAXID FROM " + RetSQLName("SZ3") + " "
+    cQuery += "WHERE D_E_L_E_T_ = ' ' AND Z3_FILIAL = '" + xFilial("SZ3") + "'"
+    cQuery := ChangeQuery(cQuery)
+
+    If Select(cAls) > 0
+        (cAls)->(DbCloseArea())
+    EndIf
+    DbUseArea(.T., "TOPCONN", TCGenQry(,,cQuery), cAls, .F., .T.)
+    cMax := IIF(Empty((cAls)->MAXID), "000000", AllTrim((cAls)->MAXID))
+    (cAls)->(DbCloseArea())
+
+    If Empty(cMax) .Or. cMax == "000000"
+        cNext := "000001"
+    Else
+        cNext := Soma1(cMax, 6)
+    EndIf
+
+Return(cNext)
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} CADLESZ3
+Exibe a legenda do browse de solicitacao de cadastro de produto.
+/*/
+//-------------------------------------------------------------------
+User Function CADLESZ3()
+
+    FSyncZ3Rej(.T.)
+
+    BRWLEGENDA("Solicitacao Cadastral","Legenda",;
+        {{"BR_BRANCO","Solicitacao aguardando cadastro de produtos."},;
+         {"BR_VERMELHO","Produto cadastrado (Aprovado)."             },;
+         {"BR_PRETO" ,"Solicitacao rejeitada."                     }})
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} VALZ3STS
+Valida o campo Z3_STATUS. Quando rejeitado, preenche Z3_DTREJ e
+copia a data para Z3_ZDTSOL para exibir na mesma coluna do browse.
+/*/
+//-------------------------------------------------------------------
+User Function VALZ3STS()
+
+    Local cStatus := AllTrim(M->Z3_STATUS)
+
+    // A validacao so tem o que fazer se o campo da data de rejeicao existir
+    // na estrutura da SZ3 desta base. Sem ele, sai sem alterar nada.
+    If FieldPos("Z3_DTREJ") == 0
+        Return .T.
+    EndIf
+
+    If cStatus == '2'
+        If Empty(M->Z3_DTREJ)
+            M->Z3_DTREJ := dDataBase
+        EndIf
+        M->Z3_ZDTSOL := M->Z3_DTREJ
+    ElseIf cStatus == '0' .And. !Empty(M->Z3_DTREJ)
+        M->Z3_DTREJ := CtoD("  /  /  ")
+    EndIf
+
+Return(.T.)
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FIXZ3REJ
+Corrige registros rejeitados da SZ3 copiando Z3_DTREJ para Z3_ZDTSOL.
+Use para atualizar registros ja rejeitados que ficaram sem data.
+/*/
+//-------------------------------------------------------------------
+User Function FIXZ3REJ()
+
+    FSyncZ3Rej(.F.)
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FSyncZ3Rej
+Sincroniza a data dos registros rejeitados para aparecer no browse.
+@param lSilencioso - Nao exibe mensagem quando .T.
+/*/
+//-------------------------------------------------------------------
+Static Function FSyncZ3Rej(lSilencioso)
+
+    Local aArea       := GetArea()
+    Local cFilial     := xFilial("SZ3")
+    Local nCorrigidos := 0
+    Local dDataRej    := CtoD("  /  /  ")
+    Local lAtualiza   := .F.
+
+    Default lSilencioso := .T.
+
+    If Select("SZ3") <= 0
+        ChkFile("SZ3")
+    EndIf
+
+    DbSelectArea("SZ3")
+
+    // O campo Z3_DTREJ ainda nao foi criado na estrutura da SZ3 desta base.
+    // Sem ele nao ha o que sincronizar, e ler SZ3->Z3_DTREJ derruba a thread
+    // antes de abrir o browse. A rotina sai 0 quando o campo nao existe.
+    If FieldPos("Z3_DTREJ") == 0
+        If !lSilencioso
+            MsgInfo("O campo Z3_DTREJ ainda nao existe na SZ3 desta base." + Chr(13) + Chr(10) + ;
+                    "Crie o campo (tipo D, tamanho 8) no Configurador e reprocese a SZ3.", ;
+                    "Sincronizacao indisponivel")
+        EndIf
+
+        RestArea(aArea)
+        Return 0
+    EndIf
+
+    SZ3->(DbGoTop())
+
+    While !SZ3->(Eof())
+        If !SZ3->(Deleted()) .And. SZ3->Z3_FILIAL == cFilial .And. AllTrim(SZ3->Z3_STATUS) == '2'
+            dDataRej  := IIF(Empty(SZ3->Z3_DTREJ), dDataBase, SZ3->Z3_DTREJ)
+            lAtualiza := Empty(SZ3->Z3_DTREJ) .Or. Empty(SZ3->Z3_ZDTSOL) .Or. SZ3->Z3_ZDTSOL != dDataRej
+
+            If lAtualiza .And. RecLock("SZ3", .F.)
+                Replace Z3_DTREJ  With dDataRej
+                Replace Z3_ZDTSOL With dDataRej
+                MsUnlock()
+                nCorrigidos++
+            EndIf
+        EndIf
+
+        SZ3->(DbSkip())
+    EndDo
+
+    If !lSilencioso
+        If nCorrigidos > 0
+            MsgInfo(AllTrim(Str(nCorrigidos)) + " registro(s) rejeitado(s) atualizado(s).", "Correcao SZ3")
+        Else
+            MsgInfo("Nenhum registro rejeitado pendente de correcao.", "Correcao SZ3")
+        EndIf
+    EndIf
+
+    RestArea(aArea)
+
+Return nCorrigidos
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} CFGVALZ3
+Grava "U_VALZ3STS()" no X3_VALID do campo Z3_STATUS. Execute uma
+vez apos compilar para ativar o preenchimento automatico de Z3_DTREJ.
+/*/
+//-------------------------------------------------------------------
+User Function CFGVALZ3()
+
+    FCfgValZ3(.F.)
+
+Return
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FCfgValZ3
+Configura a validacao do campo Z3_STATUS no SX3.
+@param lSilencioso - Nao exibe mensagem quando .T.
+/*/
+//-------------------------------------------------------------------
+Static Function FCfgValZ3(lSilencioso)
+
+    Local aArea  := GetArea()
+    Local lAchou := .F.
+    Local cValid := ""
+    Local cNovo  := ""
+
+    Default lSilencioso := .F.
+
+    // Nao adianta instalar U_VALZ3STS() no X3_VALID de Z3_STATUS enquanto o
+    // campo Z3_DTREJ que ela grava nao existir na SZ3 desta base.
+    If Select("SZ3") <= 0
+        ChkFile("SZ3")
+    EndIf
+
+    If SZ3->(FieldPos("Z3_DTREJ")) == 0
+        If !lSilencioso
+            MsgInfo("Validacao nao instalada: o campo Z3_DTREJ ainda nao existe na SZ3 desta base.", ;
+                    "Configuracao")
+        EndIf
+
+        RestArea(aArea)
+        Return
+    EndIf
+
+    DbSelectArea("SX3")
+    DbSetOrder(2)
+
+    If SX3->(DbSeek("Z3_STATUS"))
+        While !SX3->(Eof()) .And. AllTrim(SX3->X3_CAMPO) == "Z3_STATUS"
+            If AllTrim(SX3->X3_ARQUIVO) == "SZ3"
+                lAchou := .T.
+                If FieldPos("X3_VALID") > 0
+                    cValid := AllTrim(SX3->X3_VALID)
+                    If !("U_VALZ3STS()" $ Upper(cValid))
+                        cNovo := IIF(Empty(cValid) .Or. cValid == "@!" .Or. cValid == ".T.", ;
+                                     "U_VALZ3STS()", ;
+                                     "U_VALZ3STS().And.(" + cValid + ")")
+                        If Len(cNovo) <= Len(SX3->X3_VALID)
+                            RecLock("SX3", .F.)
+                                SX3->X3_VALID := cNovo
+                            MsUnlock()
+                        EndIf
+                    EndIf
+                EndIf
+                Exit
+            EndIf
+            SX3->(DbSkip())
+        EndDo
+    EndIf
+
+    If !lSilencioso
+        If lAchou
+            MsgInfo("X3_VALID configurado: Z3_STATUS -> U_VALZ3STS()" + Chr(13) + Chr(10) + ;
+                    "O preenchimento automatico de Z3_DTREJ esta ativo.", "Configuracao Concluida")
+        Else
+            MsgStop("Campo Z3_STATUS nao localizado na SX3 para alias SZ3.", "Erro de Configuracao")
+        EndIf
+    EndIf
+
+    RestArea(aArea)
+
+Return lAchou
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} RELSZ3
+Relatorio de Solicitacoes Cadastrais de Produto (SZ3).
+/*/
+//-------------------------------------------------------------------
+User Function RELSZ3()
+
+    Local oReport
+
+    FSyncZ3Rej(.T.)
+    oReport := RELSZ3_Def()
+
+    If oReport != Nil
+        oReport:PrintDialog()
+    EndIf
+
+Return
+
+
+Static Function RELSZ3_Def()
+
+    Local oReport
+    Local oSection
+    Local aPar    := {}
+    Local aRet    := {}
+    Local aStatus := {"Todos","Pendente","Aprovado","Rejeitado"}
+    Local nSts    := 1
+
+    aAdd(aPar, {5, "Status", nSts, aStatus, "", "", "", 60, .T.})
+
+    If !ParamBox(aPar, "Filtro do Relatorio", @aRet)
+        Return Nil
+    EndIf
+
+    nSts := aRet[1]
+
+    oReport := TReport():New("RELSZ3", ;
+        "Solicitacoes Cadastrais de Produto", "", ;
+        {|oRep| RELSZ3_Print(oRep, nSts)}, ;
+        "Relatorio de solicitacoes de cadastro de produto")
+
+    oReport:SetLandscape(.F.)
+    oReport:SetTotalInLine(.F.)
+
+    oSection := TRSection():New(oReport, "Solicitacoes", {})
+
+    TRCell():New(oSection, "ID",      "", "Codigo",      "@!",              6)
+    TRCell():New(oSection, "DTSOL",   "", "Data",        "@D",             10)
+    TRCell():New(oSection, "USR",     "", "Solicitante", "@!",             15)
+    TRCell():New(oSection, "DESCRI",  "", "Descricao",   "@!",             40)
+    TRCell():New(oSection, "UM",      "", "UM",          "@!",              4)
+    TRCell():New(oSection, "URGENTE", "", "Urgente",     "@!",              3)
+    TRCell():New(oSection, "STATUS",  "", "Status",      "@!",             10)
+
+Return oReport
+
+
+Static Function RELSZ3_Print(oReport, nSts)
+
+    Local cAlias   := GetNextAlias()
+    Local cQuery   := ""
+    Local cFiltSts := ""
+    Local oSection := oReport:Section(1)
+    Local nCount   := 0
+    Local cStsTxt  := ""
+
+    Do Case
+        Case nSts == 2
+            cFiltSts := " AND Z3_STATUS = '0' "
+        Case nSts == 3
+            cFiltSts := " AND Z3_STATUS = '1' "
+        Case nSts == 4
+            cFiltSts := " AND Z3_STATUS = '2' "
+        Otherwise
+            cFiltSts := ""
+    EndCase
+
+    cQuery := " SELECT "
+    cQuery += "   Z3_ID, "
+    cQuery += "   Z3_ZDTSOL, "
+    cQuery += "   Z3_USR, "
+    cQuery += "   LEFT(Z3_DESCRI, 80) AS Z3_DESCRI, "
+    cQuery += "   Z3_UM, "
+    cQuery += "   Z3_PRAZO, "
+    cQuery += "   Z3_STATUS "
+    cQuery += " FROM " + RetSQLName("SZ3") + " "
+    cQuery += " WHERE Z3_FILIAL = '" + xFilial("SZ3") + "' "
+    cQuery += "   AND D_E_L_E_T_ = ' ' "
+    cQuery += cFiltSts
+    cQuery += " ORDER BY Z3_ZDTSOL DESC, Z3_ID "
+
+    cQuery := ChangeQuery(cQuery)
+
+    If Select(cAlias) > 0
+        (cAlias)->(DbCloseArea())
+    EndIf
+
+    DbUseArea(.T., "TOPCONN", TCGenQry(,,cQuery), cAlias, .F., .T.)
+
+    If (cAlias)->(Eof())
+        (cAlias)->(DbCloseArea())
+        MsgInfo("Nenhum registro encontrado para o filtro selecionado!", "Atencao")
+        Return
+    EndIf
+
+    oSection:Init()
+
+    While !(cAlias)->(Eof())
+
+        Do Case
+            Case (cAlias)->Z3_STATUS == '0'
+                cStsTxt := "Pendente"
+            Case (cAlias)->Z3_STATUS == '1'
+                cStsTxt := "Aprovado"
+            Case (cAlias)->Z3_STATUS == '2'
+                cStsTxt := "Rejeitado"
+            Otherwise
+                cStsTxt := "?"
+        EndCase
+
+        oSection:Cell("ID"):SetValue(AllTrim((cAlias)->Z3_ID))
+        oSection:Cell("DTSOL"):SetValue(StoD((cAlias)->Z3_ZDTSOL))
+        oSection:Cell("USR"):SetValue(AllTrim((cAlias)->Z3_USR))
+        oSection:Cell("DESCRI"):SetValue(AllTrim((cAlias)->Z3_DESCRI))
+        oSection:Cell("UM"):SetValue(AllTrim((cAlias)->Z3_UM))
+        oSection:Cell("URGENTE"):SetValue(IIF((cAlias)->Z3_PRAZO == 'S', 'Sim', 'Nao'))
+        oSection:Cell("STATUS"):SetValue(cStsTxt)
+
+        oSection:PrintLine()
+        nCount++
+
+        (cAlias)->(DbSkip())
+        oReport:IncMeter()
+    EndDo
+
+    oSection:Finish()
+    (cAlias)->(DbCloseArea())
+
+    If nCount == 0
+        MsgInfo("Nenhum registro encontrado!", "Atencao")
+    EndIf
+
+Return
+
+
+//-------------------------------------------------------------------
+// Wrappers User Function chamados pelo aRotina do mBrowse.
+// Necessarios porque CADSZ3_Alt/Vis/Del sao Static.
+//-------------------------------------------------------------------
+
+User Function CPRDALT()
+    DbSelectArea("SZ3")
+    CADSZ3_Alt()
+Return
+
+User Function CPRDVIS()
+    DbSelectArea("SZ3")
+    CADSZ3_Vis()
+Return
+
+User Function CPRDDEL()
+    DbSelectArea("SZ3")
+    CADSZ3_Del()
+Return
+
+
+//-------------------------------------------------------------------
+// VERIFICACAO DE DUPLICIDADE DE PRODUTO
+// Percorre o cadastro (SB1) procurando itens ja existentes que sejam o
+// mesmo produto do solicitado, mesmo escrito com as palavras em outra
+// ordem. Evita cadastro duplicado na solicitacao cadastral.
+//-------------------------------------------------------------------
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FSemAcentoZ3
+Remove acentos do texto, em maiusculo e em minusculo: a solicitacao pode ser
+digitada em qualquer caixa e o descritivo da SB1 vem em maiusculo. Os codigos
+sao montados com Chr() para manter o fonte em CP-1252 puro.
+@param cTexto Texto original.
+@return cRet Texto sem acentos.
+@type    Static Function
+@author  Suprimentos
+@since   29/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FSemAcentoZ3(cTexto)
+
+    Local cDe   := Chr(192) + Chr(193) + Chr(194) + Chr(195) + Chr(196) + ;
+                   Chr(200) + Chr(201) + Chr(202) + Chr(203) + ;
+                   Chr(204) + Chr(205) + Chr(206) + Chr(207) + ;
+                   Chr(210) + Chr(211) + Chr(212) + Chr(213) + Chr(214) + ;
+                   Chr(217) + Chr(218) + Chr(219) + Chr(220) + ;
+                   Chr(199) + Chr(209) + ;
+                   Chr(224) + Chr(225) + Chr(226) + Chr(227) + Chr(228) + ;
+                   Chr(232) + Chr(233) + Chr(234) + Chr(235) + ;
+                   Chr(236) + Chr(237) + Chr(238) + Chr(239) + ;
+                   Chr(242) + Chr(243) + Chr(244) + Chr(245) + Chr(246) + ;
+                   Chr(249) + Chr(250) + Chr(251) + Chr(252) + ;
+                   Chr(231) + Chr(241)
+    Local cPara := "AAAAAEEEEIIIIOOOOOUUUUCN" + ;
+                   "aaaaaeeeeiiiiooooouuuucn"
+    Local cRet  := cTexto
+    Local nI    := 1
+
+    For nI := 1 To Len(cDe)
+        cRet := StrTran(cRet, SubStr(cDe, nI, 1), SubStr(cPara, nI, 1))
+    Next nI
+
+Return cRet
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FNormalZ3
+Normaliza um descritivo para comparacao: maiusculo, sem acentos e sem
+pontuacao. Ponto e hifen desaparecem (1.1/16 vira 11/16 e O-RING vira
+ORING) e qualquer outro simbolo vira separador de palavra. A barra e
+preservada porque 1/16 nao pode ser confundido com 116.
+Depois disso duas medidas iguais passam a ser escritas do mesmo jeito:
+  5/8POLX3POL e 5/8"X3" viram 5/8 X 3 (polegada por extenso sai e o X
+  colado entre numeros vira separador).
+@param cTexto Texto original.
+@return cRet Texto normalizado, com espacos simples.
+@type    Static Function
+@author  Suprimentos
+@since   29/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FNormalZ3(cTexto)
+
+    Local cRet   := ""
+    Local cOut   := ""
+    Local cAux   := ""
+    Local cOk    := "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/"
+    Local cGruda := ".-'" + Chr(34) + Chr(176)
+    Local nI     := 1
+
+    If Empty(cTexto)
+        Return ""
+    EndIf
+
+    cRet := Upper(AllTrim(FSemAcentoZ3(cTexto)))
+
+    For nI := 1 To Len(cGruda)
+        cRet := StrTran(cRet, SubStr(cGruda, nI, 1), "")
+    Next nI
+
+    For nI := 1 To Len(cRet)
+        cAux := SubStr(cRet, nI, 1)
+        If At(cAux, cOk) > 0
+            cOut += cAux
+        Else
+            cOut += " "
+        EndIf
+    Next nI
+
+    Do While At("  ", cOut) > 0
+        cOut := StrTran(cOut, "  ", " ")
+    EndDo
+
+    cOut := FSemPolegZ3(AllTrim(cOut))
+    cOut := FSeparaXZ3(cOut)
+
+Return AllTrim(cOut)
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FSemPolegZ3
+Remove a unidade polegada escrita por extenso quando ela acompanha um
+numero: 5/8POL vira 5/8, 5/8POLX3POL vira 5/8X3 e 2POLEGADAS vira 2.
+POL dentro de palavra (POLIURETANO, POLO) nao e tocado, porque a remocao
+exige numero imediatamente antes e fim, espaco, numero ou X depois.
+@param cTexto Texto normalizado por FNormalZ3().
+@return cRet Texto sem a unidade por extenso.
+@type    Static Function
+@author  Suprimentos
+@since   30/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FSemPolegZ3(cTexto)
+
+    Local aUnid  := {"POLEGADAS", "POLEGADA", "POLEG", "POL"}
+    Local cRet   := ""
+    Local cAnt   := ""
+    Local cPos   := ""
+    Local nI     := 1
+    Local nU     := 1
+    Local lAchou := .F.
+
+    Do While nI <= Len(cTexto)
+        lAchou := .F.
+
+        For nU := 1 To Len(aUnid)
+            If SubStr(cTexto, nI, Len(aUnid[nU])) == aUnid[nU]
+                cAnt := ""
+                If nI > 1
+                    cAnt := SubStr(cTexto, nI - 1, 1)
+                EndIf
+                cPos := SubStr(cTexto, nI + Len(aUnid[nU]), 1)
+
+                If cAnt $ "0123456789" .And. (Empty(cPos) .Or. cPos $ " 0123456789X")
+                    nI     += Len(aUnid[nU])
+                    lAchou := .T.
+                    Exit
+                EndIf
+            EndIf
+        Next nU
+
+        If !lAchou
+            cRet += SubStr(cTexto, nI, 1)
+            nI   += 1
+        EndIf
+    EndDo
+
+Return cRet
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FSeparaXZ3
+Separa o X colado entre numeros: 5/8X3 vira 5/8 X 3. Assim a medida
+escrita com e sem espaco em volta do X gera as mesmas palavras-chave.
+@param cTexto Texto normalizado por FSemPolegZ3().
+@return cRet Texto com o X isolado entre os numeros.
+@type    Static Function
+@author  Suprimentos
+@since   30/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FSeparaXZ3(cTexto)
+
+    Local cRet := ""
+    Local cAux := ""
+    Local nI   := 1
+
+    For nI := 1 To Len(cTexto)
+        cAux := SubStr(cTexto, nI, 1)
+
+        If cAux == "X" .And. nI > 1 .And. nI < Len(cTexto) .And. ;
+           SubStr(cTexto, nI - 1, 1) $ "0123456789" .And. ;
+           SubStr(cTexto, nI + 1, 1) $ "0123456789"
+            cRet += " X "
+        Else
+            cRet += cAux
+        EndIf
+    Next nI
+
+    Do While At("  ", cRet) > 0
+        cRet := StrTran(cRet, "  ", " ")
+    EndDo
+
+Return AllTrim(cRet)
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FTokensZ3
+Quebra o texto ja normalizado em palavras unicas e ordenadas, descartando
+os artigos e conectivos que nao identificam o produto. Com as palavras
+ordenadas, a ordem digitada deixa de importar na comparacao.
+@param cNormal Texto normalizado por FNormalZ3().
+@return aTokens Vetor de palavras, sem repeticao, em ordem alfabetica.
+@type    Static Function
+@author  Suprimentos
+@since   29/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FTokensZ3(cNormal)
+
+    Local aTokens := {}
+    Local aAux    := {}
+    Local aStop   := {"DE", "DA", "DO", "DOS", "DAS", "NO", "NA", "NOS", ;
+                      "EM", "COM", "C", "C/", "PARA", "P/", "PRO", "AO", ;
+                      "AOS", "AS", "OS", "O", "A", "UM", "UMA", ;
+                      "POL", "POLEG", "POLEGADA", "POLEGADAS"}
+    Local cTok    := ""
+    Local nI      := 1
+
+    If Empty(cNormal)
+        Return aTokens
+    EndIf
+
+    aAux := StrTokArr(cNormal, " ")
+
+    For nI := 1 To Len(aAux)
+        cTok := AllTrim(aAux[nI])
+        If !Empty(cTok) .And. AScan(aStop, cTok) == 0 .And. AScan(aTokens, cTok) == 0
+            AAdd(aTokens, cTok)
+        EndIf
+    Next nI
+
+    ASort(aTokens)
+
+Return aTokens
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FChaveZ3
+Monta a chave canonica do descritivo: as palavras ordenadas unidas por
+barra vertical. Duas descricoes com a mesma chave sao o mesmo produto
+escrito em ordens diferentes.
+@param aTokens Vetor vindo de FTokensZ3().
+@return cChave Chave canonica.
+@type    Static Function
+@author  Suprimentos
+@since   29/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FChaveZ3(aTokens)
+
+    Local cChave := ""
+    Local nI     := 1
+
+    For nI := 1 To Len(aTokens)
+        cChave += aTokens[nI] + "|"
+    Next nI
+
+Return cChave
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FCarregaSB1Z3
+Carrega a SB1 inteira em memoria uma unica vez por sessao, ja com a chave
+canonica de cada descritivo. A base tem cerca de 11.800 produtos, entao a
+varredura completa em memoria e mais confiavel do que filtrar por LIKE no
+SQL, que nao encontra o item quando a grafia difere.
+A descricao completa (B1_ZDESCF) fica fora da carga porque e campo MEMO
+gravado como varbinary(max) e lido pelo alias devolve apenas o ponteiro.
+Cada linha do cache e {codigo, descricao, descricao normalizada, chave canonica}.
+@return nRegs Quantidade de itens carregados no cache.
+@type    Static Function
+@author  Suprimentos
+@since   29/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FCarregaSB1Z3(lRecarrega)
+
+    Local aArea  := GetArea()
+    Local cAlias := GetNextAlias()
+    Local cQuery := ""
+    Local cDesc  := ""
+    Local cNorm  := ""
+
+    Default lRecarrega := .F.
+
+    If Len(aCacheSB1) > 0 .And. !lRecarrega
+        Return Len(aCacheSB1)
+    EndIf
+
+    cQuery := " SELECT B1_COD, B1_DESC "
+    cQuery += "   FROM " + RetSqlName("SB1") + " SB1 WITH (NOLOCK) "
+    cQuery += "  WHERE D_E_L_E_T_ = ' ' "
+    cQuery += "    AND B1_FILIAL = '" + xFilial("SB1") + "' "
+    cQuery += "  ORDER BY B1_COD "
+    cQuery := ChangeQuery(cQuery)
+    cQuery := StrTran(cQuery, "(NOLOCK)", "")              // normaliza (evita dica duplicada)
+    cQuery := StrTran(cQuery, " WITH ", " WITH (NOLOCK) ") // reinjeta a dica que o ChangeQuery remove
+
+    If Select(cAlias) > 0
+        (cAlias)->(DbCloseArea())
+    EndIf
+
+    DbUseArea(.T., "TOPCONN", TCGenQry(,,cQuery), cAlias, .F., .T.)
+
+    // Recomeca o cache do zero: na recarga nao se pode acumular sobre a carga anterior.
+    aCacheSB1 := {}
+
+    (cAlias)->(DbGoTop())
+
+    While !(cAlias)->(Eof())
+        cDesc := AllTrim((cAlias)->B1_DESC)
+        cNorm := FNormalZ3(cDesc)
+
+        AAdd(aCacheSB1, { AllTrim((cAlias)->B1_COD), ;
+                          cDesc                    , ;
+                          cNorm                    , ;
+                          FChaveZ3(FTokensZ3(cNorm)) })
+
+        (cAlias)->(DbSkip())
+    EndDo
+
+    (cAlias)->(DbCloseArea())
+    RestArea(aArea)
+
+Return Len(aCacheSB1)
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FBlocoBrw
+Devolve a linha do browse de duplicidades na ordem das colunas.
+@param aLinhas Array de resultados de FAvaliaDupZ3().
+@param nAt     Numero da linha atual do browse.
+@return aLinha Linha na ordem codigo, descricao, fornecedor.
+@type    Static Function
+@author  Suprimentos
+@since   29/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FBlocoBrw(aLinhas, nAt)
+
+    If nAt >= 1 .And. nAt <= Len(aLinhas)
+        Return { aLinhas[nAt,1], aLinhas[nAt,2], aLinhas[nAt,3] }
+    EndIf
+
+Return {"", "", ""}
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FAvaliaDupZ3
+Varre o cache da SB1 e devolve os itens que sao o mesmo produto do solicitado.
+Sao duas camadas, nesta ordem de prioridade:
+  1 - Mesmo Part Number  o PN digitado aparece no descritivo do cadastro
+  2 - Mesmas palavras    chave canonica identica, ordem das palavras irrelevante
+Descritivo apenas parecido fica de fora: a lista existe para mostrar duplicidade
+real, nao sugestao, e resultado difuso esconde o item certo.
+@param cDescZ3 Descricao digitada na solicitacao.
+@param cPnZ3   Part number digitado na solicitacao.
+@return aRet Vetor de {codigo, descricao, fornecedor}.
+@type    Static Function
+@author  Suprimentos
+@since   29/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FAvaliaDupZ3(cDescZ3, cPnZ3)
+
+    Local aRet    := {}
+    Local aTmp    := {}
+    Local aN1     := {}
+    Local aN2     := {}
+    Local aGrupos := {}
+    Local aLinha  := {}
+    Local cChave  := ""
+    Local cPnNorm := ""
+    Local nI      := 1
+    Local nJ      := 1
+
+    cChave  := FChaveZ3(FTokensZ3(FNormalZ3(cDescZ3)))
+    cPnNorm := FNormalZ3(cPnZ3)
+
+    If Len(aCacheSB1) == 0
+        Return aRet
+    EndIf
+
+    For nI := 1 To Len(aCacheSB1)
+        aLinha := aCacheSB1[nI]
+
+        // PN com menos de 6 caracteres e bitola (1/16, M16X50), nao part number:
+        // casaria com a familia inteira e mascararia o resultado do descritivo.
+        If !Empty(cPnNorm) .And. Len(cPnNorm) >= 6 .And. (cPnNorm $ aLinha[3])
+            AAdd(aN1, { aLinha[1], aLinha[2], "" })
+        ElseIf !Empty(cChave) .And. cChave == aLinha[4]
+            AAdd(aN2, { aLinha[1], aLinha[2], "" })
+        EndIf
+    Next nI
+
+    // O '+' nao concatena arrays em AdvPL (type mismatch): a juncao e por indice,
+    // mantendo o Part Number na frente das mesmas palavras.
+    aGrupos := { aN1, aN2 }
+
+    For nI := 1 To Len(aGrupos)
+        For nJ := 1 To Len(aGrupos[nI])
+            AAdd(aRet, aGrupos[nI][nJ])
+        Next nJ
+    Next nI
+
+    If Len(aRet) > 50
+        aTmp := {}
+        For nI := 1 To 50
+            AAdd(aTmp, aRet[nI])
+        Next nI
+        aRet := aTmp
+    EndIf
+
+Return FCarregaFornZ3(aRet)
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FCarregaFornZ3
+Preenche o fornecedor de cada item da lista com o do ultimo documento de
+entrada do produto. A consulta roda somente sobre os itens ja filtrados
+(no maximo 50), nunca sobre a SB1 inteira.
+@param aDup Vetor de duplicidades montado por FAvaliaDupZ3().
+@return aDup Mesmo vetor, com a coluna 3 (fornecedor) preenchida.
+@type    Static Function
+@author  Suprimentos
+@since   30/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FCarregaFornZ3(aDup)
+
+    Local aArea  := GetArea()
+    Local cAlias := GetNextAlias()
+    Local cQuery := ""
+    Local cIn    := ""
+    Local cCod   := ""
+    Local nI     := 1
+
+    If Len(aDup) == 0
+        Return aDup
+    EndIf
+
+    For nI := 1 To Len(aDup)
+        cIn += "'" + StrTran(aDup[nI][1], "'", "") + "',"
+    Next nI
+    cIn := SubStr(cIn, 1, Len(cIn) - 1)
+
+    cQuery := " SELECT X.COD, X.FORN FROM ( "
+    cQuery += "   SELECT D1.D1_COD AS COD, A2.A2_NOME AS FORN, "
+    cQuery += "          ROW_NUMBER() OVER (PARTITION BY D1.D1_COD ORDER BY D1.D1_EMISSAO DESC, D1.D1_DOC DESC) AS RN "
+    cQuery += "     FROM " + RetSqlName("SD1") + " D1 WITH (NOLOCK) "
+    cQuery += "    INNER JOIN " + RetSqlName("SA2") + " A2 WITH (NOLOCK) "
+    cQuery += "            ON A2.D_E_L_E_T_ = ' ' "
+    cQuery += "           AND A2.A2_COD  = D1.D1_FORNECE "
+    cQuery += "           AND A2.A2_LOJA = D1.D1_LOJA "
+    cQuery += "    WHERE D1.D_E_L_E_T_ = ' ' "
+    cQuery += "      AND D1.D1_FILIAL = '" + xFilial("SD1") + "' "
+    cQuery += "      AND D1.D1_COD IN (" + cIn + ") "
+    cQuery += " ) X WHERE X.RN = 1 "
+    cQuery := ChangeQuery(cQuery)
+    cQuery := StrTran(cQuery, "(NOLOCK)", "")              // normaliza (evita dica duplicada)
+    cQuery := StrTran(cQuery, " WITH ", " WITH (NOLOCK) ") // reinjeta a dica que o ChangeQuery remove
+
+    If Select(cAlias) > 0
+        (cAlias)->(DbCloseArea())
+    EndIf
+
+    DbUseArea(.T., "TOPCONN", TCGenQry(,,cQuery), cAlias, .F., .T.)
+
+    (cAlias)->(DbGoTop())
+
+    While !(cAlias)->(Eof())
+        cCod := AllTrim((cAlias)->COD)
+
+        For nI := 1 To Len(aDup)
+            If AllTrim(aDup[nI][1]) == cCod
+                aDup[nI][3] := AllTrim((cAlias)->FORN)
+                Exit
+            EndIf
+        Next nI
+
+        (cAlias)->(DbSkip())
+    EndDo
+
+    (cAlias)->(DbCloseArea())
+    RestArea(aArea)
+
+Return aDup
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FVerifDupZ3
+Apresenta os produtos do cadastro que possivelmente ja sao o item
+solicitado. A lista e informativa: fechada a janela, o fluxo segue.
+@param cDescZ3 Descricao digitada na solicitacao.
+@param cPnZ3   Part number digitado na solicitacao.
+@param lRecarrega .T. recarrega o cache da SB1 (botao manual).
+@return .T. A verificacao nao bloqueia a gravacao.
+@type    Static Function
+@author  Suprimentos
+@since   29/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FVerifDupZ3(cDescZ3, cPnZ3, lRecarrega)
+
+    Local aDups   := {}
+    Local oDlgDup := Nil
+    Local oBrwDup := Nil
+    Local oSayDup := Nil
+    Local cTit    := ""
+
+    Default lRecarrega := .F.
+
+    If Empty(AllTrim(cDescZ3))
+        Return .T.
+    EndIf
+
+    FCarregaSB1Z3(lRecarrega)
+
+    aDups := FAvaliaDupZ3(cDescZ3, cPnZ3)
+
+    If Len(aDups) == 0
+        MsgInfo("Nenhum produto com o mesmo Part Number ou as mesmas palavras" + ENTER + ;
+                "foi encontrado no cadastro." + ENTER + ;
+                "A solicitacao pode ser registrada.", "Verificacao de Duplicidade")
+        Return .T.
+    EndIf
+
+    cTit := "Produtos ja cadastrados - " + AllTrim(Str(Len(aDups))) + " item(ns)"
+
+    // A moldura do MSDIALOG usa o valor literal, mas as coordenadas dos controles
+    // sao renderizadas com zoom do ambiente (~2x). Por isso a moldura e declarada
+    // com o dobro da area ocupada pelos controles, como em ZANALBX e IMPSLDINI;
+    // sem isso a ultima coluna e os botoes ficam fora da janela.
+    DEFINE MSDIALOG oDlgDup TITLE cTit FROM 000, 000 TO 400, 800 COLORS 0, 16777215 PIXEL
+
+        @ 008, 012 SAY oSayDup PROMPT "Mesmo Part Number ou as mesmas palavras do produto solicitado:" ;
+            SIZE 380, 020 OF oDlgDup COLORS 0, 16777215 PIXEL
+
+        oBrwDup := TCBrowse():New( 034 , 012, 376, 150,,;
+                                  {'Codigo','Descricao','Fornecedor'},{40,196,140},;
+                                  oDlgDup,,,,,{||},,,,,,,.F.,,.T.,,.F.,,, )
+
+        oBrwDup:SetArray(aDups)
+        oBrwDup:bLine := {|| FBlocoBrw(aDups, oBrwDup:nAt) }
+
+    ACTIVATE MSDIALOG oDlgDup CENTERED
+
+Return .T.
+
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} FConfirmaZ3
+Mostra a verificacao de duplicidade entre o botao Confirmar e a gravacao.
+A lista e informativa e nao impede a gravacao.
+Nao altera as assinaturas de FGravDados e FSaveSZ3.
+@param lAlterar .T. na alteracao de solicitacao existente, .F. na inclusao.
+@param nRecNo   Numero do registro na SZ3 (usado somente na alteracao).
+@param cDescProd Descricao do produto.
+@param cPart    Part number.
+@param cLink    Link de referencia.
+@param cUM      Unidade de medida.
+@param cUrg     Urgente (S/N).
+@param cAplic   Aplicacao.
+@param cMotivo  Motivo da urgencia.
+@type    Static Function
+@author  Suprimentos
+@since   29/10/2026
+/*/
+//-------------------------------------------------------------------
+Static Function FConfirmaZ3(lAlterar, nRecNo, cDescProd, cPart, cLink, cUM, cUrg, cAplic, cMotivo)
+
+    FVerifDupZ3(cDescProd, cPart)
+
+    If lAlterar
+        FSaveSZ3(nRecNo, cDescProd, cPart, cLink, cUM, cUrg, cAplic, cMotivo)
+    Else
+        FGravDados(cDescProd, cPart, cLink, cUM, cUrg, cAplic, cMotivo)
+    EndIf
+
+Return

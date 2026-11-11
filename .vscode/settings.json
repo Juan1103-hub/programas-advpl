@@ -1,4 +1,13 @@
 {
     "totvsLanguageServer.welcomePage": false,
-    "totvsLanguageServer.editor.linter.includes": "C:\\Users\\Vortice 0097\\Desktop\\BKP_JUAN\\totvs\\includes"
+    "totvsLanguageServer.editor.linter.includes": "C:\\Users\\Vortice 0097\\Desktop\\BKP_JUAN\\totvs\\includes",
+    "files.exclude": {
+        "**/.advpl": true
+    },
+    "search.exclude": {
+        "**/.advpl": true
+    },
+    "files.watcherExclude": {
+        "**/.advpl/**": true
+    }
 }

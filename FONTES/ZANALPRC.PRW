@@ -54,6 +54,7 @@ User Function ZANALPRC()
     Private aZANPDET := {}
     Private dZANPDE  := CtoD("")
     Private dZANPATE := Date()
+    Private nZANPSO1 := 0   // Itens com apenas 1 compra no periodo (sem comparacao)
 
     AnpCarCompLT(@aCompCombo, @aCompCods)
     AnpCarCC(@aCCCombo, @aCCCods)
@@ -142,7 +143,7 @@ User Function ZANALPRC()
         @20,225 BUTTON "Indicadores"  SIZE 55,12 OF aDlg PIXEL ACTION AnpInd(aArray, dDtDe, dDtAte, cItem, cCodUser, cCodCC)
 
         @40,5 LISTBOX oL FIELDS HEADER ;
-            "Codigo","Descricao do Item","Centro Custo","Qtd. Total","Valor Unit. Inicial","V.Unit Penultimo","Valor Unit. Final","Diferenca R$","Variacao %","Situacao" ;
+            "Codigo","Descricao do Item","Centro Custo","Qtd. Total","Primeiro Valor Unitario","Valor Unitario Anterior","Valor Unitario Atual","Diferenca R$","Variacao %","Situacao" ;
             SIZE 740,260 OF aDlg PIXEL HSCROLL
 
         oL:SetArray(aArray)
@@ -375,15 +376,19 @@ Static Function AnpCarCC(aCombo, aCods)
     Local cAlias := GetNextAlias()
     Local cCod   := ""
     Local cNome  := ""
+    Local cQuery := ""
 
     aCombo := {"** Todos os Centros **"}
     aCods  := {"*"}
 
-    // Monta query para TopConnect
-    Local cQuery := "SELECT CTT.CTT_CUSTO AS COD, CTT.CTT_DESC01 AS DESCR " + ;
+    // Monta query para TopConnect - apenas centros de custo autorizados da Vortice
+    cQuery := "SELECT CTT.CTT_CUSTO AS COD, CTT.CTT_DESC01 AS DESCR " + ;
                    " FROM " + RetSqlName("CTT") + " CTT " + ;
                    " WHERE CTT.D_E_L_E_T_ = ' ' " + ;
                    "   AND CTT.CTT_FILIAL = '" + xFilial("CTT") + "' " + ;
+                   "   AND CTT.CTT_CUSTO IN ('5010201','5010202','5010203','5010204','5010205','5010206','5010207'," + ;
+                   "        '6010201','6010202','6010203','6010204','6010205','6010206','6010207','6010208','6010209','6010210'," + ;
+                   "        '6010212','6010213','6010214','7010201','7010202','8010201','8010202','9010201','9010202') " + ;
                    " ORDER BY CTT.CTT_CUSTO"
 
     cQuery := ChangeQuery(cQuery)
@@ -421,8 +426,12 @@ Static Function AnpCarrega(dDe, dAte, cItem, cCodUser, cDescr, cTipo, cCodCC)
     Local cNome   := ""
     Local nVUnitLiq := 0
     Local nDescVlr  := 0
+    Local nSolo1    := 0
+    Local aUsrCache := {}   // Cache de nome do comprador: UsrRetName so no 1o acesso do codigo
+    Local nPUsr     := 0
 
     aZANPDET := {}
+    nZANPSO1 := 0
 
     cQuery := " SELECT SD1.D1_COD     AS COD,                                    "
     cQuery += "        SB1.B1_DESC    AS DESCR,                                  "
@@ -431,6 +440,7 @@ Static Function AnpCarrega(dDe, dAte, cItem, cCodUser, cDescr, cTipo, cCodCC)
     cQuery += "        SD1.D1_VUNIT   AS VUNIT,                                  "
     cQuery += "        SD1.D1_TOTAL   AS VTOT,                                   "
     cQuery += "        SD1.D1_PEDIDO  AS PEDIDO,                                 "
+    cQuery += "        SD1.D1_DOC     AS DOC,                                    "
     cQuery += "        SD1.D1_ITEMPC  AS ITEMPC,                                 "
     cQuery += "        SD1.D1_FORNECE AS FORN,                                   "
     cQuery += "        SD1.D1_LOJA    AS LOJA,                                   "
@@ -444,7 +454,7 @@ Static Function AnpCarrega(dDe, dAte, cItem, cCodUser, cDescr, cTipo, cCodCC)
     cQuery += "        SC7.C7_QUANT   AS C7QUANT,                                "
     cQuery += "        SE4.E4_DESCRI  AS CONDDESC,                               "
     cQuery += "        SC7.C7_NUMSC   AS NUMSC                                   "
-    cQuery += "   FROM " + RetSqlName("SD1") + " SD1                             "
+    cQuery += "   FROM " + RetSqlName("SD1") + " SD1 WITH (NOLOCK)              "
     cQuery += "   LEFT JOIN " + RetSqlName("SB1") + " SB1                        "
     cQuery += "          ON SB1.D_E_L_E_T_ = ' '                                 "
     cQuery += "         AND SB1.B1_FILIAL  = '" + xFilial("SB1") + "'            "
@@ -494,6 +504,8 @@ Static Function AnpCarrega(dDe, dAte, cItem, cCodUser, cDescr, cTipo, cCodCC)
     cQuery += " ORDER BY SD1.D1_COD, SD1.D1_DTDIGIT, SD1.D1_PEDIDO "
 
     cQuery := ChangeQuery(cQuery)
+    cQuery := StrTran(cQuery, "(NOLOCK)", "")              // normaliza (evita dica duplicada)
+    cQuery := StrTran(cQuery, " WITH ", " WITH (NOLOCK) ") // reinjeta a dica que o ChangeQuery remove
     DbUseArea(.T., "TOPCONN", TcGenQry(,, cQuery), cAlias, .F., .T.)
 
     While !(cAlias)->(Eof())
@@ -509,12 +521,19 @@ Static Function AnpCarrega(dDe, dAte, cItem, cCodUser, cDescr, cTipo, cCodCC)
                 Min((cAlias)->VUNIT, (cAlias)->VTOT / (cAlias)->QTD), ;
                 (cAlias)->VUNIT))
 
-        cNome := AllTrim(UsrRetName(AllTrim((cAlias)->USER_COMP)))
-        If Empty(cNome)
-            cNome := AllTrim((cAlias)->USER_COMP)
-        EndIf
-        If Empty(cNome)
-            cNome := "-"
+        // Cache: UsrRetName (consulta ao SR7) apenas na 1a vez de cada codigo de comprador
+        nPUsr := aScan(aUsrCache, {|x| x[1] == (cAlias)->USER_COMP})
+        If nPUsr == 0
+            cNome := AllTrim(UsrRetName(AllTrim((cAlias)->USER_COMP)))
+            If Empty(cNome)
+                cNome := AllTrim((cAlias)->USER_COMP)
+            EndIf
+            If Empty(cNome)
+                cNome := "-"
+            EndIf
+            aAdd(aUsrCache, {(cAlias)->USER_COMP, cNome})
+        Else
+            cNome := aUsrCache[nPUsr, 2]
         EndIf
 
         aAdd(aZANPDET, {;
@@ -537,7 +556,8 @@ Static Function AnpCarrega(dDe, dAte, cItem, cCodUser, cDescr, cTipo, cCodCC)
             nDescVlr, ;
             (cAlias)->C7PRECO, ;
             (cAlias)->C7VLDESC, ;
-            (cAlias)->C7QUANT})
+            (cAlias)->C7QUANT, ;
+            AllTrim((cAlias)->DOC)})
 
         // Somente NFs com pedido de compra participam da comparacao de preco e quantidade
         // NFs sem pedido (devolucoes, ajustes, etc.) ficam apenas em aZANPDET (historico)
@@ -578,6 +598,7 @@ Static Function AnpCarrega(dDe, dAte, cItem, cCodUser, cDescr, cTipo, cCodCC)
     For nI := 1 To Len(aAgrup)
         // Exige ao menos 2 compras para ter comparacao de preco
         If aAgrup[nI,9] < 2
+            nSolo1++
             Loop
         EndIf
         nDif    := aAgrup[nI,6] - aAgrup[nI,5]
@@ -620,6 +641,8 @@ Static Function AnpCarrega(dDe, dAte, cItem, cCodUser, cDescr, cTipo, cCodCC)
 
     aSort(aRet,,, {|x,y| Abs(x[9]) > Abs(y[9])})
 
+    nZANPSO1 := nSolo1
+
     RestArea(aArea)
 Return aRet
 
@@ -637,7 +660,7 @@ Static Function AnpDet(cCodItem, cDescItem)
 
     // Variaveis para ajuste dinamico das colunas do LISTBOX do historico
     Local nListWidth2 := 740
-    Local aMinCols2 := {40,40,40,40,40,80,120,40,40,40,40,40,40}
+    Local aMinCols2 := {40,40,40,40,40,40,80,120,40,40,40,40,40,40}
     Local nSumMin2 := 0
     Local nJ := 0
     Local aFinalCols2 := {}
@@ -673,13 +696,13 @@ Static Function AnpDet(cCodItem, cDescItem)
     @20,260  BUTTON "Imprimir Browse" SIZE 80,12 OF oDlg2 PIXEL ACTION AnpDetXls(aHist, cCodItem, cDescItem)
 
     @40,5 LISTBOX oL2 FIELDS HEADER ;
-        "Data","Sol. Compra","Pedido Compra","Item PC","Centro Custo","Nome Centro Custo","Fornecedor","Condicao Pagamento","Comprador","Quantidade","Valor Unitario","Desconto","Valor Total" ;
+        "Data","Sol. Compra","Pedido Compra","Nota Fiscal","Item PC","Centro Custo","Nome Centro Custo","Fornecedor","Condicao Pagamento","Comprador","Quantidade","Valor Unitario","Desconto","Valor Total" ;
         SIZE 740,260 OF oDlg2 PIXEL
 
     oL2:SetArray(aHist)
     // Ajuste dinamico das larguras das colunas do historico para caber na largura do LISTBOX (740 px)
     nListWidth2 := 740
-    aMinCols2 := {40,40,40,40,40,80,120,40,40,40,40,40,40}
+    aMinCols2 := {40,40,40,40,40,40,80,120,40,40,40,40,40,40}
     nSumMin2 := 0
     aFinalCols2 := {}
     nVal2 := 0
@@ -696,6 +719,7 @@ Static Function AnpDet(cCodItem, cDescItem)
         DtoC(aHist[oL2:nAt,3]), ;
         aHist[oL2:nAt,16], ;
         aHist[oL2:nAt,7], ;
+        aHist[oL2:nAt,21], ;
         aHist[oL2:nAt,8], ;
         aHist[oL2:nAt,11], ;
         AllTrim(aHist[oL2:nAt,12]), ;
@@ -747,6 +771,7 @@ Static Function AnpDetXls(aHist, cCod, cDesc)
     TRCell():New(oSec, "DT",       "", "Data",               "@D",           12)
     TRCell():New(oSec, "SOL",      "", "Sol. Compra",       "@!",           12)
     TRCell():New(oSec, "PC",       "", "Pedido Compra",     "@!",           12)
+    TRCell():New(oSec, "NF",       "", "Nota Fiscal",       "@!",           12)
     TRCell():New(oSec, "ITEMPC",   "", "Item PC",           "@!",            8)
     TRCell():New(oSec, "CC",       "", "Centro Custo",       "@!",           15)
     TRCell ():New(oSec, "CCNAME",   "", "Nome Centro Custo",  "@!",           25)
@@ -785,6 +810,7 @@ Static Function AnpDetPrt(oReport, aHist)
         oSec:Cell("DT"):SetValue(aHist[nI, 3])
         oSec:Cell("SOL"):SetValue(aHist[nI, 16])
         oSec:Cell("PC"):SetValue(aHist[nI, 7])
+        oSec:Cell("NF"):SetValue(aHist[nI, 21])
         oSec:Cell("ITEMPC"):SetValue(aHist[nI, 8])
         oSec:Cell("CC"):SetValue(aHist[nI, 11])
         oSec:Cell("CCNAME"):SetValue(aHist[nI, 12])
@@ -805,6 +831,21 @@ Return
 //=====================================================================
 // Static Function AnpInd
 //=====================================================================
+/*/{Protheus.doc} AnpInd
+Janela de indicadores gerenciais da analise de variacao de precos:
+totais por situacao, extremos de variacao (com item), prazo de pagamento,
+economia acumulada/historica e estabilidade de precos.
+@type    Static Function
+@version 12.1.33
+@author  Suprimentos
+@since   24/09/2026
+@param aArray, Array,  Linhas da analise (grid principal)
+@param dDe,    Date,   Data inicial do periodo
+@param dAte,   Date,   Data final do periodo
+@param cItemFlt, Character, Filtro de item aplicado
+@param cUserFlt, Character, Codigo do comprador filtrado (* = todos)
+@param cCCFlt,   Character, Centro de custo filtrado (* = todos)
+/*/
 Static Function AnpInd(aArray, dDe, dAte, cItemFlt, cUserFlt, cCCFlt)
     Local oDlg3
     Local nI           := 0
@@ -814,15 +855,19 @@ Static Function AnpInd(aArray, dDe, dAte, cItemFlt, cUserFlt, cCCFlt)
     Local nMan         := 0
     Local nMaxAum      := 0
     Local nMaxDim      := 0
+    Local cItemMaxAum  := ""
+    Local cItemMaxDim  := ""
+    Local cDescMaxAum  := ""
+    Local cDescMaxDim  := ""
     Local nPrazo         := 0
     Local aEcon          := {}
     Local cEconAcumTxt   := ""
     Local cEconHistTxt   := ""
     Local oTipL01, oTipL02, oTipL03, oTipL04, oTipL05
     Local oTipL06, oTipL07, oTipL08, oTipL10
-    Local oTipL11, oTipL12, oTipL13, oTipL14
+    Local oTipL11, oTipL12, oTipL13, oTipL14, oTipL15, oTipL16
     Local oValL01, oValL02, oValL03, oValL04, oValL05
-    Local oValL06, oValL07, oValL08, oValL09
+    Local oValL06, oValL07, oValL08, oValL09, oValL10
     Local aEstab         := {}
     Local nEstCongelado  := 0
     Local nEstUltima     := 0
@@ -834,23 +879,28 @@ Static Function AnpInd(aArray, dDe, dAte, cItemFlt, cUserFlt, cCCFlt)
     Local cEstCongTxt    := ""
     Local cEstUltTxt     := ""
     Local cEstVarTxt     := ""
+    Local cTxtMaxAum     := ""
+    Local cTxtMaxDim     := ""
     // --- calculo dos indicadores existentes ---
     For nI := 1 To nTot
         Do Case
             Case aArray[nI,11] = "AUMENTOU"
                 nAum++
                 If aArray[nI,10] > nMaxAum
-                    nMaxAum := aArray[nI,10]
+                    nMaxAum     := aArray[nI,10]
+                    cItemMaxAum := aArray[nI,1]
+                    cDescMaxAum := aArray[nI,2]
                 EndIf
             Case aArray[nI,11] = "DIMINUIU"
                 nDim++
                 If aArray[nI,10] < nMaxDim
-                    nMaxDim := aArray[nI,10]
+                    nMaxDim     := aArray[nI,10]
+                    cItemMaxDim := aArray[nI,1]
+                    cDescMaxDim := aArray[nI,2]
                 EndIf
             Otherwise
                 nMan++
         EndCase
-        // Impacto liquido (agregado anteriormente, nao exibido como indicador)
     Next nI
 
     nPrazo := AnpPrazMedPgto()
@@ -886,76 +936,99 @@ Static Function AnpInd(aArray, dDe, dAte, cItemFlt, cUserFlt, cCCFlt)
     cEstUltTxt  := Transform(nEstUltima,    "@E 999,999") + " (" + Transform(nPctUlt,  "@E 999.99") + "%)"
     cEstVarTxt  := Transform(nEstVariacao,  "@E 999,999") + " (" + Transform(nPctVar,  "@E 999.99") + "%)"
 
-    DEFINE MSDIALOG oDlg3 TITLE "Indicadores Gerenciais" FROM 0,0 TO 600,460 PIXEL
+    cTxtMaxAum := Transform(nMaxAum, "@E 9,999.99") + "%"
+    If !Empty(cItemMaxAum)
+        cTxtMaxAum += "  -  " + cItemMaxAum
+    EndIf
+    cTxtMaxDim := Transform(nMaxDim, "@E 9,999.99") + "%"
+    If !Empty(cItemMaxDim)
+        cTxtMaxDim += "  -  " + cItemMaxDim
+    EndIf
 
-    @10, 10 SAY oTipL01 PROMPT "Total de itens analisados:"       SIZE 140,10 OF oDlg3 PIXEL
-    @10,155 SAY oValL01 PROMPT Transform(nTot,    "@E 999,999")   SIZE 270,10 OF oDlg3 PIXEL
+    DEFINE MSDIALOG oDlg3 TITLE "Indicadores Gerenciais" FROM 0,0 TO 640,530 PIXEL
+
+    @10, 10 SAY oTipL01 PROMPT "Total de itens analisados:"       SIZE 150,10 OF oDlg3 PIXEL
+    @10,165 SAY oValL01 PROMPT Transform(nTot,    "@E 999,999")   SIZE 290,10 OF oDlg3 PIXEL
     oTipL01:cToolTip := "Quantidade total de itens que possuem historico de compras " + ;
         "dentro do periodo selecionado e que foram considerados na analise comparativa de precos."
 
-    @30, 10 SAY oTipL02 PROMPT "Itens com AUMENTO de preco:"      SIZE 140,10 OF oDlg3 PIXEL
-    @30,155 SAY oValL02 PROMPT Transform(nAum,    "@E 999,999")   SIZE 270,10 OF oDlg3 PIXEL
+    @30, 10 SAY oTipL02 PROMPT "Itens com AUMENTO de preco:"      SIZE 150,10 OF oDlg3 PIXEL
+    @30,165 SAY oValL02 PROMPT Transform(nAum,    "@E 999,999")   SIZE 290,10 OF oDlg3 PIXEL
     oTipL02:cToolTip := "Quantidade de itens cuja ultima compra apresentou valor superior " + ;
         "ao preco de referencia utilizado na comparacao."
 
-    @50, 10 SAY oTipL03 PROMPT "Itens com REDUCAO de preco:"      SIZE 140,10 OF oDlg3 PIXEL
-    @50,155 SAY oValL03 PROMPT Transform(nDim,    "@E 999,999")   SIZE 270,10 OF oDlg3 PIXEL
+    @50, 10 SAY oTipL03 PROMPT "Itens com REDUCAO de preco:"      SIZE 150,10 OF oDlg3 PIXEL
+    @50,165 SAY oValL03 PROMPT Transform(nDim,    "@E 999,999")   SIZE 290,10 OF oDlg3 PIXEL
     oTipL03:cToolTip := "Quantidade de itens cuja ultima compra apresentou valor inferior " + ;
         "ao preco de referencia utilizado na comparacao."
 
-    @70, 10 SAY oTipL04 PROMPT "Itens SEM alteracao:"             SIZE 140,10 OF oDlg3 PIXEL
-    @70,155 SAY oValL04 PROMPT Transform(nMan,    "@E 999,999")   SIZE 270,10 OF oDlg3 PIXEL
+    @70, 10 SAY oTipL04 PROMPT "Itens SEM alteracao:"             SIZE 150,10 OF oDlg3 PIXEL
+    @70,165 SAY oValL04 PROMPT Transform(nMan,    "@E 999,999")   SIZE 290,10 OF oDlg3 PIXEL
     oTipL04:cToolTip := "Quantidade de itens que mantiveram o mesmo preco na comparacao realizada."
 
-    @90, 10 SAY oTipL05 PROMPT "Maior aumento encontrado (%):"    SIZE 140,10 OF oDlg3 PIXEL
-    @90,155 SAY oValL05 PROMPT Transform(nMaxAum, "@E 9,999.99") + "%" SIZE 270,10 OF oDlg3 PIXEL
+    @90, 10 SAY oTipL15 PROMPT "Itens sem comparacao (1 compra):" SIZE 150,10 OF oDlg3 PIXEL
+    @90,165 SAY oValL10 PROMPT Transform(nZANPSO1, "@E 999,999")  SIZE 290,10 OF oDlg3 PIXEL
+    oTipL15:cToolTip := "Itens comprados apenas uma vez no periodo: " + ;
+        "nao ha preco anterior para comparar, por isso nao aparecem na grade principal " + ;
+        "nem nos totais de aumento/reducao."
+
+    @110, 10 SAY oTipL05 PROMPT "Maior aumento encontrado (%):"   SIZE 150,10 OF oDlg3 PIXEL
+    @110,165 SAY oValL05 PROMPT cTxtMaxAum                         SIZE 290,10 OF oDlg3 PIXEL
     oTipL05:cToolTip := "Maior variacao percentual positiva entre todos os itens analisados." + Chr(13) + ;
-        "Representa o item com o maior aumento de preco no periodo." + Chr(13) + ;
-        "Formula: ((Preco Atual - Preco Anterior) / Preco Anterior) x 100"
+        "Item: " + cItemMaxAum + " - " + cDescMaxAum + Chr(13) + ;
+        "Formula: ((Preco Atual - Preco Anterior) / Preco Anterior) x 100" + Chr(13) + ;
+        "Atencao: valores extremos podem indicar erro de lancamento ou troca de unidade de medida."
 
-    @110, 10 SAY oTipL06 PROMPT "Maior reducao encontrada (%):"   SIZE 140,10 OF oDlg3 PIXEL
-    @110,155 SAY oValL06 PROMPT Transform(nMaxDim, "@E 9,999.99") + "%" SIZE 270,10 OF oDlg3 PIXEL
+    @130, 10 SAY oTipL06 PROMPT "Maior reducao encontrada (%):"   SIZE 150,10 OF oDlg3 PIXEL
+    @130,165 SAY oValL06 PROMPT cTxtMaxDim                         SIZE 290,10 OF oDlg3 PIXEL
     oTipL06:cToolTip := "Maior variacao percentual negativa entre todos os itens analisados." + Chr(13) + ;
-        "Representa o item com a maior reducao de preco no periodo." + Chr(13) + ;
-        "Formula: ((Preco Atual - Preco Anterior) / Preco Anterior) x 100"
+        "Item: " + cItemMaxDim + " - " + cDescMaxDim + Chr(13) + ;
+        "Formula: ((Preco Atual - Preco Anterior) / Preco Anterior) x 100" + Chr(13) + ;
+        "Atencao: valores extremos podem indicar erro de lancamento ou troca de unidade de medida."
 
-    @130, 10 SAY oTipL10 PROMPT "Prazo mais frequente:"           SIZE 140,10 OF oDlg3 PIXEL
-    @130,155 SAY oValL07 PROMPT Transform(nPrazo, "@E 999") + " dias" SIZE 270,10 OF oDlg3 PIXEL
+    @150, 10 SAY oTipL10 PROMPT "Prazo mais frequente:"           SIZE 150,10 OF oDlg3 PIXEL
+    @150,165 SAY oValL07 PROMPT Transform(nPrazo, "@E 999") + " dias" SIZE 290,10 OF oDlg3 PIXEL
     oTipL10:cToolTip := "Este numero representa o prazo de pagamento que a empresa mais utiliza no dia a dia das suas compras."
 
-    @150, 10 SAY oTipL07 PROMPT "Economia acumulada (periodo):"   SIZE 140,10 OF oDlg3 PIXEL
-    @150,155 SAY oValL08 PROMPT cEconAcumTxt                       SIZE 270,10 OF oDlg3 PIXEL
+    @170, 10 SAY oTipL07 PROMPT "Economia acumulada (periodo):"   SIZE 150,10 OF oDlg3 PIXEL
+    @170,165 SAY oValL08 PROMPT cEconAcumTxt                       SIZE 290,10 OF oDlg3 PIXEL
     oTipL07:cToolTip := "Economia media gerada pela variacao de preco entre a penultima e a ultima compra de cada item." + Chr(13) + ;
         "Valor positivo = reducao de preco (ganho). Valor negativo = aumento de preco (perda)." + Chr(13) + ;
         "Formula: (Vunit_penultimo - Vunit_ultimo) / Vunit_penultimo x 100" + Chr(13) + ;
         "Itens com apenas uma compra no periodo sao ignorados."
 
-    @170, 10 SAY oTipL08 PROMPT "Economia historica (acumulada):" SIZE 140,10 OF oDlg3 PIXEL
-    @170,155 SAY oValL09 PROMPT cEconHistTxt                       SIZE 270,10 OF oDlg3 PIXEL
+    @190, 10 SAY oTipL08 PROMPT "Economia historica (acumulada):" SIZE 150,10 OF oDlg3 PIXEL
+    @190,165 SAY oValL09 PROMPT cEconHistTxt                       SIZE 290,10 OF oDlg3 PIXEL
     oTipL08:cToolTip := "Economia acumulada desde a primeira ate a ultima compra de cada item no periodo." + Chr(13) + ;
         "Valor positivo = reducao de preco (ganho). Valor negativo = aumento de preco (perda)." + Chr(13) + ;
         "Formula: (Vunit_primeiro - Vunit_ultimo) / Vunit_primeiro x 100" + Chr(13) + ;
         "Itens com apenas uma compra no periodo sao ignorados."
 
+    @210, 10 SAY oTipL16 PROMPT "(+) ganho, preco caiu   |   (-) perda, preco subiu" ;
+        SIZE 300,10 OF oDlg3 PIXEL COLOR RGB(80,80,80)
+    oTipL16:cToolTip := "Leitura rapida dos indicadores de economia: " + Chr(13) + ;
+        "se o valor estiver com sinal positivo, o preco medio caiu em relacao a compra anterior (ganho). " + ;
+        "Se estiver negativo, o preco subiu (perda)."
+
     // --- Secao: Estabilidade de Precos ---
-    @190,10 SAY oTipL11 PROMPT "--- Estabilidade de Precos ---"   SIZE 415,10 OF oDlg3 PIXEL
+    @230,10 SAY oTipL11 PROMPT "--- Estabilidade de Precos ---"   SIZE 425,10 OF oDlg3 PIXEL
     oTipL11:cToolTip := "Ranking de estabilidade de preco dos itens no periodo." + Chr(13) + ;
         "Considera apenas itens com ao menos 2 compras (pedido de compra) no periodo."
 
-    @210, 10 SAY oTipL12 PROMPT "Estaveis desde sempre:"          SIZE 140,10 OF oDlg3 PIXEL
-    @210,155 SAY cEstCongTxt                                       SIZE 270,10 OF oDlg3 PIXEL
+    @250, 10 SAY oTipL12 PROMPT "Estaveis desde sempre:"          SIZE 150,10 OF oDlg3 PIXEL
+    @250,165 SAY cEstCongTxt                                       SIZE 290,10 OF oDlg3 PIXEL
     oTipL12:cToolTip := "Itens cujo preco nunca variou no periodo: VMAX_HIST = VMIN_HIST" + Chr(13) + ;
         "e o preco da primeira compra igual ao da ultima." + Chr(13) + ;
         "Sinal de estabilidade total de fornecimento e negociacao."
 
-    @230, 10 SAY oTipL13 PROMPT "Estaveis apenas na ultima:"      SIZE 140,10 OF oDlg3 PIXEL
-    @230,155 SAY cEstUltTxt                                        SIZE 270,10 OF oDlg3 PIXEL
+    @270, 10 SAY oTipL13 PROMPT "Estaveis apenas na ultima:"      SIZE 150,10 OF oDlg3 PIXEL
+    @270,165 SAY cEstUltTxt                                        SIZE 290,10 OF oDlg3 PIXEL
     oTipL13:cToolTip := "Itens onde a penultima e a ultima compra tiveram o mesmo preco," + Chr(13) + ;
         "mas houve variacao em algum momento anterior do periodo." + Chr(13) + ;
         "Indica estabilizacao recente de preco."
 
-    @250, 10 SAY oTipL14 PROMPT "Em variacao ativa:"              SIZE 140,10 OF oDlg3 PIXEL
-    @250,155 SAY cEstVarTxt                                        SIZE 270,10 OF oDlg3 PIXEL
+    @290, 10 SAY oTipL14 PROMPT "Em variacao ativa:"              SIZE 150,10 OF oDlg3 PIXEL
+    @290,165 SAY cEstVarTxt                                        SIZE 290,10 OF oDlg3 PIXEL
     oTipL14:cToolTip := "Itens onde a ultima compra teve preco diferente da penultima." + Chr(13) + ;
         "Esses itens precisam de atencao para negociacao ou revisao de fornecedor."
 
@@ -1092,9 +1165,9 @@ Static Function AnpExcel(aArray)
     TRCell():New(oSecAna, "CC",    "", "Centro Custo",         "@!", 18)
     TRCell():New(oSecAna, "COMP",  "", "Comprador",            "@!", 20)
     TRCell():New(oSecAna, "QTD",   "", "Qtd.Total",            "@E 999,999.99", 10)
-    TRCell():New(oSecAna, "VINI",  "", "Valor Unit.Inicial",   "@E 9,999,999.99", 12)
-    TRCell():New(oSecAna, "VPEN",  "", "V.Unit Penultimo",     "@E 9,999,999.99", 12)
-    TRCell():New(oSecAna, "VFIN",  "", "Valor Unit.Final",     "@E 9,999,999.99", 12)
+    TRCell():New(oSecAna, "VINI",  "", "Primeiro Valor Unit�rio", "@E 9,999,999.99", 23)
+    TRCell():New(oSecAna, "VPEN",  "", "Valor Unit�rio Anterior",  "@E 9,999,999.99", 23)
+    TRCell():New(oSecAna, "VFIN",  "", "Valor Unit�rio Atual",     "@E 9,999,999.99", 20)
     TRCell():New(oSecAna, "DIFR",  "", "Diferenca R$",         "@E 999,999,999.99", 14)
     TRCell():New(oSecAna, "VAR",   "", "Variacao %",           "@E 9,999.99", 12)
     TRCell():New(oSecAna, "SIT",   "", "Situacao",             "@!", 12)

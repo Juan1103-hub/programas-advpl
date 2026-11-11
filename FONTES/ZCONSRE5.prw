@@ -11,6 +11,7 @@ Static cStcAlsQry  := ""
 Static dStcDtIni   := Ctod("")
 Static dStcDtFim   := Ctod("")
 Static cStcFilSB1  := ""
+Static cStcFilSA1  := ""
 Static cStcFilSA2  := ""
 Static nStcOrder   := 0
 
@@ -44,6 +45,7 @@ User Function ZCONSRE5()
 
     // Filiais
     cStcFilSB1 := FWxFilial("SB1")
+    cStcFilSA1 := FWxFilial("SA1")
     cStcFilSA2 := FWxFilial("SA2")
 
     // Fontes
@@ -94,6 +96,7 @@ User Function ZCONSRE5()
     AAdd(aStruct , { "NOMEFOR"  , "C" , 60 , 0 })
     AAdd(aStruct , { "INSCR"    , "C" , 18 , 0 })
     AAdd(aStruct , { "CFOP"     , "C" ,  4 , 0 })
+    AAdd(aStruct , { "SOLICIT"  , "C" , 60 , 0 })
 
     // Colunas do browse (a partir do 2? campo)
     For nX := 2 To Len(aStruct)
@@ -113,6 +116,7 @@ User Function ZCONSRE5()
         Case aStruct[nX][1] == "NOMEFOR"  ; aColumns[Len(aColumns)]:SetTitle("Nome Cliente/Fornec.")
         Case aStruct[nX][1] == "INSCR"    ; aColumns[Len(aColumns)]:SetTitle("Insc.Estadual")
         Case aStruct[nX][1] == "CFOP"     ; aColumns[Len(aColumns)]:SetTitle("CFOP")
+        Case aStruct[nX][1] == "SOLICIT"  ; aColumns[Len(aColumns)]:SetTitle("Solicitante")
         Otherwise
             aColumns[Len(aColumns)]:SetTitle(aStruct[nX][1])
         EndCase
@@ -251,15 +255,34 @@ Static Function fCarregaDados( cAliasTmp )
     cQuery += "REM.D2_LOJA    AS LOJACLI, "       + CRLF
     cQuery += "SA2.A2_NOME    AS NOMEFOR, "       + CRLF
     cQuery += "SA2.A2_INSCR   AS INSCR, "         + CRLF
-    cQuery += "REM.D2_CF      AS CFOP "           + CRLF
+    cQuery += "REM.D2_CF      AS CFOP, "          + CRLF
+    cQuery += "ISNULL(SA1.A1_NOME, '') AS SOLICIT " + CRLF
     cQuery += "FROM " + RetSqlName("SD2") + " REM " + CRLF
-    cQuery += "LEFT JOIN " + RetSqlName("SD1") + " DEV " + CRLF
-    cQuery += "  ON DEV.D_E_L_E_T_ = ' ' "        + CRLF
-    cQuery += " AND DEV.D1_FILIAL  = REM.D2_FILIAL " + CRLF
+    // Devolucoes somadas por item de remessa: a linha do processo sai da lista
+    // quando a soma das quantidades devolvidas atinge a quantidade remetida.
+    cQuery += "LEFT JOIN ( " + CRLF
+    cQuery += "  SELECT DER.D1_FILIAL, DER.D1_NFORI, DER.D1_SERIORI, DER.D1_ITEMORI, " + CRLF
+    cQuery += "         SUM(DER.D1_QUANT) AS QTDERET " + CRLF
+    cQuery += "  FROM " + RetSqlName("SD1") + " DER " + CRLF
+    cQuery += "  WHERE DER.D_E_L_E_T_ = ' ' " + CRLF
+    cQuery += "    AND DER.D1_NFORI <> ' ' " + CRLF
+    cQuery += "    AND DER.D1_EMISSAO >= '" + DtoS(dStcDtIni) + "' " + CRLF
+    cQuery += "  GROUP BY DER.D1_FILIAL, DER.D1_NFORI, DER.D1_SERIORI, DER.D1_ITEMORI " + CRLF
+    cQuery += ") DEV " + CRLF
+    cQuery += "  ON DEV.D1_FILIAL  = REM.D2_FILIAL " + CRLF
     cQuery += " AND DEV.D1_NFORI   = REM.D2_DOC " + CRLF
     cQuery += " AND DEV.D1_SERIORI = REM.D2_SERIE " + CRLF
     cQuery += " AND DEV.D1_ITEMORI = REM.D2_ITEM " + CRLF
-    cQuery += " AND DEV.D1_QUANT   = REM.D2_QTDEDEV " + CRLF
+    // Pedido de venda que originou a remessa e cliente que fez o pedido.
+    cQuery += "LEFT JOIN " + RetSqlName("SC5") + " SC5 " + CRLF
+    cQuery += "  ON SC5.C5_FILIAL  = REM.D2_FILIAL " + CRLF
+    cQuery += " AND SC5.C5_NUM     = REM.D2_PEDIDO " + CRLF
+    cQuery += " AND SC5.D_E_L_E_T_ = ' ' " + CRLF
+    cQuery += "LEFT JOIN " + RetSqlName("SA1") + " SA1 " + CRLF
+    cQuery += "  ON SA1.A1_FILIAL  = '" + cStcFilSA1 + "' " + CRLF
+    cQuery += " AND SA1.A1_COD     = SC5.C5_CLIENTE " + CRLF
+    cQuery += " AND SA1.A1_LOJA    = SC5.C5_LOJACLI " + CRLF
+    cQuery += " AND SA1.D_E_L_E_T_ = ' ' " + CRLF
     cQuery += "LEFT JOIN " + RetSqlName("SB1") + " SB1 " + CRLF
     cQuery += "  ON SB1.B1_FILIAL  = '" + cStcFilSB1 + "' " + CRLF
     cQuery += " AND SB1.B1_COD     = REM.D2_COD " + CRLF
@@ -273,7 +296,7 @@ Static Function fCarregaDados( cAliasTmp )
     cQuery += "  AND REM.D2_TIPO    = 'B' "       + CRLF
     cQuery += "  AND REM.D2_CF IN ('5949','6949','5901','6901','5909','6909','5915','6915') " + CRLF
     cQuery += "  AND REM.D2_EMISSAO BETWEEN '" + DtoS(dStcDtIni) + "' AND '" + DtoS(dStcDtFim) + "' " + CRLF
-    cQuery += "  AND DEV.D1_DOC IS NULL "         + CRLF
+    cQuery += "  AND ISNULL(DEV.QTDERET, 0) < REM.D2_QUANT "  + CRLF
     cQuery += "  AND REM.D2_COD NOT LIKE 'PA%' "  + CRLF
 
     // Filtro por produto
@@ -320,6 +343,7 @@ Static Function fCarregaDados( cAliasTmp )
             (cAliasTmp)->NOMEFOR  := (cAliasQry)->NOMEFOR
             (cAliasTmp)->INSCR    := (cAliasQry)->INSCR
             (cAliasTmp)->CFOP     := (cAliasQry)->CFOP
+            (cAliasTmp)->SOLICIT  := (cAliasQry)->SOLICIT
             (cAliasTmp)->(MsUnlock())
         EndIf
         (cAliasQry)->(DbSkip())

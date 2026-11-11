@@ -1,7 +1,7 @@
 {
 	"version": "0.2.2",
 	"includes": [
-		"C:\\totvs\\includes"
+		"C:\\Users\\Vortice 0097\\Desktop\\PROGRAMAS_ADVPL\\INCLUDES\\totvs"
 	],
 	"permissions": {
 		"authorizationtoken": ""
@@ -18,7 +18,7 @@
 			"CINVJ6_DEV"
 		],
 		"includes": [
-			"C:\\totvs\\includes"
+			"C:\\Users\\Vortice 0097\\Desktop\\PROGRAMAS_ADVPL\\INCLUDES\\totvs"
 		],
 		"username": "juan.almeida",
 		"environment": "CINVJ6_DEV",
@@ -43,7 +43,7 @@
 				"CINVJ6_DEV"
 			],
 			"includes": [
-				"C:\\totvs\\includes"
+				"C:\\Users\\Vortice 0097\\Desktop\\PROGRAMAS_ADVPL\\INCLUDES\\totvs"
 			],
 			"username": "juan.almeida",
 			"environment": "CINVJ6_DEV",

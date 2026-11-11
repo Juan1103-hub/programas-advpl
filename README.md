@@ -13,7 +13,7 @@ PROGRAMAS_ADVPL/
 │   ├── V*.PRW           # Validações e rotinas Vortice
 │   └── *.tlpp           # Código TLPP moderno
 │
-├── PATCHES/             # Patches organizados por número
+├── _PATCHES/           # Patches organizados por número
 │   ├── PATCH/           # 13 arquivos (CADFORN, FFZZ4A2, M110STTS, MT110CON, etc.)
 │   └── PATCH_01/        # MT110TOK + custom25-06-2026.ptm
 │
@@ -21,12 +21,12 @@ PROGRAMAS_ADVPL/
 │   ├── _binary_class.prw
 │   └── _binary_functions.prw
 │
-├── SKILLS/              # Skills ADVPL locais (3 skills)
-│   ├── advpl-error-memory/
-│   ├── protheus-rules/
-│   └── sql-safe/
+├── skills/              # Skills ADVPL locais (as 3 originais em vortice/)
+│   ├── vortice/advpl-error-memory/
+│   ├── vortice/protheus-rules/
+│   └── vortice/sql-safe/
 │
-├── DOCUMENTACAO/        # Documentação e referências
+├── docs/        # Documentação e referências
 │   ├── CLAUDE-SKILLS-REF.md   # Lista completa de skills
 │   ├── CLAUDE-SOLUTION-PATTERNS.md  # Padrões de solução
 │   ├── LISTA_PROGRAMAS_ATIVOS_SEM_PE.txt
@@ -73,11 +73,11 @@ PROGRAMAS_ADVPL/
 | Pasta | Qtd Arquivos | Descrição |
 |-------|--------------|-----------|
 | FONTES/ | 59 | Fontes principais (.PRW, .tlpp) |
-| PATCHES/PATCH/ | 13 | Patch original |
-| PATCHES/PATCH_01/ | 2 | Patch 01 |
+| _PATCHES/PATCH/ | 13 | Patch original |
+| _PATCHES/PATCH_01/ | 2 | Patch 01 |
 | INCLUDES/ | 2 | Arquivos de include |
-| SKILLS/ | 3 | Skills ADVPL locais |
-| DOCUMENTACAO/ | 5 | Documentação e referências |
+| skills/vortice/ | 3 | Skills ADVPL locais |
+| docs/ | 5 | Documentação e referências |
 | CONFIG/ | ~30 | Configurações e dependências |
 | .github/ | ~45 | Kit GitHub (agents, prompts, skills, scripts) |
 | **TOTAL** | **~160** | **Todos os recursos AdvPL centralizados** |
@@ -85,8 +85,8 @@ PROGRAMAS_ADVPL/
 ## Referências
 
 - [AGENTS.md](../../AGENTS.md) - Regras gerais do workspace (AdvPL/TLPP)
-- [CLAUDE-SKILLS-REF.md](./DOCUMENTACAO/CLAUDE-SKILLS-REF.md) - Lista completa de skills
-- [CLAUDE-SOLUTION-PATTERNS.md](./DOCUMENTACAO/CLAUDE-SOLUTION-PATTERNS.md) - Padrões de solução
+- [CLAUDE-SKILLS-REF.md](./docs/CLAUDE-SKILLS-REF.md) - Lista completa de skills
+- [CLAUDE-SOLUTION-PATTERNS.md](./docs/CLAUDE-SOLUTION-PATTERNS.md) - Padrões de solução
 
 ## GitHub Kit (Copilot Instructions + Agentes + Prompts + Skills)
 
@@ -158,9 +158,9 @@ PROGRAMAS_ADVPL/
 ## Uso
 
 Ao trabalhar com AdvPL, sempre verificar:
-1. Se o arquivo está na pasta correta (FONTES ou PATCHES)
-2. Se há documentação relacionada em DOCUMENTACAO/
-3. Se as skills em SKILLS/ são aplicáveis
+1. Se o arquivo está na pasta correta (FONTES ou _PATCHES)
+2. Se há documentação relacionada em docs/
+3. Se as skills em skills/ são aplicáveis
 4. Se as configurações em CONFIG/ estão atualizadas
 
 ## Fontes Originais (para referência)
@@ -168,13 +168,13 @@ Ao trabalhar com AdvPL, sempre verificar:
 | Pasta Original | Conteúdo | Destino em PROGRAMAS_ADVPL |
 |----------------|----------|---------------------------|
 | `programas_vortice/` | 59 fontes .PRW/.tlpp | `FONTES/` |
-| `PATCH/` | 13 arquivos patch | `PATCHES/PATCH/` |
-| `PATCH - 01/` | MT110TOK + .ptm | `PATCHES/PATCH_01/` |
+| `PATCH/` | 13 arquivos patch | `_PATCHES/PATCH/` |
+| `PATCH - 01/` | MT110TOK + .ptm | `_PATCHES/PATCH_01/` |
 | `PATCH 01/` | (vazio) | - |
 | `.advpl/` | Includes binários | `INCLUDES/` |
-| `.claude/skills/advpl/` | 3 skills locais | `SKILLS/` |
-| `CLAUDE*.md` | Documentação | `DOCUMENTACAO/` (parcial) |
-| `Suprimentos/` | Listas de programas | `DOCUMENTACAO/` |
+| `.claude/skills/advpl/` | 3 skills locais | `skills/vortice/` |
+| `CLAUDE*.md` | Documentação | `docs/` (parcial) |
+| `Suprimentos/` | Listas de programas | `docs/` |
 
 ## Skills ADVPL Obrigatórias (para qualquer projeto)
 
@@ -230,7 +230,7 @@ Ao trabalhar com AdvPL, sempre verificar:
 
 > Estado atual (2026-08-16): a configuração principal do OpenCode não fica mais em
 > `opencode.json` na raiz — foi movida/consolidada no global
-> `~/.config/opencode/opencode.jsonc` (default_agent: `vortice-orchestrator`).
+> `~/.config/opencode/opencode.jsonc`.
 > O `.vscode/` da raiz do projeto guarda `settings.json` e `launch.json`.
 
 | Arquivo | Caminho | Descrição |
@@ -248,13 +248,7 @@ Ao trabalhar com AdvPL, sempre verificar:
 
 | Agente | Caminho | Descrição |
 |--------|---------|-----------|
-| `vortice-orchestrator` | `.opencode/agents/` | Orquestrador principal |
 | `code-reviewer` | `.opencode/agents/` | Revisor de código |
-| `debugger` | `.opencode/agents/` | Depurador |
-| `doc-generator` | `.opencode/agents/` | Gerador de documentação |
-| `migrator` | `.opencode/agents/` | Migrador de código |
-| `refactorer` | `.opencode/agents/` | Refatorador |
-| `sx-configurator` | `.opencode/agents/` | Configurador SX |
 | `changelog-generator` | `.opencode/agents/` | Gerador de changelog |
 | `docs-reference` | `.opencode/agents/` | Referência de documentação |
 | `process-consultant` | `.opencode/agents/` | Consultor de processos |
@@ -266,13 +260,13 @@ Ao trabalhar com AdvPL, sempre verificar:
 ls PROGRAMAS_ADVPL/FONTES/
 
 # Listar patches
-ls PROGRAMAS_ADVPL/PATCHES/
+ls PROGRAMAS_ADVPL/_PATCHES/
 
 # Ver skills disponíveis
-ls PROGRAMAS_ADVPL/SKILLS/
+ls PROGRAMAS_ADVPL/skills/
 
 # Ver documentação
-ls PROGRAMAS_ADVPL/DOCUMENTACAO/
+ls PROGRAMAS_ADVPL/docs/
 
 # Ver configurações
 ls PROGRAMAS_ADVPL/CONFIG/
@@ -293,7 +287,7 @@ find PROGRAMAS_ADVPL/FONTES/ -name "*.tlpp" | wc -l
 | 15/07/2026 | Consolidação de 59 fontes principais em FONTES/ |
 | 15/07/2026 | Organização de 15 arquivos de patch em PATCHES/ |
 | 15/07/2026 | Migração de 3 skills ADVPL locais para SKILLS/ |
-| 15/07/2026 | Documentação completa em DOCUMENTACAO/ |
+| 15/07/2026 | Documentação completa em docs/ |
 | 15/07/2026 | Configurações centralizadas em CONFIG/ |
 | 15/07/2026 | 30+ skills globais documentadas |
 | 15/07/2026 | 10 agentes documentados |

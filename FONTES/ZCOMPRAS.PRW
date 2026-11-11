@@ -14,6 +14,7 @@ Static nTotDesc   := 0
 Static nPercDesc  := 0
 Static nMetaRS    := 0
 Static nDifMeta   := 0
+Static nQtdProd   := 0   // Qtd de produtos distintos adquiridos no periodo
 
 // Objetos dinamicos para atualizacao de cor
 Static oSayDesc   := Nil   // TSay Desconto Obtido (cor muda)
@@ -33,6 +34,7 @@ Static aFornSvc := {}      // {cNomeForn, nQtdPedidos} - Servicos
 Consulta de compras por periodo com analise de desconto vs meta (3%).
 Permite ao usuario visualizar seus pedidos de compra (SC7) em um periodo,
 calcular o percentual de desconto obtido e comparar com a meta de 3%.
+Exibe tambem a quantidade de produtos distintos adquiridos no periodo.
 @type User Function
 @author Desenvolvimento
 @since 15/02/2026
@@ -58,10 +60,7 @@ User Function ZCOMPRAS()
     // Carrega lista de compradores que tem pedidos no SC7
     CarregaCompradores(@aUsers, @aUserCods)
 
-    // Pre-seleciona o usuario logado
     // Comprador inicia em branco para o usuario selecionar
-    Local cCodLogado := RetCodUsr()
-    Local nPosLog    := 0
     cSelUser := ""
 
     // Inicializa variaveis
@@ -71,6 +70,7 @@ User Function ZCOMPRAS()
     nTotCompra := 0
     nTotDesc   := 0
     nPercDesc  := 0
+    nQtdProd   := 0
     nMetaRS    := 0
     nDifMeta   := 0
 
@@ -98,19 +98,19 @@ User Function ZCOMPRAS()
     @ 078, 020 SAY "Comprador: *" SIZE 070, 012 PIXEL OF oDlgParam FONT oFontP
     @ 076, 100 MSCOMBOBOX oComboUsr VAR cSelUser ITEMS aUsers SIZE 100, 012 OF oDlgParam PIXEL
 
-    // Botao Relat. Geral abaixo do comprador
-    @ 094, 100 BUTTON oBtnRelGeral PROMPT "Relat. Geral" SIZE 100, 015 OF oDlgParam PIXEL ;
-        ACTION (nAcao := 2, oDlgParam:End())
-
     // Botao Geral Suprimentos (5 compradores fixos do setor)
-    @ 094, 005 BUTTON oBtnGeralSupri PROMPT "Geral Suprimentos" SIZE 092, 015 OF oDlgParam PIXEL ;
+    @ 094, 020 BUTTON oBtnGeralSupri PROMPT "Geral Suprimentos" SIZE 090, 015 OF oDlgParam PIXEL ;
         ACTION (nAcao := 3, oDlgParam:End())
 
+    // Botao Relat. Geral
+    @ 094, 120 BUTTON oBtnRelGeral PROMPT "Relat. Geral" SIZE 090, 015 OF oDlgParam PIXEL ;
+        ACTION (nAcao := 2, oDlgParam:End())
+
     // Botoes principais
-    @ 120, 050 BUTTON oBtnConsultar PROMPT "Consultar" SIZE 075, 018 OF oDlgParam PIXEL ;
+    @ 120, 020 BUTTON oBtnConsultar PROMPT "Consultar" SIZE 090, 015 OF oDlgParam PIXEL ;
         ACTION (nAcao := 1, oDlgParam:End())
 
-    @ 120, 135 BUTTON oBtnCancelar PROMPT "Cancelar" SIZE 075, 018 OF oDlgParam PIXEL ;
+    @ 120, 120 BUTTON oBtnCancelar PROMPT "Cancelar" SIZE 090, 015 OF oDlgParam PIXEL ;
         ACTION (nAcao := 0, oDlgParam:End())
 
     ACTIVATE MSDIALOG oDlgParam CENTERED
@@ -234,6 +234,7 @@ Static Function ConsultarDireto(dDtDe, dDtAte, cCodUser, cNomeUser)
     nTotCompra := 0
     nTotDesc   := 0
     nPercDesc  := 0
+    nQtdProd   := 0
 
     cQuery := " SELECT"
     cQuery += "   C7_NUM,"
@@ -302,6 +303,8 @@ Static Function ConsultarDireto(dDtDe, dDtAte, cCodUser, cNomeUser)
     aComprasOrig := aClone(aCompras)
     aComprasFull := aClone(aCompras)
 
+    // Conta produtos distintos adquiridos no periodo
+    nQtdProd := ContaProdutosDistintos(dDtDe, dDtAte, "C7_USER = '" + cCodUser + "'")
     // Abre tela de resultados
     TelaResultados(dDtDe, dDtAte, cNomeUser)
 Return
@@ -373,6 +376,40 @@ Static Function MontaFornecedores(dDtDe, dDtAte, cClausulaUser)
     EndIf
 Return
 
+/*/{Protheus.doc} ContaProdutosDistintos
+Retorna a quantidade de produtos distintos (C7_PRODUTO) adquiridos no
+periodo, respeitando os mesmos filtros da consulta principal.
+@type Static Function
+@param dDtDe - Data inicial
+@param dDtAte - Data final
+@param cClausulaUser - clausula WHERE com filtro de usuario(s)
+@return nQtd - Quantidade de produtos distintos
+/*/
+Static Function ContaProdutosDistintos(dDtDe, dDtAte, cClausulaUser)
+    Local cAlias := GetNextAlias()
+    Local cQuery := ""
+    Local cSC7   := RetSqlName("SC7")
+    Local nQtd   := 0
+
+    cQuery := " SELECT COUNT(DISTINCT C7_PRODUTO) AS QTD_PROD"
+    cQuery += " FROM " + cSC7 + " SC7"
+    cQuery += " WHERE SC7.D_E_L_E_T_ = ' '"
+    cQuery += "   AND C7_FILIAL = '" + xFilial("SC7") + "'"
+    cQuery += "   AND C7_EMISSAO BETWEEN '" + DtoS(dDtDe) + "' AND '" + DtoS(dDtAte) + "'"
+    cQuery += "   AND " + cClausulaUser
+    cQuery += "   AND C7_RESIDUO <> 'S'"
+    cQuery += "   AND (C7_CONAPRO = '' OR C7_CONAPRO = ' ' OR C7_CONAPRO = 'L')"
+    cQuery += "   AND LTRIM(RTRIM(C7_PRODUTO)) <> ''"
+
+    cQuery := ChangeQuery(cQuery)
+    DbUseArea(.T., "TOPCONN", TCGenQry(,,cQuery), cAlias, .F., .T.)
+
+    If !(cAlias)->(Eof())
+        nQtd := (cAlias)->QTD_PROD
+    EndIf
+    (cAlias)->(DbCloseArea())
+Return nQtd
+
 /*/{Protheus.doc} TelaResultados
 Monta a tela de resultados com grid de compras, painel de indicadores,
 barra de progresso visual e, para Geral Suprimentos, painel de fornecedores.
@@ -443,30 +480,30 @@ Static Function TelaResultados(dDtDe, dDtAte, cUsuario)
     @ 028, 010 TO 148, 420 OF oDlg PIXEL
 
     // Linha 1 - Valor Total de Compras
-    @ 038, 020 SAY "Valor Total de Compras:" SIZE 130, 12 PIXEL OF oDlg FONT oFontInd
-    TSay():New(038, 165, ;
+    @ 034, 020 SAY "Valor Total de Compras:" SIZE 130, 12 PIXEL OF oDlg FONT oFontInd
+    TSay():New(034, 165, ;
         {|| "R$    " + Transform(nTotCompra, "@E 999,999,999.99")}, ;
         oDlg, , oFontVal, , , , .T., CLR_BLACK, , 200, 12)
 
     // Linha 2 - Desconto Total Obtido
-    @ 058, 020 SAY "Desconto Obtido:" SIZE 130, 12 PIXEL OF oDlg FONT oFontInd
+    @ 052, 020 SAY "Desconto Obtido:" SIZE 130, 12 PIXEL OF oDlg FONT oFontInd
     nCorDesc := IIF(nPercDesc >= META_DESC, CLR_HGREEN, IIF(nPercDesc >= PROX_META, RGB(180,140,0), CLR_HRED))
-    oSayDesc := TSay():New(058, 165, ;
+    oSayDesc := TSay():New(052, 165, ;
         {|| "R$    " + Transform(nTotDesc, "@E 999,999,999.99") + ;
             "  (" + Transform(nPercDesc, "@E 99.99") + "%)"}, ;
         oDlg, , oFontVal, , , , .T., ;
         nCorDesc, , 230, 12)
 
     // Linha 3 - Meta de Desconto
-    @ 078, 020 SAY "Meta de Desconto (3%):" SIZE 130, 12 PIXEL OF oDlg FONT oFontInd
-    TSay():New(078, 165, ;
+    @ 070, 020 SAY "Meta de Desconto (3%):" SIZE 130, 12 PIXEL OF oDlg FONT oFontInd
+    TSay():New(070, 165, ;
         {|| "R$    " + Transform(nMetaRS, "@E 999,999,999.99")}, ;
         oDlg, , oFontVal, , , , .T., CLR_BLACK, , 200, 12)
 
     // Linha 4 - Diferenca para a Meta
-    @ 098, 020 SAY "Diferenca para Meta:" SIZE 130, 12 PIXEL OF oDlg FONT oFontInd
+    @ 088, 020 SAY "Diferenca para Meta:" SIZE 130, 12 PIXEL OF oDlg FONT oFontInd
     nCorDif := IIF(nPercDesc >= META_DESC, CLR_HGREEN, IIF(nPercDesc >= PROX_META, RGB(180,140,0), CLR_HRED))
-    oSayDif := TSay():New(098, 165, ;
+    oSayDif := TSay():New(088, 165, ;
         {|| IIF(nDifMeta >= 0, "+R$   ", "-R$   ") + ;
             Transform(Abs(nDifMeta), "@E 999,999,999.99") + ;
             "  (" + IIF(nDifMeta >= 0, "+", "") + ;
@@ -474,11 +511,17 @@ Static Function TelaResultados(dDtDe, dDtAte, cUsuario)
         oDlg, , oFontVal, , , , .T., ;
         nCorDif, , 230, 12)
 
+    // Linha 5 - Produtos Distintos
+    @ 106, 020 SAY "Produtos Distintos:" SIZE 130, 12 PIXEL OF oDlg FONT oFontInd
+    TSay():New(106, 165, ;
+        {|| cValToChar(nQtdProd) + " produtos"}, ;
+        oDlg, , oFontVal, , , , .T., CLR_BLACK, , 200, 12)
+
     // ================================================================
     // BARRA DE PROGRESSO VISUAL - linhas 116 a 148
     // ================================================================
-    @ 118, 020 SAY "Progresso vs Meta:" SIZE 090, 12 PIXEL OF oDlg FONT oFont
-    @ 116, 120 TO 132, 400 OF oDlg PIXEL
+    @ 122, 020 SAY "Progresso vs Meta:" SIZE 090, 12 PIXEL OF oDlg FONT oFont
+    @ 120, 120 TO 136, 400 OF oDlg PIXEL
 
     nBarraLarg := Min(nPercDesc / META_DESC * 100, 150)
     nBarraLarg := Max(Int(nBarraLarg * 278 / 150), 1)
@@ -492,14 +535,14 @@ Static Function TelaResultados(dDtDe, dDtAte, cUsuario)
             nCorBarra := CLR_RED
     EndCase
 
-    oPnlBarraS := TPanel():New(117, 121, "", oDlg, , , , , , ;
+    oPnlBarraS := TPanel():New(121, 125, "", oDlg, , , , , , ;
         Min(nBarraLarg, 278), 14, .F., .F.)
     oPnlBarraS:SetColor(, nCorBarra)
 
-    @ 114, 306 TO 134, 306 OF oDlg PIXEL
-    TSay():New(135, 291, {|| "Meta 3%"}, oDlg, , ;
+    @ 118, 306 TO 138, 306 OF oDlg PIXEL
+    TSay():New(139, 291, {|| "Meta 3%"}, oDlg, , ;
         TFont():New("Arial",, -9,, .F.), , , , .T., CLR_BLACK, , 50, 8)
-    oSayPercBar := TSay():New(119, Min(122 + nBarraLarg + 4, 385), ;
+    oSayPercBar := TSay():New(123, Min(122 + nBarraLarg + 4, 385), ;
         {|| Transform(nPercDesc, "@E 99.99") + "%"}, ;
         oDlg, , TFont():New("Arial",, -10, .T., .F.), , , , .T., ;
         IIF(nPercDesc >= META_DESC, CLR_HGREEN, CLR_HRED), , 50, 10)
@@ -1070,7 +1113,8 @@ Static Function ImprimirExcel(oReport, dDtDe, dDtAte, cUsuario)
     oSection:SetHeaderSection(.T.)
     oReport:PrintText("Comprador: " + cUsuario + "   |   Periodo: " + ;
         DtoC(dDtDe) + " a " + DtoC(dDtAte) + ;
-        "   |   Pedidos: " + cValToChar(Len(aComprasExp)), 0)
+        "   |   Pedidos: " + cValToChar(Len(aComprasExp)) + ;
+        "   |   Produtos distintos: " + cValToChar(nQtdProd), 0)
     oReport:PrintText("Total: R$ " + Transform(nTotExp, "@E 999,999,999.99") + ;
         "   |   Desconto: R$ " + Transform(nDescExp, "@E 999,999,999.99") + ;
         " (" + Transform(nPercExp, "@E 99.99") + "%)" + ;
@@ -1094,7 +1138,8 @@ Static Function ImprimirExcel(oReport, dDtDe, dDtAte, cUsuario)
     // Linha de totais
     oReport:SkipLine()
     oReport:PrintText("TOTAL COMPRAS: R$ " + Transform(nTotExp, "@E 999,999,999.99") + ;
-        "   |   Pedidos: " + cValToChar(Len(aComprasExp)), 0)
+        "   |   Pedidos: " + cValToChar(Len(aComprasExp)) + ;
+        "   |   Produtos distintos: " + cValToChar(nQtdProd), 0)
     oReport:PrintText("TOTAL DESCONTO: R$ " + Transform(nDescExp, "@E 999,999,999.99") + ;
         " (" + Transform(nPercExp, "@E 99.99") + "%)", 0)
     oReport:PrintText("META 3%: R$ " + Transform(nMetaExp, "@E 999,999,999.99") + ;
@@ -1139,6 +1184,7 @@ Static Function GeralSuprimentos(dDtDe, dDtAte)
     nTotCompra := 0
     nTotDesc   := 0
     nPercDesc  := 0
+    nQtdProd   := 0
 
     cQuery := " SELECT"
     cQuery += "   C7_NUM,"
@@ -1221,6 +1267,9 @@ Static Function GeralSuprimentos(dDtDe, dDtAte)
     Next nU
     cClsUsr += ")"
     MontaFornecedores(dDtDe, dDtAte, cClsUsr)
+
+    // Conta produtos distintos adquiridos no periodo
+    nQtdProd := ContaProdutosDistintos(dDtDe, dDtAte, cClsUsr)
 
     // Abre a mesma tela de resultados com nome "Geral Suprimentos"
     TelaResultados(dDtDe, dDtAte, "Geral Suprimentos")

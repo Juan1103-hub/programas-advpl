@@ -1,0 +1,13 @@
+.aider*
+.env
+
+# Backups locais (o historico real e o proprio git)
+_backup/
+
+# Subprojeto separado, nao versionado neste repo
+code/
+
+# Stub auto-gerados pelo TDS VS Code (intellisense — nunca versionar)
+**/.advpl/
+**/_binary_*.tlpp
+**/_binary_*.prw

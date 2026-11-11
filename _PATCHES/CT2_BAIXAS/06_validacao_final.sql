@@ -1,0 +1,11 @@
+-- =====================================================================
+-- 06 - VALIDACAO FINAL (depois de: carga B1_CC/B1_CTA + Jornada + Razao)
+-- Passo 1: executar a consulta do script 03 (status da SD3 por TM).
+-- Passo 2: executar a consulta do script 04 (CT2 da conta almoxarifado).
+--
+-- SUCESSO ESPERADO (setembro/2026, filial 0102):
+--   - Script 03: TM 502 -> CONTAB = QTDE (todas as baixas contabilizadas);
+--   - Script 04: surgem linhas de credito (CT2_DC = 2) na conta
+--     11401200001, totalizando proximo de 35.208,35 de baixas apuradas;
+--   - Razao CTBR400 reger depois disso.
+-- =====================================================================

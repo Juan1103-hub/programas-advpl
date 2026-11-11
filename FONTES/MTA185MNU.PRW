@@ -4,7 +4,6 @@
 
 User Function MTA185MNU()
     aAdd(aRotina, {"Imprimir", "U_f185ImpRel", 0, 7})
-    aAdd(aRotina, {"Atualizar", "U_f185Refresh", 0, 8})
 Return
 
 // --- Funcao auxiliar: dialog para informar nr. da SA ---
@@ -42,23 +41,24 @@ Static Function f185GerRel(cSolic)
     oReport:lParamPage  := .F.
 
     oSection := TRSection():New(oReport, "Itens", {"QRY_SA"})
+    oSection:SetHeaderSection(.T.)
 
     TRCell():New(oSection, "CP_NUM",     "QRY_SA", "Nr. SA",         Nil, 09, .F., Nil, "LEFT", Nil, "LEFT")
-    TRCell():New(oSection, "CP_ITEM",    "QRY_SA", "Item",           Nil, 08, .F., Nil, "LEFT", Nil, "LEFT")
+    TRCell():New(oSection, "CP_ITEM",    "QRY_SA", "Item",           Nil, 06, .F., Nil, "LEFT", Nil, "LEFT")
     TRCell():New(oSection, "CP_PRODUTO", "QRY_SA", "Produto",        Nil, 20, .F., Nil, "LEFT", Nil, "LEFT")
-    TRCell():New(oSection, "B1_DESC",    "QRY_SA", "Descricao",      Nil, 130, .F., Nil, "LEFT", Nil, "LEFT")
+    TRCell():New(oSection, "B1_DESC",    "QRY_SA", "Descricao",      Nil, 135, .F., Nil, "LEFT", Nil, "LEFT")
     TRCell():New(oSection, "ZC1_POSIC",  "QRY_SA", "Posicao",        Nil, 20, .F., Nil, "LEFT", Nil, "LEFT")
-    TRCell():New(oSection, "CP_QUANT",   "QRY_SA", "Qtd Requisitada",  "@E 999,999.99", 16, .F., Nil, "RIGHT", Nil, "RIGHT")
-    TRCell():New(oSection, "CP_SOLICIT", "QRY_SA", "Solicitante",    Nil, 50, .F., Nil, "LEFT", Nil, "LEFT")
+    TRCell():New(oSection, "CP_QUANT",   "QRY_SA", "Qtd Req.",       "@E 999,999.99", 12, .F., Nil, "RIGHT", Nil, "RIGHT")
 
     oReport:PrintDialog()
 Return
 
 // --- Logica de impressao ---
 Static Function f185Print(oReport, cSolic)
-    Local cQuery := ""
-    Local cAlias := GetNextAlias()
+    Local cQuery   := ""
+    Local cAlias   := GetNextAlias()
     Local oSection := oReport:Section(1)
+    Local cSolicit := ""
 
     cQuery := "SELECT SCP.CP_NUM, SCP.CP_ITEM, SCP.CP_PRODUTO, SB1.B1_DESC, SCP.CP_SOLICIT, SCP.CP_QUANT, "
     cQuery += "ZC1.ZC1_POSIC "
@@ -77,6 +77,13 @@ Static Function f185Print(oReport, cSolic)
 
     oSection:Init()
 
+    // Solicitante no cabecalho (1x por relatorio)
+    If !(cAlias)->(Eof())
+        cSolicit := AllTrim((cAlias)->CP_SOLICIT)
+        oReport:PrintText("Solicitante: " + cSolicit, 0)
+        oReport:SkipLine()
+    EndIf
+
     While !(cAlias)->(Eof())
         oSection:Cell("CP_NUM"):SetValue((cAlias)->CP_NUM)
         oSection:Cell("CP_ITEM"):SetValue((cAlias)->CP_ITEM)
@@ -84,7 +91,6 @@ Static Function f185Print(oReport, cSolic)
         oSection:Cell("B1_DESC"):SetValue((cAlias)->B1_DESC)
         oSection:Cell("ZC1_POSIC"):SetValue((cAlias)->ZC1_POSIC)
         oSection:Cell("CP_QUANT"):SetValue((cAlias)->CP_QUANT)
-        oSection:Cell("CP_SOLICIT"):SetValue((cAlias)->CP_SOLICIT)
 
         oSection:PrintLine()
         (cAlias)->(DbSkip())
@@ -92,54 +98,4 @@ Static Function f185Print(oReport, cSolic)
 
     oSection:Finish()
     (cAlias)->(DbCloseArea())
-Return
-
-//-------------------------------------------------------------------
-/*/{Protheus.doc} f185Refresh
-Atualiza o browse da MATA185 (Baixa de Pre-Requisicao).
-
-@type    User Function
-/*/
-//-------------------------------------------------------------------
-User Function f185Refresh()
-
-    Local oBrw   := Nil
-    Local nI     := 0
-    Local oWnd   := Nil
-    Local cClass := ""
-
-    // 1. Tenta via GetWndDefault
-    oWnd := GetWndDefault()
-    If oWnd != Nil .And. ValType(oWnd) == "O"
-        For nI := 1 To Len(oWnd:aControls)
-            If ValType(oWnd:aControls[nI]) == "O"
-                cClass := AllTrim(GetClassName(oWnd:aControls[nI]))
-                If "BROWSE" $ Upper(cClass)
-                    oBrw := oWnd:aControls[nI]
-                    Exit
-                EndIf
-            EndIf
-        Next nI
-    EndIf
-
-    // 2. Fallback: tenta via oMainWnd
-    If oBrw == Nil .And. oMainWnd != Nil
-        For nI := 1 To Len(oMainWnd:aControls)
-            If ValType(oMainWnd:aControls[nI]) == "O"
-                cClass := AllTrim(GetClassName(oMainWnd:aControls[nI]))
-                If "BROWSE" $ Upper(cClass)
-                    oBrw := oMainWnd:aControls[nI]
-                    Exit
-                EndIf
-            EndIf
-        Next nI
-    EndIf
-
-    // 3. Refresh
-    If oBrw != Nil
-        oBrw:Refresh()
-    Else
-        SCP->(DbGoTop())
-    EndIf
-
 Return

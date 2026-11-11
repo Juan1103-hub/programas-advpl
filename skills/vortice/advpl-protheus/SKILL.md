@@ -472,7 +472,7 @@ REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(campo)),'.',''),'/',''),'-','')
 | Ponto de Entrada | `MTA110OK.PRW` | :10 User Function, :12 aScan aHeader, :48 aCols, :53 Help(), :92 MT131WF, :178 MT120GOK |
 | Analise + LISTBOX | `ZANALBX.PRW` | :31 User Function, :59 ParamBox, :161 cQuery, :565 MSDIALOG, :659 LISTBOX, :854 TReport |
 | Analise Compras | `ZCOMPRAS.PRW` | FWMarkBrowse, filtros SC7, export Excel |
-| Drill-down | `ZANALPRC.PRW` | MSDIALOG 650x1300, LISTBOX @40,5 SIZE 640x260 |
+| Drill-down | `ZANALPRC.PRW` | MSDIALOG 650x1500, LISTBOX SIZE 1460x235, `AnpAjustaCols` |
 | Cadastro Fornec. | `CADFORN.PRW` | mBrowse SA2, campos customizados |
 | PE Aprovacao | `MTALCFIM.PRW` | PARAMIXB[3]=4, guard C7_CONAPRO |
 

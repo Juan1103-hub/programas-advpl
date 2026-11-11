@@ -62,7 +62,7 @@ Via `..\.opencode\agents\`:
 - **html-frontend-verify**: validacao frontend
 
 > **Nota**: o FILHO `programas_vortice\.opencode\agents\` tem 10 subagentes adicionais
-> (code-generator, code-reviewer, debugger, doc-generator, docs-reference, etc).
+> (code-generator, code-reviewer, docs-reference, etc).
 > Ver `programas_vortice\.opencode\memory.md` para lista completa.
 
 ## Skills TOTVS no PAI

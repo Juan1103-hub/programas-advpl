@@ -1,0 +1,58 @@
+{
+	"folders": [
+		{
+			"name": "PATCH",
+			"path": "_PATCHES/PATCH"
+		},
+		{
+			"name": "PATCH_01",
+			"path": "_PATCHES/PATCH_01"
+		},
+		{
+			"name": "PATCH_02",
+			"path": "_PATCHES/PATCH_02"
+		},
+		{
+			"name": "FONTES (programas)",
+			"path": "FONTES"
+		},
+		{
+			"name": "PROGRAMAS_ADVPL (raiz)",
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"_PATCHES": true,
+			"**/.advpl": true,
+			"**/.vscode": true,
+			".github": true,
+			"ci": true,
+			"code": true,
+			"instructions": true,
+			".opencode": true,
+			"**/.cache": true,
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true
+		},
+		"search.exclude": {
+			"_PATCHES": true,
+			"**/.advpl": true,
+			"**/.vscode": true,
+			".github": true,
+			"ci": true,
+			"code": true,
+			"instructions": true,
+			".opencode": true,
+			"**/.cache": true
+		},
+		"totvsLanguageServer.welcomePage": false,
+		"totvsLanguageServer.editor.linter.includes": "C:\\Users\\Vortice 0097\\Desktop\\BKP_JUAN\\totvs\\includes"
+	},
+	"extensions": {
+		"recommendations": ["totvs.tds-vscode"]
+	}
+}

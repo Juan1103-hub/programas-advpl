@@ -5,6 +5,9 @@
     "totvsLanguageServer.folder.includes": [
         "C:/totvs/includes"
     ],
+    "files.exclude": {
+        "**/.advpl": true
+    },
 
     // Bracket pair colorization (destaca pares de parenteses/chaves)
     "editor.bracketPairColorization.enabled": true,

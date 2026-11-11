@@ -1,0 +1,12 @@
+/*
+	Header : fw-tlpp-i18n.th
+	Copyright (c) 2024 TOTVS SA
+	All rights reserved.
+*/
+
+#ifndef FW_TLPP_I18N_TH
+#define FW_TLPP_I18N_TH
+
+#include "tlpp-i18n.th"
+
+#endif /* FW_TLPP_I18N_TH */

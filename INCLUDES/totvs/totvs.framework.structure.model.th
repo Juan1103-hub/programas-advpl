@@ -1,0 +1,5 @@
+@annotation totvsFrameworkStructureModel
+    lookup as logical
+    country as character default ''
+    description as character default ''
+@end 

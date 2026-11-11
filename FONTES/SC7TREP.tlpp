@@ -1,15 +1,22 @@
+#include "tlpp-core.th"
 #include "msobject.ch"
 #include "totvs.ch"
 #Include "totvs.framework.treports.integratedprovider.th"
 
 /*/{Protheus.doc} SC7TREP
 Objeto de Negocio (ON) SmartView para o Pedido de Compra (SC7).
-Expoe os campos do cabecalho do pedido de compra mais dados do
-fornecedor (SA2), incluindo a Inscricao Estadual (A2_INSCR).
+Expoe os campos do pedido de compra completos: cabecalho, itens
+(produto, quantidade, precos, entrega, centro de custo), valores e
+impostos (descontos, IPI, ICMS, frete, despesas, seguro), condicao de
+pagamento (SE4), dados do fornecedor (SA2) incluindo Inscricao Estadual,
+e dados do comprador (SY1).
 
-Permite usar o pedido de compra como fonte de dados nativa para
-relatorios do SmartView/TReports, com filtros definidos na interface,
-paginacao automatica via IDs #QueryFields#/#QueryWhere#.
+Filtros: pergunte MATA120 (setPergunte no new) - pedido/AE, dt. emissao,
+descricao, un. medida, tipo docto, status aprovacao, firmes/previstos,
+moeda, endereco entrega, filtrar por - mais SV_MULTBRANCH (filiais,
+nativo do framework). Valores de combo sao mapeados ao codigo gravado
+em SC7; valor nao reconhecido ignora o filtro (nunca zera resultado).
+Mapeamento de indices a validar via APSDU (SX1 MATA120).
 
 Requisito: TL++ e LIB Label >= 12.1.2210 (recomendado >= 12.1.2310).
 Apos compilar, reiniciar o AppServer para o ON ficar disponivel em REST.
@@ -17,13 +24,13 @@ Apos compilar, reiniciar o AppServer para o ON ficar disponivel em REST.
 @type    class
 @author  Suprimentos
 @since   06/08/2026
-@version 1.0
+@version 2.2
 @see     patterns-smartview-integratedprovider.md
 /*/
 
 namespace custom.compras.pedidocompra.integratedprovider
 
-@totvsFrameworkTReportsIntegratedProvider(active=.T., team="SIGACOM", tables="SC7,SA2", name="Pedido de Compra", country="ALL", initialRelease="12.1.2210")
+@totvsFrameworkTReportsIntegratedProvider(active=.T., team="SIGACOM", tables="SC7,SA2,SE4,SY1", name="Pedido de Compra", country="ALL", initialRelease="12.1.2210")
 
 class SC7TReportsBusinessObject from totvs.framework.treports.integratedprovider.IntegratedProvider
     public method new() as object
@@ -35,6 +42,7 @@ endclass
 
 /*/{Protheus.doc} new
 Construtor padrao do ON: define area, nome e descricao.
+Filiais sao calculadas por requisicao no getData().
 
 @type   Method
 @return Object, self
@@ -42,8 +50,14 @@ Construtor padrao do ON: define area, nome e descricao.
 method new() as object class SC7TReportsBusinessObject
     _Super:new()
     self:appendArea("Compras")
-    self:setDisplayName("Pedido Compra")
-    self:setDescription("Pedido de Compra com Inscricao Estadual do Fornecedor")
+    self:setDisplayName("Pedido de Compra")
+    self:setDescription("Pedido de Compra completo: itens, valores, impostos, fornecedor e comprador")
+
+    // Registra os filtros do pergunte MATA120: o SmartView renderiza os
+    // campos nativos do SX1 (combo, lookup, date picker) como no ON padrao
+    if !self:setPergunte("MATA120")
+        FwLogMsg("WARN",, "SC7TREP",,,, "SC7TREP: pergunte MATA120 nao encontrado no ambiente",,,)
+    endif
 return self
 
 /*/{Protheus.doc} getDisplayName
@@ -53,7 +67,7 @@ Retorna o nome de exibicao do ON no SmartView.
 @return character, Nome de exibicao
 /*/
 method getDisplayName() as character class SC7TReportsBusinessObject
-return "Pedido Compra"
+return "Pedido de Compra"
 
 /*/{Protheus.doc} getAreas
 Retorna a lista de areas do ON.
@@ -65,30 +79,74 @@ method getAreas() as array class SC7TReportsBusinessObject
 return {"Compras"}
 
 /*/{Protheus.doc} getSchema
-Monta o schema do relatorio: cabecalho do pedido (SC7) e dados
-do fornecedor (SA2). O cRealName vira qualificado (tabela.campo)
-para o framework resolver o #QueryFields# em queries com join.
+Monta o schema do relatorio (campos). Os filtros sao registrados no
+new() via setPergunte("MATA120"); SV_MULTBRANCH (filiais) e nativo do
+framework SmartView.
 
 @type   Method
 @return object, self:oSchema
 /*/
 method getSchema() as object class SC7TReportsBusinessObject
-    self:addParameter("C7_NUM",     "Numero Pedido",     "string", .F., "SC7.C7_NUM")
-    self:addParameter("C7_FORNECE", "Codigo Fornecedor", "string", .F., "SC7.C7_FORNECE")
+    // Filtros (parametros) do pergunte MATA120: registrados no new() via
+    // setPergunte("MATA120") - nao declarar addParameter("MV_PARxx") aqui
+    // para nao duplicar as perguntas na tela do SmartView.
 
-    self:addProperty("C7_NUM",     "Pedido",             "string", "Numero do Pedido",     "SC7.C7_NUM")
-    self:addProperty("C7_EMISSAO", "Emissao",            "date",   "Data de Emissao",      "SC7.C7_EMISSAO")
-    self:addProperty("C7_FORNECE", "Fornecedor",         "string", "Codigo do Fornecedor", "SC7.C7_FORNECE")
-    self:addProperty("C7_LOJA",    "Loja",               "string", "Loja do Fornecedor",   "SC7.C7_LOJA")
+    // Multi-filial (framework SmartView)
+    self:addParameter("SV_MULTBRANCH", "Qual Filial/Filiais?", "string", .F.)
 
-    self:addProperty("A2_NOME",    "Razao Social",       "string", "Nome do Fornecedor",   "SA2.A2_NOME")
-    self:addProperty("A2_CGC",     "CNPJ",               "string", "CNPJ do Fornecedor",   "SA2.A2_CGC")
-    self:addProperty("A2_INSCR",   "Inscricao Estadual", "string", "Inscricao Estadual",   "SA2.A2_INSCR")
-    self:addProperty("A2_INSCRM",  "Inscricao Municipal","string", "Inscricao Municipal",  "SA2.A2_INSCRM")
+    // --- Propriedades do schema (campos do relatorio) ---
+    // Cabecalho do pedido
+    self:addProperty("C7_FILIAL",  "Filial",              "string",  "Filial do Pedido",       "SC7.C7_FILIAL")
+    self:addProperty("C7_NUM",     "Pedido",              "string",  "Numero do Pedido",       "SC7.C7_NUM")
+    self:addProperty("C7_EMISSAO", "Emissao",             "date",    "Data de Emissao",        "SC7.C7_EMISSAO")
+    self:addProperty("C7_FORNECE", "Fornecedor",          "string",  "Codigo do Fornecedor",   "SC7.C7_FORNECE")
+    self:addProperty("C7_LOJA",    "Loja",                "string",  "Loja do Fornecedor",     "SC7.C7_LOJA")
+    self:addProperty("C7_TIPO",    "Tipo Docto",          "string",  "Tipo do Documento",      "SC7.C7_TIPO")
+    self:addProperty("C7_TPOP",    "Firme/Previsto",      "string",  "Firme=1 Previsto=2",     "SC7.C7_TPOP")
+
+    // Bloco de itens do pedido (layout padrao MATA120)
+    self:addProperty("C7_ITEM",    "Item",                "string",  "Item do Pedido",         "SC7.C7_ITEM")
+    self:addProperty("C7_PRODUTO", "Produto",             "string",  "Codigo do Produto",      "SC7.C7_PRODUTO")
+    self:addProperty("C7_DESCRI",  "Descricao Produto",   "string",  "Descricao do Produto",   "SC7.C7_DESCRI")
+    self:addProperty("C7_UM",      "Unidade",             "string",  "Unidade de Medida",      "SC7.C7_UM")
+    self:addProperty("C7_QUANT",   "Quantidade",          "number", "Quantidade do Item",     "SC7.C7_QUANT")
+    self:addProperty("C7_PRECO",   "Preco Unitario",      "number", "Preco Unitario",         "SC7.C7_PRECO")
+    self:addProperty("C7_TOTAL",   "Valor Total Item",    "number", "Valor Total do Item",    "SC7.C7_TOTAL")
+    self:addProperty("C7_DATPRF",  "Data Entrega",        "date",    "Data Prevista Entrega",  "SC7.C7_DATPRF")
+    self:addProperty("C7_CC",      "Centro de Custo",     "string",  "Centro de Custo",        "SC7.C7_CC")
+
+    // Bloco de valores e impostos (layout padrao MATA120)
+    self:addProperty("C7_MOEDA",   "Codigo Moeda",        "number", "Codigo da Moeda",        "SC7.C7_MOEDA")
+    self:addProperty("C7_VLDESC",  "Vlr Descontos",       "number", "Valor de Descontos",     "SC7.C7_VLDESC")
+    self:addProperty("C7_VALIPI",  "Vlr IPI",             "number", "Valor de IPI",           "SC7.C7_VALIPI")
+    self:addProperty("C7_VALICM",  "Vlr ICMS",            "number", "Valor de ICMS",          "SC7.C7_VALICM")
+    self:addProperty("C7_FRETE",   "Vlr Frete",           "number", "Valor de Frete",         "SC7.C7_FRETE")
+    self:addProperty("C7_DESPESA", "Vlr Despesas",        "number", "Valor de Despesas",      "SC7.C7_DESPESA")
+    self:addProperty("C7_SEGURO",  "Vlr Seguro",          "number", "Valor de Seguro",        "SC7.C7_SEGURO")
+
+    // Bloco de aprovacao e condicao de pagamento
+    self:addProperty("C7_CONAPRO", "Status Aprovacao",    "string",  "L=Liberado B=Bloqueado", "SC7.C7_CONAPRO")
+    self:addProperty("C7_CODCOMP", "Codigo Comprador",    "string",  "Codigo do Comprador",    "SC7.C7_CODCOMP")
+    self:addProperty("E4_DESCRI",  "Condicao Pagamento",  "string",  "Descricao da Condicao",  "SE4.E4_DESCRI")
+
+    // Dados do fornecedor (incluindo IE - exclusivo custom)
+    self:addProperty("A2_NOME",    "Razao Social",        "string",  "Nome do Fornecedor",      "SA2.A2_NOME")
+    self:addProperty("A2_CGC",     "CNPJ",                "string",  "CNPJ do Fornecedor",      "SA2.A2_CGC")
+    self:addProperty("A2_END",     "Endereco Fornecedor", "string",  "Endereco do Fornecedor",  "SA2.A2_END")
+    self:addProperty("A2_CEP",     "CEP Fornecedor",      "string",  "CEP do Fornecedor",       "SA2.A2_CEP")
+    self:addProperty("A2_INSCR",   "Inscricao Estadual",  "string",  "Inscricao Estadual",      "SA2.A2_INSCR")
+    self:addProperty("A2_INSCRM",  "Inscricao Municipal", "string",  "Inscricao Municipal",     "SA2.A2_INSCRM")
+
+    // Dados do comprador
+    self:addProperty("Y1_NOME",    "Nome Comprador",      "string",  "Nome do Comprador",       "SY1.Y1_NOME")
 return self:oSchema
 
 /*/{Protheus.doc} getData
-Retorna os dados do Pedido de Compra com join SC7 + SA2.
+Retorna os dados do Pedido de Compra com joins SC7 + SA2 + SE4 + SY1.
+Aplica os filtros do pergunte MATA120 (chaves MV_PARxx em getParameters)
+e multi-filial via SV_MULTBRANCH (separador ";"). Valores de combo chegam
+como indice/rotulo e sao mapeados ao codigo gravado em SC7; valor nao
+reconhecido ignora o filtro (nunca zera o resultado).
 Usa #QueryFields#/#QueryWhere# na query para o framework paginar,
 filtrar e projetar conforme o schema.
 
@@ -97,25 +155,308 @@ filtrar e projetar conforme o schema.
 @param  oFilter, object,  Filtro do relatorio montado pelo SmartView
 @return object, self:oData
 /*/
-method getData(nPage as numeric, oFilter as object) class SC7TReportsBusinessObject
+method getData(nPage as numeric, oFilter as object) as object class SC7TReportsBusinessObject
     Local cQuery  as character
-    Local cFilial as character
+    Local cWhere  as character
+    Local jParams as object
+    Local xAux    as variant
+    Local cValor  as character
+    Local cDe     as character
+    Local cAte    as character
+    Local cCodigo as character
+    Local cFilSC7 as character
+    Local cFilSA2 as character
+    Local cFilSE4 as character
+    Local cFilSY1 as character
+    Local aFiliais as array
+    Local nX      as numeric
 
     self:setPageSize(200)
 
-    cFilial := FWxFilial("SC7")
+    // Filiais calculadas por requisicao (contexto atual)
+    cFilSC7 := FWxFilial("SC7")
+    cFilSA2 := FWxFilial("SA2")
+    cFilSE4 := FWxFilial("SE4")
+    cFilSY1 := FWxFilial("SY1")
 
+    // Monta clausula WHERE base
+    cWhere := "SC7.D_E_L_E_T_ = ' ' "
+
+    // Multi-filial via SV_MULTBRANCH (separador ";")
+    cValor := ""
+    if ValType(oFilter) == "O"
+        jParams := oFilter:getParameters()
+        if ValType(jParams) == "J" .AND. jParams:hasProperty("SV_MULTBRANCH")
+            xAux := jParams["SV_MULTBRANCH"]
+            if ValType(xAux) == "A" .AND. Len(xAux) > 0
+                xAux := xAux[1]
+            endif
+            if ValType(xAux) == "C"
+                cValor := AllTrim(xAux)
+            endif
+        endif
+    endif
+
+    if !Empty(cValor)
+        aFiliais := StrTokArr(cValor, ";")
+        if Len(aFiliais) > 0
+            cWhere += "AND SC7.C7_FILIAL IN ("
+            for nX := 1 To Len(aFiliais)
+                if nX > 1
+                    cWhere += ", "
+                endif
+                cWhere += "'" + StrTran(AllTrim(aFiliais[nX]), "'", "''") + "'"
+            next nX
+            cWhere += ") "
+        endif
+    endif
+
+    // Fallback: filial corrente quando nao ha SV_MULTBRANCH informado
+    if At("C7_FILIAL IN (", cWhere) == 0
+        cWhere += "AND SC7.C7_FILIAL = '" + cFilSC7 + "' "
+    endif
+
+    // Filtros do pergunte MATA120 via getParameters (chaves MV_PARxx).
+    // Sanitizacao anti SQL Injection (CA2050): escape de aspas simples e
+    // validacao de dominio (digitos/data) antes de montar o WHERE.
+    // Valor de combo nao reconhecido => filtro ignorado (nunca zera dados).
+
+    // MV_PAR01/MV_PAR02 - Pedido/AE (range sobre C7_NUM)
+    cDe  := SC7TPVal(jParams, "MV_PAR01")
+    cAte := SC7TPVal(jParams, "MV_PAR02")
+    if !Empty(cDe)
+        cWhere += "AND SC7.C7_NUM >= '" + StrTran(cDe, "'", "''") + "' "
+    endif
+    if !Empty(cAte)
+        cWhere += "AND SC7.C7_NUM <= '" + StrTran(cAte, "'", "''") + "' "
+    endif
+
+    // MV_PAR03/MV_PAR04 - Dt. Emissao (range sobre C7_EMISSAO)
+    cDe  := SC7TPDt(SC7TPVal(jParams, "MV_PAR03"))
+    cAte := SC7TPDt(SC7TPVal(jParams, "MV_PAR04"))
+    if !Empty(cDe)
+        cWhere += "AND SC7.C7_EMISSAO >= '" + cDe + "' "
+    endif
+    if !Empty(cAte)
+        cWhere += "AND SC7.C7_EMISSAO <= '" + cAte + "' "
+    endif
+
+    // MV_PAR05 - Descricao (LIKE)
+    cValor := SC7TPVal(jParams, "MV_PAR05")
+    if !Empty(cValor)
+        cWhere += "AND SC7.C7_DESCRI LIKE '%" + StrTran(cValor, "'", "''") + "%' "
+    endif
+
+    // MV_PAR06 - Un. Medida (Primaria/Secundaria): escolha de exibicao,
+    // nao filtra dados; ignorada no WHERE
+
+    // MV_PAR07 - Tipo Docto (N=Pedido, C/A/P/I/E=Complementos, D=Devolucao)
+    cCodigo := SC7TPTipo(SC7TPVal(jParams, "MV_PAR07"))
+    if !Empty(cCodigo)
+        cWhere += "AND SC7.C7_TIPO = '" + cCodigo + "' "
+    endif
+
+    // MV_PAR08 - Status Aprovacao (L=Liberado, B=Bloqueado)
+    cCodigo := SC7TPConap(SC7TPVal(jParams, "MV_PAR08"))
+    if !Empty(cCodigo)
+        cWhere += "AND SC7.C7_CONAPRO = '" + cCodigo + "' "
+    endif
+
+    // MV_PAR09 - Firmes/Previstos (C7_TPOP: 1=Firme, 2=Previsto)
+    cCodigo := SC7TPTpop(SC7TPVal(jParams, "MV_PAR09"))
+    if !Empty(cCodigo)
+        cWhere += "AND SC7.C7_TPOP = '" + cCodigo + "' "
+    endif
+
+    // MV_PAR10 - Moeda (apenas digitos, sem aspas na query)
+    cValor := SC7TPVal(jParams, "MV_PAR10")
+    if !Empty(cValor) .AND. SC7TPDig(cValor)
+        cWhere += "AND SC7.C7_MOEDA = " + cValor + " "
+    endif
+
+    // MV_PAR11 - Endereco de Entrega
+    cValor := SC7TPVal(jParams, "MV_PAR11")
+    if !Empty(cValor)
+        cWhere += "AND SC7.C7_FILENT = '" + StrTran(cValor, "'", "''") + "' "
+    endif
+
+    // MV_PAR12 - Filtrar Doctos Por (Pedido/AE): criterio SC7 nao mapeado
+    // com seguranca; tratado como "Ambos" ate validar SX1 MATA120 via APSDU
+
+
+
+    // Query principal com joins
     cQuery := "SELECT #QueryFields# " +;
               "FROM " + RetSqlName("SC7") + " SC7 " +;
               "LEFT JOIN " + RetSqlName("SA2") + " SA2 " +;
-              " ON SC7.C7_FILIAL  = SA2.A2_FILIAL " +;
+              " ON SA2.A2_FILIAL  = '" + cFilSA2 + "' " +;
               "AND SC7.C7_FORNECE = SA2.A2_COD " +;
               "AND SC7.C7_LOJA    = SA2.A2_LOJA " +;
               "AND SA2.D_E_L_E_T_ = ' ' " +;
+              "LEFT JOIN " + RetSqlName("SE4") + " SE4 " +;
+              " ON SE4.E4_FILIAL  = '" + cFilSE4 + "' " +;
+              "AND SC7.C7_COND    = SE4.E4_CODIGO " +;
+              "AND SE4.D_E_L_E_T_ = ' ' " +;
+              "LEFT JOIN " + RetSqlName("SY1") + " SY1 " +;
+              " ON SY1.Y1_FILIAL  = '" + cFilSY1 + "' " +;
+              "AND SC7.C7_CODCOMP = SY1.Y1_COD " +;
+              "AND SY1.D_E_L_E_T_ = ' ' " +;
               "WHERE #QueryWhere# "
 
     self:setQuery(cQuery)
-    self:setOrder("SC7.C7_NUM")
-    self:setWhere("SC7.D_E_L_E_T_ = ' ' " +;
-                  "AND SC7.C7_FILIAL = '" + cFilial + "' ")
+    self:setOrder("SC7.C7_FILIAL, SC7.C7_NUM, SC7.C7_ITEM")
+    self:setWhere(cWhere)
 return self:oData
+
+/*/{Protheus.doc} SC7TPVal
+Le um parametro do SmartView (aceita array multivalue) e retorna string.
+@type Static Function
+@param  jParams, object,    JSON de parametros (oFilter:getParameters())
+@param  cKey,    character, Chave do parametro (ex.: "MV_PAR05")
+@return character, Valor normalizado ("" quando ausente/invalido)
+/*/
+Static Function SC7TPVal(jParams, cKey) as character
+    Local xRet as variant
+    Local cRet as character
+
+    cRet := ""
+    if ValType(jParams) == "J" .AND. jParams:hasProperty(cKey)
+        xRet := jParams[cKey]
+        if ValType(xRet) == "A" .AND. Len(xRet) > 0
+            xRet := xRet[1]
+        endif
+        if ValType(xRet) == "C"
+            cRet := AllTrim(xRet)
+        elseif ValType(xRet) == "N"
+            cRet := AllTrim(Str(xRet))
+        elseif ValType(xRet) == "D"
+            cRet := DToS(xRet)
+        endif
+    endif
+return cRet
+
+/*/{Protheus.doc} SC7TPDig
+Verifica se a string esta preenchida e contem apenas digitos 0-9.
+@type Static Function
+@param  cValor, character, String a validar
+@return logical, .T. quando apenas digitos
+/*/
+Static Function SC7TPDig(cValor) as logical
+    Local nX   as numeric
+    Local lRet as logical
+
+    lRet := Len(cValor) > 0
+    for nX := 1 To Len(cValor)
+        if SubStr(cValor, nX, 1) < "0" .OR. SubStr(cValor, nX, 1) > "9"
+            lRet := .F.
+            exit
+        endif
+    next nX
+return lRet
+
+/*/{Protheus.doc} SC7TPDt
+Normaliza data recebida do pergunte (yyyymmdd ou ddmmyyyy) para yyyymmdd.
+Retorna "" quando invalida (filtro e entao ignorado).
+@type Static Function
+@param  cValor, character, Data recebida no parametro
+@return character, Data no formato yyyymmdd ou ""
+/*/
+Static Function SC7TPDt(cValor) as character
+    Local cDig  as character
+    Local cRet  as character
+    Local cParc as character
+    Local nX    as numeric
+
+    cDig := ""
+    cRet := ""
+    for nX := 1 To Len(cValor)
+        cParc := SubStr(cValor, nX, 1)
+        if cParc >= "0" .AND. cParc <= "9"
+            cDig += cParc
+        endif
+    next nX
+
+    if Len(cDig) == 8
+        if Val(SubStr(cDig, 1, 4)) >= 1990 .AND. Val(SubStr(cDig, 1, 4)) <= 2100 .AND.;
+           Val(SubStr(cDig, 5, 2)) >= 1 .AND. Val(SubStr(cDig, 5, 2)) <= 12 .AND.;
+           Val(SubStr(cDig, 7, 2)) >= 1 .AND. Val(SubStr(cDig, 7, 2)) <= 31
+            cRet := cDig
+        else
+            if Val(SubStr(cDig, 5, 4)) >= 1990 .AND. Val(SubStr(cDig, 5, 4)) <= 2100 .AND.;
+               Val(SubStr(cDig, 3, 2)) >= 1 .AND. Val(SubStr(cDig, 3, 2)) <= 12 .AND.;
+               Val(SubStr(cDig, 1, 2)) >= 1 .AND. Val(SubStr(cDig, 1, 2)) <= 31
+                cRet := SubStr(cDig, 5, 4) + SubStr(cDig, 3, 2) + SubStr(cDig, 1, 2)
+            endif
+        endif
+    endif
+return cRet
+
+/*/{Protheus.doc} SC7TPTipo
+Mapeia o valor do combo Tipo Docto (indice ou rotulo) para C7_TIPO.
+@type Static Function
+@param  cValor, character, Valor recebido do SmartView
+@return character, Codigo C7_TIPO ("" quando nao reconhecido)
+/*/
+Static Function SC7TPTipo(cValor) as character
+    Local cV as character
+
+    cV := Upper(AllTrim(cValor))
+    Do Case
+        Case cV == "1" .OR. cV == "N" .OR. cV == "PEDIDO" .OR. cV == "NORMAL"
+            cV := "N"
+        Case cV == "2" .OR. cV == "C" .OR. ("COMPLEMENTO" $ cV)
+            cV := "C"
+        Case cV == "3" .OR. cV == "A"
+            cV := "A"
+        Case cV == "4" .OR. cV == "P"
+            cV := "P"
+        Case cV == "5" .OR. cV == "I"
+            cV := "I"
+        Case cV == "6" .OR. cV == "E"
+            cV := "E"
+        Case cV == "7" .OR. cV == "D" .OR. ("DEVOLU" $ cV)
+            cV := "D"
+        Otherwise
+            cV := ""
+    EndCase
+return cV
+
+/*/{Protheus.doc} SC7TPConap
+Mapeia o valor do combo Status Aprovacao para C7_CONAPRO (L/B).
+@type Static Function
+@param  cValor, character, Valor recebido do SmartView
+@return character, Codigo C7_CONAPRO ("" = nao filtrar)
+/*/
+Static Function SC7TPConap(cValor) as character
+    Local cV as character
+
+    cV := Upper(AllTrim(cValor))
+    Do Case
+        Case cV == "L" .OR. cV == "1" .OR. ("LIBERAD" $ cV)
+            cV := "L"
+        Case cV == "B" .OR. cV == "2" .OR. ("BLOQUEAD" $ cV)
+            cV := "B"
+        Otherwise
+            cV := ""
+    EndCase
+return cV
+
+/*/{Protheus.doc} SC7TPTpop
+Mapeia o valor do combo Firmes/Previstos para C7_TPOP (1/2).
+@type Static Function
+@param  cValor, character, Valor recebido do SmartView
+@return character, Codigo C7_TPOP ("" = nao filtrar)
+/*/
+Static Function SC7TPTpop(cValor) as character
+    Local cV as character
+
+    cV := Upper(AllTrim(cValor))
+    Do Case
+        Case cV == "1" .OR. cV == "F" .OR. ("FIRME" $ cV)
+            cV := "1"
+        Case cV == "2" .OR. cV == "P" .OR. ("PREVIST" $ cV)
+            cV := "2"
+        Otherwise
+            cV := ""
+    EndCase
+return cV

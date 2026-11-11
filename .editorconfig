@@ -1,0 +1,61 @@
+# EditorConfig — cross-editor consistency for ADVPL/TLPP workspace
+# https://editorconfig.org
+# Inspired by freebuff-proxy's disciplined approach
+
+root = true
+
+[*]
+charset = cp1252
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.prw]
+indent_style = space
+indent_size = 4
+
+[*.prg]
+indent_style = space
+indent_size = 4
+
+[*.prx]
+indent_style = space
+indent_size = 4
+
+[*.tlpp]
+indent_style = space
+indent_size = 4
+
+[*.ppx]
+indent_style = space
+indent_size = 4
+
+[*.ppp]
+indent_style = space
+indent_size = 4
+
+[*.ch]
+indent_style = space
+indent_size = 4
+
+[*.py]
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml,json,md}]
+indent_style = space
+indent_size = 2
+
+[*.{sh,bash}]
+indent_style = space
+indent_size = 2
+
+[*.ps1]
+indent_style = space
+indent_size = 4
+
+[*.{md,mdx}]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab

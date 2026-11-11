@@ -1,20 +1,18 @@
 # CONFIG/.opencode — Configuração local do OpenCode
 
 Este diretório guarda a configuração **local do projeto** para o OpenCode
-(skills espelhadas, memória e regras por projeto). A configuração **principal**
-(`default_agent`, instruções, referências) NÃO fica aqui nem em `opencode.json`
-na raiz do repositório — ela foi consolidada no global:
+(sobre regras, skills espelhadas, memória e convenções por projeto). A configuração
+**principal** fica no global:
 
-- `~/.config/opencode/opencode.jsonc` — configuração principal OpenCode
-  (`default_agent: vortice-orchestrator`, instruções, compactação)
-- `~/.config/opencode/AGENTS.md` — regras globais do OpenCode
+- `~/.config/opencode/opencode.json` — configuração principal OpenCode
+  (modelos free, plugins, MCP, skills paths)
 
 ## Estado real da configuração (2026-08-16)
 
 | Artefato | Onde fica | Observação |
 |----------|-----------|------------|
-| Config principal OpenCode | `~/.config/opencode/opencode.jsonc` | NÃO versionar (global) |
-| Regras globais | `~/.config/opencode/AGENTS.md` | NÃO versionar (global) |
+| Config principal OpenCode | `~/.config/opencode/opencode.json` | NÃO versionar (global) |
+| Instruções do projeto | `.opencode/opencode.json` (`instructions`) + `AGENTS.md` raiz | versionados |
 | Skills locais espelhadas | `CONFIG/.opencode/skills/<nome>/` | Mirror das skills deste workspace |
 | Regras por projeto | `CONFIG/.opencode/Regras advpl/AGENTS.md` | Candidata (activation: candidate) |
 | Memória OpenCode | `.opencode/memory.md` (raiz) | Versionada neste repo |

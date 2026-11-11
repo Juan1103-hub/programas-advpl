@@ -16,8 +16,10 @@ description: 'Skill Vortice custom pontos-entrada - SC7/CINVJ6_DEV 7.00.240223P'
 | **MT010ALT** | `MT010ALT.PRW` | PÃ³s-alteraÃ§Ã£o: atualiza `B1_ZDTALT` com a data atual |
 | **A010TOK** | `A010TOK.PRW` | TudoOK: validaÃ§Ã£o geral ao confirmar |
 | **VOGSB101** | `VOGSB101.prw` | Trigger SX7: preenche `B1_ZDTINC`, `B1_ZDTALT`, `B1_ZUSINC`, `B1_ZUSALT` |
+| **MA010BUT** | `MA010BUT.PRW` | Botão "Atualizar Descricoes" na barra de ferramentas da **view** (Incluir/Alterar/Excluir/Visualizar) que abre `U_ZATUDESC()` — retorno no formato `{icone, blocoDeAcao, titulo}` |
+| **MTA010MNU** | `MTA010MNU.PRW` | Opção "Atualizar Descricoes" no menu do **browse** (tela de lista) que abre `U_ZATUDESC()` |
 
-**PARAMIXB**: PadrÃ£o MATA010 â€” sem PARAMIXB documentado.
+**PARAMIXB**: Padrão MATA010 — sem PARAMIXB documentado. Exceções: `MA010BUT` NÃO usa PARAMIXB neste build — retorna lista `{icone (cPicture), blocoDeAcao (bAction), titulo (cTitle)}` para o `ViewDef` montar via `AddUserButton(cTitle, cPicture, bAction)` (título na 3ª posição! formato aRotina quebra com `previsto C->N`); `MTA010MNU` também não usa PARAMIXB, manipula `aRotina` direto no escopo (solução oficial TOTVS).
 
 ---
 ## MATA020 â€” Cadastro de Fornecedores (SA2)

@@ -1,0 +1,333 @@
+/*/
+    Eventos utilizados para os métodos de um objeto de eventos
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+
+/*/ {Protheus.doc} beforeList
+    Evento executado antes de listar os objetos
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeList
+@end
+
+/*/ {Protheus.doc} onList
+    Evento executado ao listar os objetos
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation onList
+@end
+
+/*/ {Protheus.doc} afterList
+    Evento executado após listar os objetos
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation afterList
+@end
+
+/*/ {Protheus.doc} beforeGetOne
+    Evento executado antes de obter um objeto
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeGetOne
+@end
+
+/*/ {Protheus.doc} onGetOne
+    Evento executado ao obter um objeto
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation onGetOne
+@end
+
+/*/ {Protheus.doc} afterGetOne
+    Evento executado após obter um objeto
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation afterGetOne
+@end
+
+/*/ {Protheus.doc} beforeCreateInTransaction
+    Evento executado antes de criar um objeto em uma transação
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeCreateInTransaction
+@end
+
+/*/ {Protheus.doc} beforeCreatePerObjectInTransaction
+    Evento executado antes de criar um objeto em uma transação por objeto
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeCreatePerObjectInTransaction
+@end
+
+/*/ {Protheus.doc} beforeCreate
+    Evento executado antes de criar um objeto
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeCreate
+@end
+
+/*/ {Protheus.doc} onCreate
+    Evento executado ao criar um objeto
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation onCreate
+@end
+
+/*/ {Protheus.doc} afterCreateInTransaction
+    Evento executado após criar um objeto em uma transação
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation afterCreateInTransaction
+@end
+
+/*/ {Protheus.doc} afterCreate
+    Evento executado após criar um objeto
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12    
+/*/
+@annotation afterCreate
+@end
+
+/*/ {Protheus.doc} beforeValidate
+    Evento executado antes de validar um modelo
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeValidate
+@end
+
+/*/ {Protheus.doc} onValidate
+    Evento executado ao validar um modelo
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation onValidate
+@end
+
+/*/ {Protheus.doc} afterValidate
+    Evento executado após validar um modelo
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation afterValidate
+@end
+
+/*/ {Protheus.doc} beforeUpdateInTransaction
+    Evento executado antes de atualizar os objetos contidos no modelo
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeUpdateInTransaction
+@end
+
+/*/ {Protheus.doc} beforeUpdatePerObjectInTransaction
+    Evento executado antes de atualizar um modelo por objeto em uma transação
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeUpdatePerObjectInTransaction
+@end
+
+/*/ {Protheus.doc} beforeUpdate
+    Evento executado antes de atualizar os objetos contidos no modelo
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeUpdate
+@end
+
+/*/ {Protheus.doc} onUpdate
+    Evento executado ao atualizar os objetos contidos no modelo
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation onUpdate
+@end
+
+/*/ {Protheus.doc} afterUpdateInTransaction
+    Evento executado após atualizar os objetos contidos no modelo em uma transação
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation afterUpdateInTransaction
+@end
+
+/*/ {Protheus.doc} afterUpdate
+    Evento executado após atualizar os objetos contidos no modelo
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation afterUpdate
+@end
+
+/*/ {Protheus.doc} beforeDeleteInTransaction
+    Evento executado antes de deletar os objetos contidos no modelo em uma transação
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeDeleteInTransaction
+@end
+
+/*/ {Protheus.doc} beforeDeletePerObjectInTransaction
+    Evento executado antes de deletar os objetos contidos no modelo por objeto em uma transação
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeDeletePerObjectInTransaction
+@end
+
+/*/ {Protheus.doc} beforeDelete
+    Evento executado antes de deletar os objetos contidos no modelo
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation beforeDelete
+@end
+
+/*/ {Protheus.doc} onDelete
+    Evento executado ao deletar os objetos contidos no modelo
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/    
+@annotation onDelete
+@end
+
+/*/ {Protheus.doc} afterDelete
+    Evento executado após deletar os objetos contidos no modelo
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation afterDelete
+@end
+
+/*/ {Protheus.doc} afterDeleteInTransaction
+    Evento executado após deletar os objetos contidos no modelo em uma transação
+
+    @type annotation
+
+    @author Marco Fritsch
+    @since 31/01/2025
+    @version P12
+/*/
+@annotation afterDeleteInTransaction
+@end

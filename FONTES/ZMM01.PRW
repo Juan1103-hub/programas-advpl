@@ -2,7 +2,7 @@
 // Programa: ZMM01.PRW
 // Autor: Sistema
 // Data: 26/01/2026
-// Descricao: Amostragem Mensal de Estoque com Browse MVC
+// Descrição: Amostragem Mensal de Estoque com Browse MVC
 //=================================================================================
 
 #Include "PROTHEUS.CH"
@@ -12,16 +12,18 @@
 #Include "TopConn.ch"
 
 //=================================================================================
-// Funcao Principal - Chama o Browse MVC
+// Função Principal - Chama o Browse MVC
 //=================================================================================
 User Function ZMM01()
     Local cTable := "ZZA" + cEmpAnt + "3"
     
-    // Verifica se a tabela existe, se nao, cria
+    // Verifica se a tabela existe, se não, cria
     If !TabelaExiste(cTable)
         CriaTabZZA()
     EndIf
     
+    // *** ADICIONE ESTA LINHA ***
+    // Verifica e adiciona campos novos se necessário
     VerificaCampos()
     
     // Chama o browse principal
@@ -29,26 +31,26 @@ User Function ZMM01()
 Return
 
 //=================================================================================
-// Funcao: TabelaExiste
-// Descricao: Verifica se a tabela customizada ZZA existe no banco de dados
-// Parametros: cTable - Nome da tabela a verificar
-// Retorno: lExiste - .T. se existe, .F. se nao existe
+// Função: TabelaExiste
+// Descrição: Verifica se a tabela customizada ZZA existe no banco de dados
+// Parâmetros: cTable - Nome da tabela a verificar
+// Retorno: lExiste - .T. se existe, .F. se não existe
 //=================================================================================
 Static Function TabelaExiste(cTable)
     Local lExiste := .F.
     Local cQuery := ""
     
-    // Monta query para verificar existencia da tabela no SQL Server
+    // Monta query para verificar existência da tabela no SQL Server
     cQuery := "SELECT COUNT(*) AS QTD "
     cQuery += "FROM INFORMATION_SCHEMA.TABLES "
     cQuery += "WHERE TABLE_NAME = '" + cTable + "' "
     
-    // Fecha area temporaria se estiver aberta
+    // Fecha área temporária se estiver aberta
     If Select("TMPCHK") > 0
         TMPCHK->(DbCloseArea())
     EndIf
     
-    // Executa a query de verificacao
+    // Executa a query de verificação
     DbUseArea(.T., "TOPCONN", TCGenQry(,,cQuery), "TMPCHK", .F., .T.)
     
     // Se retornou registros, a tabela existe
@@ -56,30 +58,30 @@ Static Function TabelaExiste(cTable)
         lExiste := .T.
     EndIf
     
-    // Fecha a area temporaria
+    // Fecha a área temporária
     TMPCHK->(DbCloseArea())
 Return lExiste
 
 //=================================================================================
-// Funcao: CriaTabZZA
-// Descricao: Cria a tabela customizada ZZA no banco de dados SQL Server
+// Função: CriaTabZZA
+// Descrição: Cria a tabela customizada ZZA no banco de dados SQL Server
 // Campos criados:
 //   - ZZA_FILIAL: Filial
 //   - ZZA_DATA: Data da amostragem
-//   - ZZA_PROD: Codigo do produto
-//   - ZZA_DESCRI: Descricao do produto
-//   - ZZA_LOCAL: Armazem
+//   - ZZA_PROD: Código do produto
+//   - ZZA_DESCRI: Descrição do produto
+//   - ZZA_LOCAL: Armazém
 //   - ZZA_SLDSYS: Saldo do sistema
 //   - ZZA_QTDCNT: Quantidade contada
-//   - ZZA_DIFER: Diferenca entre contado e sistema
-//   - ZZA_OBS: Observacao
-//   - ZZA_MOTIVO: Motivos da divergencia
+//   - ZZA_DIFER: Diferença entre contado e sistema
+//   - ZZA_OBS: Observação
+//   - ZZA_MOTIVO: Motivos da divergência
 //   - ZZA_STATUS: Status (ESTOQUE CORRETO / FURO DE ESTOQUE)
-//   - ZZA_INDSIT: Indicador de situacao (C=Correto, P=Pendente)
-//   - ZZA_USER: Usuario que fez o registro
+//   - ZZA_INDSIT: Indicador de situação (C=Correto, P=Pendente)
+//   - ZZA_USER: Usuário que fez o registro
 //   - ZZA_HORA: Hora do registro
-//   - D_E_L_E_T_: Flag de exclusao logica
-//   - R_E_C_N_O_: Numero do registro (chave primaria auto-incremento)
+//   - D_E_L_E_T_: Flag de exclusão lógica
+//   - R_E_C_N_O_: Número do registro (chave primária auto-incremento)
 //=================================================================================
 Static Function CriaTabZZA()
     Local cTable := "ZZA" + cEmpAnt + "3"
@@ -94,12 +96,12 @@ Static Function CriaTabZZA()
     cQuery += "ZZA_SLDSYS FLOAT NOT NULL DEFAULT 0, "
     cQuery += "ZZA_QTDCNT FLOAT NOT NULL DEFAULT 0, "
     cQuery += "ZZA_DIFER FLOAT NOT NULL DEFAULT 0, "
-    cQuery += "ZZA_VLRUNI FLOAT NOT NULL DEFAULT 0, "
+    cQuery += "ZZA_VLRUNI FLOAT NOT NULL DEFAULT 0, "  // *** NOVO CAMPO ***
     cQuery += "ZZA_OBS VARCHAR(MAX) NULL, "
     cQuery += "ZZA_MOTIVO VARCHAR(500) NULL, "
     cQuery += "ZZA_STATUS VARCHAR(20) NOT NULL DEFAULT 'PENDENTE', "
     cQuery += "ZZA_INDSIT VARCHAR(1) NOT NULL DEFAULT 'P', "
-    cQuery += "ZZA_DTAJUS VARCHAR(8) NULL, "
+    cQuery += "ZZA_DTAJUS VARCHAR(8) NULL, "  // *** NOVO CAMPO ***
     cQuery += "ZZA_USER VARCHAR(25) NOT NULL DEFAULT '', "
     cQuery += "ZZA_HORA VARCHAR(8) NOT NULL DEFAULT '        ', "
     cQuery += "D_E_L_E_T_ VARCHAR(1) NOT NULL DEFAULT ' ', "
@@ -117,55 +119,68 @@ Static Function CriaTabZZA()
 Return .T.
 
 //=================================================================================
-// Funcao: CriaIndice
-// Descricao: Cria indices na tabela para otimizar consultas
-// Indice 01: ZZA_FILIAL + ZZA_PROD + ZZA_LOCAL + ZZA_DATA
-// Indice 02: ZZA_FILIAL + ZZA_DATA
+// Função: CriaIndice
+// Descrição: Cria índices na tabela para otimizar consultas
+// Índice 01: ZZA_FILIAL + ZZA_PROD + ZZA_LOCAL + ZZA_DATA
+// Índice 02: ZZA_FILIAL + ZZA_DATA
 //=================================================================================
 Static Function CriaIndice(cTable)
     Local cQuery := ""
     
-    // Indice composto para busca por produto/armazem/data
+    // Índice composto para busca por produto/armazém/data
     cQuery := "CREATE INDEX IDX_" + cTable + "_01 ON " + cTable
     cQuery += " (ZZA_FILIAL, ZZA_PROD, ZZA_LOCAL, ZZA_DATA)"
     TcSqlExec(cQuery)
     
-    // Indice para busca por filial e data
+    // Índice para busca por filial e data
     cQuery := "CREATE INDEX IDX_" + cTable + "_02 ON " + cTable
     cQuery += " (ZZA_FILIAL, ZZA_DATA)"
     TcSqlExec(cQuery)
 Return
 
 //=================================================================================
-// Funcao: MostraBrowse
-// Descricao: Monta e exibe o browse MVC com os registros de amostragem
+// Função: MostraBrowse
+// Descrição: Monta e exibe o browse MVC com os registros de amostragem
 //=================================================================================
 Static Function MostraBrowse()
     Local oBrowse
     
     Private cAliasQry := GetNextAlias()
+    Private cBuscaProd := ""  // codigo digitado na Pesquisa (vazio = lista tudo)
     
     // Cria objeto do browse
     oBrowse := FWMBrowse():New()
     oBrowse:SetDescription("Amostragem Mensal de Estoque")
     oBrowse:SetFontBrowse(TFont():New("Arial",,-12,.F.))
     
-    // Configuracao de dados
+    // Configuração de dados
     oBrowse:SetDataQuery(.T.)
     oBrowse:SetQuery(MontaQuery())
     oBrowse:SetAlias(cAliasQry)
+    oBrowse:SetProfileID("ZMM1")  // obrigatorio p/ browse com GetNextAlias (TDN)
+    
+    // 21/10/2026: filtro nativo REATIVADO a pedido (botao Filtrar visivel,
+    // como na producao), junto com o Pesquisar customizado de Outras Acoes.
+    // RISCO documentado (zmm01-crash-abertura.md): a query nao tem alias no
+    // SX3 e clicar em Filtrar pode derrubar a thread (FWFILTEREDIT:GETFIELDS).
+    // Para voltar ao estado seguro, descomentar a linha abaixo e recompilar:
+    // oBrowse:SetUseFilter(.F.)
+    
+    // *** NÃO ADICIONE SetChange() AQUI ***
     
     // Legendas
     oBrowse:AddLegend("ZZA_INDSIT == 'C'", "GREEN", "Estoque Correto")
     oBrowse:AddLegend("ZZA_INDSIT == 'P'", "RED", "Furo de Estoque")
     oBrowse:AddLegend("ZZA_INDSIT == 'A'", "BLUE", "Ajustado")
     
-    // Botoes com atualizacao correta
+    // Botões com atualização correta
     oBrowse:AddButton("Incluir", {|| U_IncluirReg(), AtualizaBrowse(oBrowse) }, , 2)
     oBrowse:AddButton("Alterar", {|| U_AlterarReg(), AtualizaBrowse(oBrowse) }, , 2)
     oBrowse:AddButton("Excluir", {|| U_ExcluirReg(), AtualizaBrowse(oBrowse) }, , 2)
     oBrowse:AddButton("Marcar Ajustado", {|| U_MarcarAjust(oBrowse) }, , 2)
-    oBrowse:AddButton("Pesquisar", {|| PesquisaBrowse(oBrowse) }, , 2)
+    oBrowse:AddButton("Atualizar Valores", {|| U_AtuVlrUnit(), AtualizaBrowse(oBrowse) }, , 2)
+    oBrowse:AddButton("Pesquisar", {|| BuscaRapida(oBrowse) }, , 2)
+    oBrowse:AddButton("Limpar", {|| LimparFiltro(oBrowse) }, , 2)
     
     // Define colunas
     oBrowse:SetColumns(MontaColunas())
@@ -179,30 +194,22 @@ Static Function MostraBrowse()
     EndIf
     
 Return
-
 //=================================================================================
-// Funcao: MontaQuery
-// Descricao: Monta a query SQL padrao que alimenta o browse (sem filtros extras)
+// Função: MontaQuery
+// Descrição: Monta a query SQL que alimenta o browse
+// Filtros aplicados:
+//   - Somente registros não deletados (D_E_L_E_T_ = ' ')
+//   - Filial logada OU filial vazia (registros legados gravados sem filial)
+//   - SEM filtro de mês/ano: sempre exibe todos os registros disponiveis
+//     (o ultimo mes pode ainda nao ter amostragem gerada)
+// Ordenação: Data decrescente + Hora decrescente
 //=================================================================================
 Static Function MontaQuery()
-    Local cQuery := ""
-    
-    cQuery := MontaSQLSelect()
-    cQuery += MontaWhereBase()
-    cQuery += "ORDER BY ZZA_DATA DESC, ZZA_HORA DESC"
-    
-Return cQuery
-
-//=================================================================================
-// Funcao: MontaSQLSelect
-// Descricao: Retorna o trecho SELECT ... FROM da query
-//=================================================================================
-Static Function MontaSQLSelect()
     Local cQuery := ""
     Local cTable := "ZZA" + cEmpAnt + "3"
     
     cQuery := "SELECT "
-    cQuery += "R_E_C_N_O_ AS RECNO, "
+    cQuery += "R_E_C_N_O_ AS NRECZZA, "
     cQuery += "ZZA_FILIAL, "
     cQuery += "ZZA_DATA, "
     cQuery += "ZZA_DTAJUS, "
@@ -221,94 +228,18 @@ Static Function MontaSQLSelect()
     cQuery += "ZZA_USER, "
     cQuery += "ZZA_HORA "
     cQuery += "FROM " + cTable + " "
-    
-Return cQuery
-
-//=================================================================================
-// Funcao: MontaWhereBase
-// Descricao: Retorna o WHERE fixo (deletados + filial)
-//=================================================================================
-Static Function MontaWhereBase()
-    Local cQuery := ""
-    
-    cQuery := "WHERE D_E_L_E_T_ = ' ' "
-    cQuery += "AND ZZA_FILIAL = '" + xFilial("SB1") + "' "
-    
-Return cQuery
-
-//=================================================================================
-// Funcao: QryPesq
-// Descricao: Monta query SQL com filtros adicionais do ParamBox de pesquisa
-// Parametros: aPar - Array com valores dos filtros:
-//   [1] Produto, [2] Descricao, [3] Armazem, [4] Data De, [5] Data Ate, [6] Status
-//=================================================================================
-Static Function QryPesq(aPar)
-    Local cQuery := ""
-    
-    cQuery := MontaSQLSelect()
-    cQuery += MontaWhereBase()
-    
-    If !Empty(aPar[1])
-        cQuery += "AND ZZA_PROD LIKE '%" + AllTrim(aPar[1]) + "%' "
+    cQuery += "WHERE D_E_L_E_T_ = '' "
+    cQuery += "AND (ZZA_FILIAL = '" + xFilial("SB1") + "' OR ZZA_FILIAL = '') "
+    If !Empty(cBuscaProd)
+        cQuery += "AND ZZA_PROD LIKE '" + AllTrim(cBuscaProd) + "%' "
     EndIf
-    
-    If !Empty(aPar[2])
-        cQuery += "AND ZZA_DESCRI LIKE '%" + AllTrim(aPar[2]) + "%' "
-    EndIf
-    
-    If !Empty(aPar[3])
-        cQuery += "AND ZZA_LOCAL = '" + AllTrim(aPar[3]) + "' "
-    EndIf
-    
-    If !Empty(aPar[4])
-        cQuery += "AND ZZA_DATA >= '" + DtoS(aPar[4]) + "' "
-    EndIf
-    
-    If !Empty(aPar[5])
-        cQuery += "AND ZZA_DATA <= '" + DtoS(aPar[5]) + "' "
-    EndIf
-    
-    Do Case
-        Case aPar[6] == 2
-            cQuery += "AND ZZA_INDSIT = 'C' "
-        Case aPar[6] == 3
-            cQuery += "AND ZZA_INDSIT = 'P' "
-        Case aPar[6] == 4
-            cQuery += "AND ZZA_INDSIT = 'A' "
-    EndCase
     
     cQuery += "ORDER BY ZZA_DATA DESC, ZZA_HORA DESC"
     
 Return cQuery
-
 //=================================================================================
-// Funcao: PesquisaBrowse
-// Descricao: Abre ParamBox com filtros de pesquisa e atualiza o browse
-//=================================================================================
-Static Function PesquisaBrowse(oBrowse)
-    Local aPar := {}
-    Local aRet := {}
-    Local aOpcoes := {"Todos", "Estoque Correto", "Furo de Estoque", "Ajustado"}
-    
-    aAdd(aPar, {1, "Produto"  , Space(15), "", "", "", "", 60, .T.})
-    aAdd(aPar, {1, "Descricao", Space(60), "", "", "", "", 60, .T.})
-    aAdd(aPar, {1, "Armazem"  , Space(2) , "", "", "", "", 30, .T.})
-    aAdd(aPar, {1, "Data De"  , CtoD(""), "", "", "", "", 60, .T.})
-    aAdd(aPar, {1, "Data Ate" , CtoD(""), "", "", "", "", 60, .T.})
-    aAdd(aPar, {2, "Status"   , 1, aOpcoes, 80, "", .F.})
-    
-    If !ParamBox(aPar, "Pesquisa - Amostragem de Estoque", @aRet)
-        Return
-    EndIf
-    
-    oBrowse:SetQuery(QryPesq(aRet))
-    oBrowse:Refresh()
-    
-Return
-
-//=================================================================================
-// Funcao: MontaColunas
-// Descricao: Define as colunas que serao exibidas no browse
+// Função: MontaColunas
+// Descrição: Define as colunas que serão exibidas no browse
 // Retorno: aColumns - Array com objetos FWBrwColumn
 //=================================================================================
 Static Function MontaColunas()
@@ -342,7 +273,7 @@ Static Function MontaColunas()
     oColumn:SetPicture("@!")
     aAdd(aColumns, oColumn)
     
-    // Coluna 4: Descricao
+    // Coluna 4: Descrição **** IMPORTANTE - SINTAXE CORRIGIDA ****
     oColumn := FWBrwColumn():New()
     oColumn:SetData(&("{|| AllTrim(" + cAliasQry + "->ZZA_DESCRI) }"))
     oColumn:SetTitle("Descricao")
@@ -351,7 +282,7 @@ Static Function MontaColunas()
     oColumn:SetPicture("@!")
     aAdd(aColumns, oColumn)
     
-    // Coluna 5: Armazem
+    // Coluna 5: Armazém
     oColumn := FWBrwColumn():New()
     oColumn:SetData(&("{|| " + cAliasQry + "->ZZA_LOCAL }"))
     oColumn:SetTitle("Arm")
@@ -378,7 +309,7 @@ Static Function MontaColunas()
     oColumn:SetPicture("@E 999,999.99")
     aAdd(aColumns, oColumn)
     
-    // Coluna 8: Diferenca
+    // Coluna 8: Diferença
     oColumn := FWBrwColumn():New()
     oColumn:SetData(&("{|| " + cAliasQry + "->ZZA_DIFER }"))
     oColumn:SetTitle("Diferenca")
@@ -387,7 +318,7 @@ Static Function MontaColunas()
     oColumn:SetPicture("@E 999,999.99")
     aAdd(aColumns, oColumn)
     
-    // Coluna 9: Valor Unitario
+    // Coluna 9: Valor Unitário
     oColumn := FWBrwColumn():New()
     oColumn:SetData(&("{|| " + cAliasQry + "->ZZA_VLRUNI }"))
     oColumn:SetTitle("Vlr Unit")
@@ -423,7 +354,7 @@ Static Function MontaColunas()
     oColumn:SetPicture("@!")
     aAdd(aColumns, oColumn)
     
-    // Coluna 12: Observacao
+    // Coluna 12: Observação
     oColumn := FWBrwColumn():New()
     oColumn:SetData(&("{|| AllTrim(" + cAliasQry + "->ZZA_OBS) }"))
     oColumn:SetTitle("Observacao")
@@ -432,7 +363,7 @@ Static Function MontaColunas()
     oColumn:SetPicture("@!")
     aAdd(aColumns, oColumn)
     
-    // Coluna 13: Usuario
+    // Coluna 13: Usuário
     oColumn := FWBrwColumn():New()
     oColumn:SetData(&("{|| " + cAliasQry + "->ZZA_USER }"))
     oColumn:SetTitle("Usuario")
@@ -443,24 +374,24 @@ Static Function MontaColunas()
     
 Return aColumns
 //=================================================================================
-// Funcao: IncluirReg
-// Descricao: Abre tela para inclusao de novo registro de amostragem
+// Função: IncluirReg
+// Descrição: Abre tela para inclusão de novo registro de amostragem
 // Funcionalidades:
 //   - Campos para preenchimento
-//   - Validacao de produto cadastrado
-//   - Busca automatica do saldo do sistema
-//   - Check boxes para motivos da divergencia
-//   - Validacao de estoque (correto ou furo)
+//   - Validação de produto cadastrado
+//   - Busca automática do saldo do sistema
+//   - Check boxes para motivos da divergência
+//   - Validação de estoque (correto ou furo)
 //=================================================================================
 User Function IncluirReg()
-    MontaTela(3) // 3 = Inclusao
+    MontaTela(3) // 3 = Inclusão
 Return
 
 //=================================================================================
-// Funcao: AlterarReg
-// Descricao: Abre tela para alteracao de registro existente
+// Função: AlterarReg
+// Descrição: Abre tela para alteração de registro existente
 // Carrega dados do registro selecionado no browse
-// Nao permite alterar produto e armazem
+// Não permite alterar produto e armazém
 //=================================================================================
 User Function AlterarReg()
     Local cTable := "ZZA" + cEmpAnt + "3"
@@ -470,13 +401,13 @@ User Function AlterarReg()
     Local cObsTmp := ""
     Local cStatusReg := ""
     
-    // VALIDA SE HA REGISTRO SELECIONADO
+    // VALIDA SE HÁ REGISTRO SELECIONADO
     If (cAliasQry)->(Eof()) .Or. (cAliasQry)->(Bof())
         MsgAlert("Nenhum registro selecionado", "Atencao")
         Return
     EndIf
     
-    // VALIDACAO: Verifica se o registro esta AJUSTADO
+    // *** VALIDAÇÃO: Verifica se o registro está AJUSTADO ***
     cStatusReg := AllTrim((cAliasQry)->ZZA_INDSIT)
     
     If cStatusReg == "A"  // A = Ajustado
@@ -484,15 +415,15 @@ User Function AlterarReg()
         Return
     EndIf
     
-    // Obtem o RECNO da linha selecionada no browse
-    nRecno := (cAliasQry)->RECNO
+    // Obtém o RECNO da linha selecionada no browse
+    nRecno := (cAliasQry)->NRECZZA
     
     If nRecno == 0 .Or. nRecno == Nil
         MsgAlert("RECNO invalido", "Atencao")
         Return
     EndIf
     
-    // Busca dados completos diretamente do banco sem alias temporario
+    // Busca dados completos diretamente do banco sem alias temporário
     cQuery := "SELECT TOP 1 "
     cQuery += "CAST(ZZA_MOTIVO AS VARCHAR(500)) AS MOTIVO, "
     cQuery += "CAST(ZZA_OBS AS VARCHAR(8000)) AS OBSERVACAO "
@@ -544,31 +475,33 @@ User Function AlterarReg()
         Return
     EndIf
     
-    // Chama tela de alteracao passando motivo e observacao separadamente
-    MontaTela(4, "TMPALT", cMotivoTmp, cObsTmp) // 4 = Alteracao
+    // Chama tela de alteração passando motivo e observação separadamente
+    MontaTela(4, "TMPALT", cMotivoTmp, cObsTmp) // 4 = Alteração
     
     TMPALT->(DbCloseArea())
 Return
 
 //=================================================================================
-// Funcao: ExcluirReg
-// Descricao: Realiza exclusao logica do registro selecionado
-// Nao apaga fisicamente, apenas marca D_E_L_E_T_ = '*'
-// Solicita confirmacao antes de excluir
+// Função: ExcluirReg
+// Descrição: Realiza exclusão lógica do registro selecionado
+// Não apaga fisicamente, apenas marca D_E_L_E_T_ = '*'
+// Solicita confirmação antes de excluir
 //=================================================================================
 User Function ExcluirReg()
+    Local cTable := "ZZA" + cEmpAnt + "3"
+    Local cQuery := ""
     Local nRecno := 0
     Local cStatusReg := ""
     
-    // Obtem o RECNO da linha selecionada
-    nRecno := (cAliasQry)->RECNO
+    // Obtém o RECNO da linha selecionada
+    nRecno := (cAliasQry)->NRECZZA
     
     If nRecno <= 0
         MsgAlert("Nenhum registro selecionado", "Atencao")
         Return
     EndIf
     
-    // VALIDACAO: Verifica se o registro esta AJUSTADO
+    // *** VALIDAÇÃO: Verifica se o registro está AJUSTADO ***
     cStatusReg := AllTrim((cAliasQry)->ZZA_INDSIT)
     
     If cStatusReg == "A"  // A = Ajustado
@@ -576,34 +509,46 @@ User Function ExcluirReg()
         Return
     EndIf
     
-    // Solicita confirmacao
+    // Solicita confirmação
     If !MsgYesNo("Confirma a exclusao deste registro?", "Atencao")
         Return
     EndIf
 
+    // Exclusao logica via TcSqlExec (alias de query nao permite RecLock)
+    cQuery := "UPDATE " + cTable + " "
+    cQuery += "SET D_E_L_E_T_ = '*' "
+    cQuery += "WHERE R_E_C_N_O_ = " + cValToChar(nRecno)
+    
+    If TcSqlExec(cQuery) < 0
+        MsgAlert("Erro ao excluir o registro: " + TcSqlError(), "Erro")
+        Return
+    EndIf
+    
+    MsgInfo("Registro excluido com sucesso!", "Sucesso")
+Return
+
 //=================================================================================
-// Funcao: ExportaExcel
-// Descricao: Exporta dados do browse para arquivo CSV (Excel)
+// Função: ExportaExcel
+// Descrição: Exporta dados do browse para arquivo CSV (Excel)
 // Arquivo gerado: C:\TEMP\Amostragem_Estoque_AAAAMMDD_HHMMSS.csv
-// Colunas exportadas: Todas as colunas visiveis no browse
+// Colunas exportadas: Todas as colunas visíveis no browse
 //=================================================================================
 User Function ExportaExcel()
     Local cArquivo := ""
     Local cQuery := ""
     Local cTable := "ZZA" + cEmpAnt + "3"
-    Local cAnoMes := SubStr(DtoS(dDataBase), 1, 6)
     Local nHandle := 0
     Local cLinha := ""
     
     // Define nome do arquivo com data/hora
     cArquivo := "C:\TEMP\Amostragem_Estoque_" + DtoS(Date()) + "_" + StrTran(Time(),":","") + ".csv"
     
-    // Fecha area temporaria se estiver aberta
+    // Fecha área temporária se estiver aberta
     If Select("TMPEXP") > 0
         TMPEXP->(DbCloseArea())
     EndIf
     
-    // Monta query para exportacao
+    // Monta query para exportação
     cQuery := "SELECT "
     cQuery += "ZZA_DATA AS Data, "
     cQuery += "ZZA_PROD AS Produto, "
@@ -619,21 +564,20 @@ User Function ExportaExcel()
     cQuery += "ZZA_HORA AS Hora "
     cQuery += "FROM " + cTable + " "
     cQuery += "WHERE D_E_L_E_T_ = ' ' "
-    cQuery += "AND ZZA_FILIAL = '" + xFilial("SB1") + "' "
-    cQuery += "AND SUBSTRING(ZZA_DATA, 1, 6) = '" + cAnoMes + "' "
+    cQuery += "AND (ZZA_FILIAL = '" + xFilial("SB1") + "' OR ZZA_FILIAL = '') "
     cQuery += "ORDER BY ZZA_DATA DESC, ZZA_HORA DESC"
     
     // Executa query
     DbUseArea(.T., "TOPCONN", TCGenQry(,,cQuery), "TMPEXP", .F., .T.)
     
-    // Valida se ha dados para exportar
+    // Valida se há dados para exportar
     If TMPEXP->(Eof())
         MsgAlert("Nenhum registro para exportar", "Atencao")
         TMPEXP->(DbCloseArea())
         Return
     EndIf
     
-    // Cria diretorio se nao existir
+    // Cria diretório se não existir
     If !ExistDir("C:\TEMP")
         MakeDir("C:\TEMP")
     EndIf
@@ -647,7 +591,7 @@ User Function ExportaExcel()
         Return
     EndIf
     
-    // Escreve cabecalho do CSV
+    // Escreve cabeçalho do CSV
     cLinha := "Data;Produto;Descricao;Armazem;Saldo Sistema;Qtd Contada;Diferenca;Status;Motivo;Observacao;Usuario;Hora" + CRLF
     FWrite(nHandle, cLinha)
     
@@ -671,7 +615,7 @@ User Function ExportaExcel()
         TMPEXP->(DbSkip())
     EndDo
     
-    // Fecha arquivo e area temporaria
+    // Fecha arquivo e área temporária
     FClose(nHandle)
     TMPEXP->(DbCloseArea())
     
@@ -681,8 +625,8 @@ User Function ExportaExcel()
     EndIf
 Return
 //=================================================================================
-// Funcao: ValidaGravacao
-// Descricao: Valida dados antes de gravar (chamada pelo botao Confirmar)
+// Função: ValidaGravacao
+// Descrição: Valida dados antes de gravar (chamada pelo botão Confirmar)
 // Retorno: .T. se gravou com sucesso, .F. se houve erro
 //=================================================================================
 Static Function ValidaGravacao(lAlterar, nRecno, oDlg)
@@ -691,21 +635,21 @@ Static Function ValidaGravacao(lAlterar, nRecno, oDlg)
     Local cMotivos := ""
     Local nMarcados := 0
     
-    // Validacao 1: Produto
+    // Validação 1: Produto
     If Empty(AllTrim(cProduto))
         MsgAlert("Informe o codigo do produto!", "Atencao")
         Return .F.
     EndIf
     
-    // Validacao 2: Armazem
+    // Validação 2: Armazém
     If Empty(AllTrim(cLocal))
-        MsgAlert("Informe o armazem!", "Atencao")
+        MsgAlert("Informe o armazem!", "Atenção")
         Return .F.
     EndIf
     
-    // Validacao 3: Se ha divergencia, exige motivo
+    // Validação 3: Se há divergência, exige motivo
     If nDiferenca != 0
-        // Conta quantos checkboxes estao marcados
+        // *** NOVA VALIDAÇÃO: Conta quantos checkboxes estão marcados ***
         nMarcados := 0
         If lChk1
             nMarcados++
@@ -735,13 +679,13 @@ Static Function ValidaGravacao(lAlterar, nRecno, oDlg)
             nMarcados++
         EndIf
         
-        // VALIDACAO: Verifica se ha MAIS DE UMA justificativa marcada
+        // *** VALIDAÇÃO: Verifica se há MAIS DE UMA justificativa marcada ***
         If nMarcados > 1
             MsgAlert("So pode ter apenas uma justificativa marcada.", "Atencao")
             Return .F.
         EndIf
         
-        // VALIDACAO: Verifica se ha PELO MENOS UMA justificativa
+        // *** VALIDAÇÃO: Verifica se há PELO MENOS UMA justificativa ***
         cMotivos := MontaMotivos()
         If Empty(AllTrim(cMotivos))
             MsgAlert("Selecione ao menos um motivo para a divergencia!", "Atencao")
@@ -749,7 +693,7 @@ Static Function ValidaGravacao(lAlterar, nRecno, oDlg)
         EndIf
     EndIf
     
-    // Se passou nas validacoes, grava
+    // Se passou nas validações, grava
     lRet := GravaAmost(lAlterar, nRecno)
     
     // Se gravou com sucesso, fecha a tela
@@ -759,13 +703,13 @@ Static Function ValidaGravacao(lAlterar, nRecno, oDlg)
     
 Return lRet
 //=================================================================================
-// Funcao: MontaTela
-// Descricao: Monta tela de inclusao/alteracao de registro
-// Parametros: 
-//   nOpc - 3=Inclusao, 4=Alteracao
-//   cAliasReg - Alias com dados do registro (usado na alteracao)
-//   cMotivoAux - Motivo da divergencia (opcional)
-//   cObsAux - Observacao (opcional)
+// Função: MontaTela
+// Descrição: Monta tela de inclusão/alteração de registro
+// Parâmetros: 
+//   nOpc - 3=Inclusão, 4=Alteração
+//   cAliasReg - Alias com dados do registro (usado na alteração)
+//   cMotivoAux - Motivo da divergência (opcional)
+//   cObsAux - Observação (opcional)
 //=================================================================================
 Static Function MontaTela(nOpc, cAliasReg, cMotivoAux, cObsAux)
     Local oDlg, oPanel, oGroup
@@ -781,7 +725,7 @@ Static Function MontaTela(nOpc, cAliasReg, cMotivoAux, cObsAux)
     Default cMotivoAux := ""
     Default cObsAux := ""
     
-    // Inicializa variaveis privadas
+    // Inicializa variáveis privadas
     Private cProduto  := Space(15)
     Private cLocal    := "02"
     Private cDescri   := Space(200)
@@ -803,7 +747,7 @@ Static Function MontaTela(nOpc, cAliasReg, cMotivoAux, cObsAux)
     Private lChk9     := .F.
     Private cOutro    := Space(100)
     
-    // Se for alteracao, carrega dados do registro
+    // Se for alteração, carrega dados do registro
     If lAlterar .And. !Empty(cAliasReg)
         nRecno    := (cAliasReg)->R_E_C_N_O_
         cProduto  := (cAliasReg)->ZZA_PROD
@@ -817,25 +761,25 @@ Static Function MontaTela(nOpc, cAliasReg, cMotivoAux, cObsAux)
         CarregaMotivos(cMotivoAux)
     EndIf
     
-    // Cria janela de dialogo
+    // Cria janela de diálogo - AUMENTEI A ALTURA PARA 680 pixels
     DEFINE MSDIALOG oDlg TITLE cTitulo FROM 000,000 TO 700,600 PIXEL
     
     oPanel := TPanel():New(0, 0, , oDlg,,,,,, 0, 0)
     oPanel:Align := CONTROL_ALIGN_ALLCLIENT
     // ========== CAMPOS DE ENTRADA ==========
 
-    // Linha 1: Codigo do Item
+    // Linha 1: Código do Item
     @ 015, 010 SAY "Codigo do Item" SIZE 055, 007 OF oPanel PIXEL
     @ 013, 080 MSGET oGetProd VAR cProduto SIZE 080, 010 OF oPanel PIXEL ;
                VALID ValidProd(oGetDesc, oGetSldo, oGetLocal, oGetVlrUni) ;
                F3 "SB1" WHEN !lAlterar
     
-    // Linha 2: Armazem
+    // Linha 2: Armazém
     @ 030, 010 SAY "Armazem" SIZE 055, 007 OF oPanel PIXEL
     @ 028, 080 MSGET oGetLocal VAR cLocal SIZE 030, 010 OF oPanel PIXEL ;
                VALID ValidLocal(oGetSldo, oGetVlrUni) WHEN !lAlterar
     
-    // Linha 3: Descricao
+    // Linha 3: Descrição
     @ 045, 010 SAY "Descricao" SIZE 055, 007 OF oPanel PIXEL
     @ 043, 080 MSGET oGetDesc VAR cDescri SIZE 210, 010 OF oPanel PIXEL ;
                WHEN .F. COLOR CLR_BLACK, RGB(240,240,240)
@@ -850,21 +794,22 @@ Static Function MontaTela(nOpc, cAliasReg, cMotivoAux, cObsAux)
     @ 073, 080 MSGET oGetQtCont VAR nQtdCont PICTURE "@E 999,999.99" SIZE 080, 010 OF oPanel PIXEL ;
                VALID ValidaContagem()
     
-    // Linha 6: Valor Unitario
+    // Linha 6: Valor Unitário
     @ 090, 010 SAY "Vlr Unitario (R$)" SIZE 055, 007 OF oPanel PIXEL
     @ 088, 080 MSGET oGetVlrUni VAR nVlrUni PICTURE "@E 999,999.99" SIZE 080, 010 OF oPanel PIXEL ;
                WHEN .F. COLOR CLR_BLACK, RGB(240,240,240)
     
-    // Linha 7: Total do Ajuste
+    // Linha 7: Total do Ajuste (NOVO)
     @ 105, 010 SAY "Total Ajuste (R$)" SIZE 055, 007 OF oPanel PIXEL FONT TFont():New("Arial",,-12,.T.)
     @ 103, 080 MSGET oGetVlrTot VAR nVlrTot PICTURE "@E 999,999.99" SIZE 080, 010 OF oPanel PIXEL ;
                WHEN .F. COLOR CLR_BLACK, RGB(200,255,200)
     
     // ========== GRUPO DE CHECKBOXES ==========
+    // Ajustado para começar em Y=125 (20 pixels abaixo do Total Ajuste)
     
     @ 125, 010 GROUP oGroup TO 260, 290 PROMPT "Motivo da Divergencia (selecione apenas 1)" OF oPanel PIXEL
     
-    // Coluna 1 de Checkboxes
+    // Coluna 1 de Checkboxes - Y inicial 137
     @ 137, 020 CHECKBOX oChk1 VAR lChk1 PROMPT "Falta de Baixa" SIZE 120, 010 OF oPanel PIXEL ;
                VALID ValidaCheckUnico(1, oChk1, oChk2, oChk3, oChk4, oChk5, oChk6, oChk7, oChk8, oChk9)
     
@@ -886,7 +831,7 @@ Static Function MontaTela(nOpc, cAliasReg, cMotivoAux, cObsAux)
     @ 227, 020 CHECKBOX oChk7 VAR lChk7 PROMPT "Avaria de Material" SIZE 120, 010 OF oPanel PIXEL ;
                VALID ValidaCheckUnico(7, oChk1, oChk2, oChk3, oChk4, oChk5, oChk6, oChk7, oChk8, oChk9)
     
-    // Coluna 2 de Checkboxes
+    // Coluna 2 de Checkboxes - Y inicial 137
     @ 137, 150 CHECKBOX oChk8 VAR lChk8 PROMPT "Ajuste Estoque Nao Realizado" SIZE 130, 010 OF oPanel PIXEL ;
                VALID ValidaCheckUnico(8, oChk1, oChk2, oChk3, oChk4, oChk5, oChk6, oChk7, oChk8, oChk9)
     
@@ -895,12 +840,14 @@ Static Function MontaTela(nOpc, cAliasReg, cMotivoAux, cObsAux)
     
     @ 150, 185 MSGET oGetOutro VAR cOutro SIZE 100, 010 OF oPanel PIXEL
     
-    // ========== CAMPO DE OBSERVACAO ==========
+    // ========== CAMPO DE OBSERVAÇÃO ==========
+    // Ajustado para começar em Y=265
     
     @ 265, 010 SAY "Observacao" SIZE 055, 007 OF oPanel PIXEL
     @ 263, 080 GET oGetObs VAR cObserv SIZE 210, 060 OF oPanel PIXEL MULTILINE
     
-    // ========== BOTOES ==========
+    // ========== BOTÕES ==========
+    // Ajustado para Y=328
     
     @ 328, 120 BUTTON oBtn1 PROMPT "Confirmar" SIZE 060, 014 OF oPanel PIXEL ;
                ACTION IIf(ValidaGravacao(lAlterar, nRecno, oDlg), oDlg:End(), Nil)
@@ -911,13 +858,17 @@ Static Function MontaTela(nOpc, cAliasReg, cMotivoAux, cObsAux)
     ACTIVATE MSDIALOG oDlg CENTERED
 Return
 
+
 //=================================================================================
-// Funcao: CarregaMotivos
-// Descricao: Carrega os motivos selecionados ao editar um registro
+// Função: CarregaMotivos
+// Descrição: Carrega os motivos selecionados ao editar um registro
 // Marca os check boxes correspondentes aos motivos salvos
-// Parametro: cMotivos - String com motivos separados por ';'
+// Parâmetro: cMotivos - String com motivos separados por ';'
 //=================================================================================
 Static Function CarregaMotivos(cMotivos)
+    // Verifica se tem campo "Outro" preenchido
+    Local nPos := At("Outro:", cMotivos)
+
     // Verifica cada motivo na string e marca o check box correspondente
     lChk1 := ("Falta de Baixa" $ cMotivos)
     lChk2 := ("Retirada Sem Requisicao" $ cMotivos)
@@ -928,8 +879,6 @@ Static Function CarregaMotivos(cMotivos)
     lChk7 := ("Avaria de Material" $ cMotivos)
     lChk8 := ("Ajuste de Estoque Nao Realizado" $ cMotivos)
     
-    // Verifica se tem campo "Outro" preenchido
-    Local nPos := At("Outro:", cMotivos)
     If nPos > 0
         lChk9 := .T.
         cOutro := SubStr(cMotivos, nPos + 7)
@@ -939,14 +888,15 @@ Static Function CarregaMotivos(cMotivos)
 Return
 
 //=================================================================================
-// Funcao: ValidProd
-// Descricao: Valida se o produto informado existe no cadastro (tabela SB1)
-// Se existir, preenche automaticamente a descricao e busca o saldo
-// Parametros: 
-//   oGetDesc - Objeto do campo Descricao
+// Função: ValidProd
+// Descrição: Valida se o produto informado existe no cadastro (tabela SB1)
+// Se existir, preenche automaticamente a descrição e busca o saldo
+// CORRIGIDO: Permite campo vazio (para poder cancelar sem preencher)
+// Parâmetros: 
+//   oGetDesc - Objeto do campo Descrição
 //   oGetSldo - Objeto do campo Saldo Sistema
-//   oGetLocal - Objeto do campo Armazem
-// Retorno: .T. se valido, .F. se invalido
+//   oGetLocal - Objeto do campo Armazém
+// Retorno: .T. se válido, .F. se inválido
 //=================================================================================
 Static Function ValidProd(oGetDesc, oGetSldo, oGetLocal, oGetVlrUni)
     Local lRet := .T.
@@ -958,7 +908,7 @@ Static Function ValidProd(oGetDesc, oGetSldo, oGetLocal, oGetVlrUni)
         nVlrUni := 0
         oGetDesc:Refresh()
         oGetSldo:Refresh()
-        oGetVlrUni:Refresh()
+        oGetVlrUni:Refresh()  // *** ADICIONE ***
         RestArea(aArea)
         Return .T.
     EndIf
@@ -982,43 +932,43 @@ Static Function ValidProd(oGetDesc, oGetSldo, oGetLocal, oGetVlrUni)
         
         BuscaSaldoValor()
         oGetSldo:Refresh()
-        oGetVlrUni:Refresh()
+        oGetVlrUni:Refresh()  // *** ADICIONE ***
     EndIf
     
     oGetDesc:Refresh()
     RestArea(aArea)
 Return lRet
 //=================================================================================
-// Funcao: ValidLocal
-// Descricao: Valida se o armazem foi informado e atualiza o saldo
+// Função: ValidLocal
+// Descrição: Valida se o armazém foi informado e atualiza o saldo
 // CORRIGIDO: Permite campo vazio (para poder cancelar sem preencher)
-// Parametros:
+// Parâmetros:
 //   oGetSldo - Objeto do campo Saldo Sistema
-// Retorno: .T. se valido, .F. se invalido
+// Retorno: .T. se válido, .F. se inválido
 //=================================================================================
 Static Function ValidLocal(oGetSldo, oGetVlrUni)
     If Empty(AllTrim(cLocal))
         nSaldoSis := 0
         nVlrUni := 0
         oGetSldo:Refresh()
-        oGetVlrUni:Refresh()
+        oGetVlrUni:Refresh()  // *** ADICIONE ***
         Return .T.
     EndIf
     
     If Empty(AllTrim(cProduto))
-        MsgAlert("Informe o produto primeiro", "Atencao")
+        MsgAlert("Informe o produto primeiro", "Atenção")
         Return .F.
     EndIf
     
     BuscaSaldoValor()
     oGetSldo:Refresh()
-    oGetVlrUni:Refresh()
+    oGetVlrUni:Refresh()  // *** ADICIONE ***
 Return .T.
 
 //=================================================================================
-// Funcao: BuscaSaldo
-// Descricao: Busca o saldo atual do produto no armazem (tabela SB2)
-// Atualiza a variavel nSaldoSis com o saldo encontrado
+// Função: BuscaSaldo
+// Descrição: Busca o saldo atual do produto no armazém (tabela SB2)
+// Atualiza a variável nSaldoSis com o saldo encontrado
 //=================================================================================
 Static Function BuscaSaldoValor()
     Local aArea := GetArea()
@@ -1040,7 +990,7 @@ Static Function BuscaSaldoValor()
         nSaldoSis := SB2->B2_QATU
     EndIf
     
-    // PRIORIDADE 1: D1_VUNIT (ULTIMA ENTRADA)
+    // *** PRIORIDADE 1: D1_VUNIT (ÚLTIMA ENTRADA) ***
     If Select("TMPD1") > 0
         TMPD1->(DbCloseArea())
     EndIf
@@ -1062,7 +1012,7 @@ Static Function BuscaSaldoValor()
     
     TMPD1->(DbCloseArea())
     
-    // Prioridade 2: Custo medio (se nao encontrou entrada)
+    // Prioridade 2: Custo médio (se não encontrou entrada)
     If nVlrUni == 0
         DbSelectArea("SB2")
         SB2->(DbSetOrder(1))
@@ -1094,10 +1044,11 @@ Static Function BuscaSaldoValor()
 Return
 
 //=================================================================================
-// Funcao: ValidaContagem
-// Descricao: Valida a quantidade contada e compara com o saldo do sistema
-//            Define o status e indicador de situacao do registro
-// Retorno: Sempre .T. (validacao nao bloqueia o campo)
+// Função: ValidaContagem
+// Descrição: Valida a quantidade contada e compara com o saldo do sistema
+//            Define o status e indicador de situação do registro
+//            VERSÃO SILENCIOSA - Sem mensagens (validação no botão Confirmar)
+// Retorno: Sempre .T. (validação não bloqueia o campo)
 //=================================================================================
 Static Function ValidaContagem()
     Local nDiferenca := nQtdCont - nSaldoSis
@@ -1124,12 +1075,12 @@ Static Function ValidaContagem()
 Return .T.
 
 //=================================================================================
-// Funcao: GravaAmost
-// Descricao: Grava o registro de amostragem no banco de dados
-// Realiza todas as validacoes necessarias antes de gravar
-// Parametros:
-//   lAlterar - .T. se e alteracao, .F. se e inclusao
-//   nRecno - Numero do registro a ser alterado (usado apenas em alteracao)
+// Função: GravaAmost
+// Descrição: Grava o registro de amostragem no banco de dados
+// Realiza todas as validações necessárias antes de gravar
+// Parâmetros:
+//   lAlterar - .T. se é alteração, .F. se é inclusão
+//   nRecno - Número do registro a ser alterado (usado apenas em alteração)
 // Retorno: .T. se gravou com sucesso, .F. se houve erro
 //=================================================================================
 Static Function GravaAmost(lAlterar, nRecno)
@@ -1137,29 +1088,29 @@ Static Function GravaAmost(lAlterar, nRecno)
     Local cTable := "ZZA" + cEmpAnt + "3"
     Local nDiferenca := 0
     Local cMotivos := ""
-    Local nTotal := 0
+    Local nTotal := 0  
     
-    // Validacao 1: Produto
+    // Validação 1: Produto
     If Empty(AllTrim(cProduto))
-        MsgAlert("Informe o codigo do produto!", "Atencao")
+        MsgAlert("Informe o código do produto!", "Atenção")
         Return .F.
     EndIf
     
-    // Validacao 2: Armazem
+    // Validação 2: Armazém
     If Empty(AllTrim(cLocal))
-        MsgAlert("Informe o armazem!", "Atencao")
+        MsgAlert("Informe o armazém!", "Atenção")
         Return .F.
     EndIf
     
-    // Calcula diferenca e total
+    // Calcula diferença e total
     nDiferenca := nQtdCont - nSaldoSis
-    nTotal := nVlrUni * nDiferenca
+    nTotal := nVlrUni * nDiferenca  
     
-    // Define status conforme divergencia
+    // Define status conforme divergência
     If nDiferenca != 0
         cMotivos := MontaMotivos()
         If Empty(AllTrim(cMotivos))
-            MsgAlert("Selecione ao menos um motivo para a divergencia!", "Atencao")
+            MsgAlert("Selecione ao menos um motivo para a divergência!", "Atenção")
             Return .F.
         EndIf
         cStatus := "FURO DE ESTOQUE"
@@ -1171,12 +1122,12 @@ Static Function GravaAmost(lAlterar, nRecno)
     EndIf
     
     If lAlterar
-        // UPDATE para alteracao
+        // *** UPDATE para alteração ***
         cQuery := "UPDATE " + cTable + " SET "
         cQuery += "ZZA_QTDCNT = " + cValToChar(nQtdCont) + ", "
         cQuery += "ZZA_DIFER = " + cValToChar(nDiferenca) + ", "
         cQuery += "ZZA_VLRUNI = " + cValToChar(nVlrUni) + ", "
-        cQuery += "ZZA_VLRTOT = " + cValToChar(nTotal) + ", "
+        cQuery += "ZZA_VLRTOT = " + cValToChar(nTotal) + ", "  
         cQuery += "ZZA_MOTIVO = '" + StrTran(cMotivos, "'", "") + "', "
         cQuery += "ZZA_OBS = '" + StrTran(AllTrim(cObserv), "'", "") + "', "
         cQuery += "ZZA_STATUS = '" + cStatus + "', "
@@ -1185,7 +1136,7 @@ Static Function GravaAmost(lAlterar, nRecno)
         cQuery += "ZZA_HORA = '" + Time() + "' "
         cQuery += "WHERE R_E_C_N_O_ = " + cValToChar(nRecno)
     Else
-        // INSERT para inclusao
+        // *** INSERT para inclusão ***
         cQuery := "INSERT INTO " + cTable + " "
         cQuery += "(ZZA_FILIAL, ZZA_DATA, ZZA_PROD, ZZA_DESCRI, ZZA_LOCAL, ZZA_SLDSYS, "
         cQuery += "ZZA_QTDCNT, ZZA_DIFER, ZZA_VLRUNI, ZZA_VLRTOT, ZZA_MOTIVO, ZZA_OBS, ZZA_STATUS, ZZA_INDSIT, ZZA_USER, ZZA_HORA, D_E_L_E_T_) "
@@ -1219,14 +1170,15 @@ Static Function GravaAmost(lAlterar, nRecno)
     
 Return .T.
 //=================================================================================
-// Funcao: MontaMotivos
-// Descricao: Monta string com os motivos de divergencia selecionados
+// Função: MontaMotivos
+// Descrição: Monta string com os motivos de divergência selecionados
 // Percorre todos os check boxes e concatena os motivos marcados
 // Retorno: cMotivos - String com motivos separados por ';'
 //=================================================================================
 Static Function MontaMotivos()
     Local cMotivos := ""
     
+    // Verifica cada check box e adiciona o motivo correspondente
     If lChk1
         cMotivos += "Falta de Baixa; "
     EndIf
@@ -1256,15 +1208,16 @@ Static Function MontaMotivos()
     EndIf
 Return cMotivos
 //=================================================================================
-// Funcao: ValidaCheckUnico
-// Descricao: Garante que apenas 1 checkbox fique marcado (comportamento radio)
-// Parametros: nCheck - Numero do checkbox marcado (1 a 9)
-//             oChk1 a oChk9 - Referencia aos objetos checkbox
+// Função: ValidaCheckUnico
+// Descrição: Garante que apenas 1 checkbox fique marcado (comportamento radio)
+//            CORRIGIDO: Não bloqueia mais os botões Confirmar/Cancelar
+// Parâmetros: nCheck - Número do checkbox marcado (1 a 9)
+//             oChk1 a oChk9 - Referência aos objetos checkbox
 //=================================================================================
 Static Function ValidaCheckUnico(nCheck, oChk1, oChk2, oChk3, oChk4, oChk5, oChk6, oChk7, oChk8, oChk9)
     Local nDiferenca := nQtdCont - nSaldoSis
     
-    // Se estoque esta correto, desmarca SILENCIOSAMENTE
+    // Se estoque está correto, desmarca SILENCIOSAMENTE (não pode ter justificativa)
     If nDiferenca == 0
         Do Case
             Case nCheck == 1
@@ -1297,16 +1250,23 @@ Static Function ValidaCheckUnico(nCheck, oChk1, oChk2, oChk3, oChk4, oChk5, oChk
         EndCase
     EndIf
     
+    // Sempre retorna .T. para permitir marcação livre
+    // A validação de "apenas 1" acontecerá no botão Confirmar
 Return .T.
 
-//=================================================================================
-// Funcao: AtualizaCheckboxes
-// Descricao: Habilita/desabilita checkboxes conforme divergencia
-//=================================================================================
+// SEMPRE retorna .T. para não bloquear
+//-------------------------------------------------------------------
+/*/{Protheus.doc} AtualizaCheckboxes
+Habilita/desabilita checkboxes conforme divergência
+@param oChk1 a oChk9 - Objetos checkbox
+@return Nil
+/*/
+//-------------------------------------------------------------------
 Static Function AtualizaCheckboxes(oChk1, oChk2, oChk3, oChk4, oChk5, oChk6, oChk7, oChk8, oChk9, oGetOutro)
     Local nDiferenca := nQtdCont - nSaldoSis
-    Local lHabilita  := (nDiferenca != 0)
+    Local lHabilita  := (nDiferenca != 0)  // Só habilita se houver divergência
     
+    // Habilita/desabilita todos os checkboxes
     oChk1:lActive := lHabilita
     oChk2:lActive := lHabilita
     oChk3:lActive := lHabilita
@@ -1316,8 +1276,11 @@ Static Function AtualizaCheckboxes(oChk1, oChk2, oChk3, oChk4, oChk5, oChk6, oCh
     oChk7:lActive := lHabilita
     oChk8:lActive := lHabilita
     oChk9:lActive := lHabilita
+    
+    // Desabilita campo "Outro" também
     oGetOutro:lActive := lHabilita
     
+    // Se ficou desabilitado, limpa as marcações
     If !lHabilita
         lChk1 := .F. ; oChk1:Refresh()
         lChk2 := .F. ; oChk2:Refresh()
@@ -1334,57 +1297,69 @@ Static Function AtualizaCheckboxes(oChk1, oChk2, oChk3, oChk4, oChk5, oChk6, oCh
     
 Return
 //=================================================================================
-// Funcao: MarcarAjust
-// Descricao: Marca o registro selecionado como "Ajustado"
+// Função: MarcarAjust
+// Descrição: Marca o registro selecionado como "Ajustado"
+//            Altera o status para "AJUSTADO" e o indicador para "A"
+// Retorno: Nil
 //=================================================================================
 User Function MarcarAjust(oBrowse)
     Local cTable := "ZZA" + cEmpAnt + "3"
     Local cQuery := ""
     Local nRecno := 0
     
-    // Valida se ha registro selecionado
+    // Valida se há registro selecionado
     If (cAliasQry)->(Eof()) .Or. (cAliasQry)->(Bof())
         MsgAlert("Nenhum registro selecionado", "Atencao")
         Return
     EndIf
     
-    // Obtem o RECNO da linha selecionada
-    nRecno := (cAliasQry)->RECNO
+    // Obtém o RECNO da linha selecionada
+    nRecno := (cAliasQry)->NRECZZA
     
     If nRecno <= 0 .Or. nRecno == Nil
         MsgAlert("RECNO invalido", "Atencao")
         Return
     EndIf
     
-    // Solicita confirmacao
+    // Solicita confirmação
     If !MsgYesNo("Confirma marcar este registro como AJUSTADO?", "Confirmacao")
         Return
     EndIf
     
+    // Monta UPDATE para marcar como ajustado
     cQuery := "UPDATE " + cTable + " "
     cQuery += "SET ZZA_STATUS = 'AJUSTADO', "
     cQuery += "    ZZA_INDSIT = 'A', "
     cQuery += "    ZZA_DTAJUS = '" + DtoS(Date()) + "' "
     cQuery += "WHERE R_E_C_N_O_ = " + cValToChar(nRecno)
     
+    // Executa o UPDATE
     If TcSqlExec(cQuery) < 0
         MsgAlert("Erro ao marcar como ajustado: " + TcSqlError(), "Erro")
         Return
     EndIf
     
     MsgInfo("Registro marcado como AJUSTADO com sucesso!", "Sucesso")
+    
+    // *** ATUALIZAÇÃO CORRETA - REEXECUTA A QUERY ***
     AtualizaBrowse(oBrowse)
     
 Return
 //=================================================================================
-// Funcao: VerificaCampos
-// Descricao: Verifica e adiciona campos novos na tabela ZZA caso nao existam
+// Função: VerificaCampos
+// Descrição: Verifica e adiciona campos novos na tabela ZZA caso não existam
+// Campos adicionados:
+//   - ZZA_VLRUNI: Valor unitário do produto (custo médio)
+//   - ZZA_DTAJUS: Data em que o item foi marcado como ajustado
+// Retorno: .T. se verificação foi bem sucedida
 //=================================================================================
 Static Function VerificaCampos()
     Local cTable := "ZZA" + cEmpAnt + "3"
     Local cQuery := ""
-    Local lTemVlrTot := .F.
+    Local lTemVlrTot := .F.  // *** NOVO ***
     
+    // *** ADICIONE ESTA VERIFICAÇÃO ***
+    // Verifica se campo ZZA_VLRTOT existe
     cQuery := "SELECT COUNT(*) AS QTD "
     cQuery += "FROM INFORMATION_SCHEMA.COLUMNS "
     cQuery += "WHERE TABLE_NAME = '" + cTable + "' "
@@ -1402,6 +1377,7 @@ Static Function VerificaCampos()
     
     TMPCHK3->(DbCloseArea())
     
+    // Se não existir ZZA_VLRTOT, cria
     If !lTemVlrTot
         cQuery := "ALTER TABLE " + cTable + " "
         cQuery += "ADD ZZA_VLRTOT FLOAT NOT NULL DEFAULT 0"
@@ -1417,8 +1393,10 @@ Static Function VerificaCampos()
 Return .T.
 
 //=================================================================================
-// Funcao: AtuVlrUnit
-// Descricao: Atualiza valor unitario de todos os registros zerados
+// Função: AtuVlrUnit
+// Descrição: Atualiza valor unitário de todos os registros zerados
+// Executar após adicionar o campo ZZA_VLRUNI pela primeira vez
+// Pode ser executada quantas vezes for necessário
 //=================================================================================
 User Function AtuVlrUnit()
     Local cTable := "ZZA" + cEmpAnt + "3"
@@ -1433,6 +1411,7 @@ User Function AtuVlrUnit()
         Return
     EndIf
     
+    // Busca registros com valor unitário zerado
     cQuery := "SELECT R_E_C_N_O_ AS RECNO, ZZA_PROD, ZZA_LOCAL "
     cQuery += "FROM " + cTable + " "
     cQuery += "WHERE D_E_L_E_T_ = ' ' "
@@ -1450,10 +1429,12 @@ User Function AtuVlrUnit()
         Return
     EndIf
     
+    // Conta total de registros
     TMPATU->(DbGoTop())
     TMPATU->(DbEval({|| nTotal++}))
     TMPATU->(DbGoTop())
     
+    // Processa cada registro
     ProcRegua(nTotal)
     
     While !TMPATU->(Eof())
@@ -1461,32 +1442,40 @@ User Function AtuVlrUnit()
         
         IncProc("Atualizando registro " + cValToChar(nCont+1) + " de " + cValToChar(nTotal) + "...")
         
+        // Tenta buscar valor unitário do produto no SB2
         DbSelectArea("SB2")
-        SB2->(DbSetOrder(1))
+        SB2->(DbSetOrder(1)) // Filial + Produto + Armazém
         
         If SB2->(DbSeek(xFilial("SB2") + TMPATU->ZZA_PROD + TMPATU->ZZA_LOCAL))
+            // Prioridade 1: Custo médio
             If SB2->B2_CM1 > 0
                 nVlr := SB2->B2_CM1
+            // Prioridade 2: Valor atual / quantidade
             ElseIf SB2->B2_VATU1 > 0 .And. SB2->B2_QATU > 0
                 nVlr := SB2->B2_VATU1 / SB2->B2_QATU
             EndIf
         EndIf
         
+        // Se não encontrou no SB2, busca no cadastro de produtos (SB1)
         If nVlr == 0
             DbSelectArea("SB1")
-            SB1->(DbSetOrder(1))
+            SB1->(DbSetOrder(1)) // Filial + Código
             
             If SB1->(DbSeek(xFilial("SB1") + TMPATU->ZZA_PROD))
+                // Prioridade 3: Custo standard
                 If SB1->B1_CUSTD > 0
                     nVlr := SB1->B1_CUSTD
+                // Prioridade 4: Último preço de compra
                 ElseIf SB1->B1_UPRC > 0
                     nVlr := SB1->B1_UPRC
+                // Prioridade 5: Preço de venda / 1.5 (estimativa de custo)
                 ElseIf SB1->B1_PRV1 > 0
                     nVlr := SB1->B1_PRV1 / 1.5
                 EndIf
             EndIf
         EndIf
         
+        // Se encontrou algum valor, atualiza o registro
         If nVlr > 0
             cQuery := "UPDATE " + cTable + " "
             cQuery += "SET ZZA_VLRUNI = " + cValToChar(nVlr) + " "
@@ -1508,22 +1497,29 @@ User Function AtuVlrUnit()
             "Registros sem custo: " + cValToChar(nTotal - nCont), "Sucesso")
 Return
 //=================================================================================
-// Funcao: AtualizaBrowse
-// Descricao: Atualiza o browse apos alteracao de dados
+// Função: AtualizaBrowse
+// Descrição: Atualiza o browse reexecutando a query completa
+// Parâmetro: oBrowse - Objeto do browse FWMBrowse
 //=================================================================================
 Static Function AtualizaBrowse(oBrowse)
-    oBrowse:Refresh()
+    // O browse executa a propria query (SetDataQuery): troca a query
+    // no objeto e provoca o refresh. Serve para Inclusao/Alteracao/
+    // Exclusao/Marcar Ajustado e Atualizar Valores.
+    oBrowse:SetQuery(MontaQuery())
+    oBrowse:Refresh(.T.)
+    oBrowse:GoTop()
 Return
-
 //=================================================================================
-// Funcao: AdicionaCampoTotal
-// Descricao: Adiciona o campo ZZA_VLRTOT (Valor Total do Ajuste) na tabela
+// Função: AdicionaCampoTotal
+// Descrição: Adiciona o campo ZZA_VLRTOT (Valor Total do Ajuste) na tabela
+// Execução: Rodar UMA VEZ ou adicionar no VerificaCampos()
 //=================================================================================
 User Function AddTotal()
     Local cTable := "ZZA" + cEmpAnt + "3"
     Local cQuery := ""
     Local lTemVlrTot := .F.
     
+    // Verifica se campo ZZA_VLRTOT existe
     cQuery := "SELECT COUNT(*) AS QTD "
     cQuery += "FROM INFORMATION_SCHEMA.COLUMNS "
     cQuery += "WHERE TABLE_NAME = '" + cTable + "' "
@@ -1541,6 +1537,7 @@ User Function AddTotal()
     
     TMPCHK->(DbCloseArea())
     
+    // Se não existir, cria
     If !lTemVlrTot
         cQuery := "ALTER TABLE " + cTable + " "
         cQuery += "ADD ZZA_VLRTOT FLOAT NOT NULL DEFAULT 0"
@@ -1552,7 +1549,71 @@ User Function AddTotal()
             MsgInfo("Campo ZZA_VLRTOT criado com sucesso!", "Sucesso")
         EndIf
     Else
-        MsgInfo("Campo ZZA_VLRTOT ja existe!", "Informacao")
+        MsgInfo("Campo ZZA_VLRTOT já existe!", "Informação")
     EndIf
     
 Return .T.
+//=================================================================================
+/*/{Protheus.doc} BuscaRapida
+Pesquisa por codigo de produto (igual a busca do AxCadastro).
+Com o codigo informado, o browse fica somente com o produto pesquisado
+(e codigos que iniciam com o mesmo trecho). Com o codigo vazio,
+restaura a listagem completa de todos os meses.
+@param oBrowse - Objeto do browse FWMBrowse
+@return Nil
+/*/
+//=================================================================================
+Static Function BuscaRapida(oBrowse)
+    Local aPar  := {}
+    Local aRet  := {}
+    Local aArea := GetArea()
+    
+    aAdd(aPar, {1, "Codigo do Produto", Space(15), "@!", "", "", "", 60, .T.})
+    
+    If !ParamBox(aPar, "Pesquisar Produto", @aRet)
+        RestArea(aArea)
+        Return
+    EndIf
+    
+    // Sanitiza contra aspas simples (a query e montada por concatenação)
+    cBuscaProd := StrTran(AllTrim(aRet[1]), "'", "")
+    
+    // O browse executa a propria query (SetDataQuery): troca a query
+    // no objeto e provoca o refresh para o filtro valer
+    oBrowse:SetQuery(MontaQuery())
+    oBrowse:Refresh(.T.)
+    oBrowse:GoTop()
+    
+    // Nao achou nenhum registro: avisa e restaura a listagem completa
+    If !Empty(cBuscaProd) .And. Select(cAliasQry) > 0 .And. (cAliasQry)->(Eof())
+        MsgAlert("Nenhum registro encontrado para o código '" + cBuscaProd + "'.", "Atenção")
+        cBuscaProd := ""
+        oBrowse:SetQuery(MontaQuery())
+        oBrowse:Refresh(.T.)
+    EndIf
+    
+    RestArea(aArea)
+Return
+//=================================================================================
+/*/{Protheus.doc} LimparFiltro
+Limpa os filtros e restaura a listagem completa do browse de amostragem.
+Remove o filtro nativo do browse (botao Filtrar), via CleanFilter()
+documentado no TDN (classe FWFormBrowse, herdada pelo FWMBrowse),
+e a pesquisa por codigo de produto (BuscaRapida). Depois reexecuta
+a query completa, com todos os meses.
+@param oBrowse - Objeto do browse FWMBrowse
+@return Nil
+/*/
+//=================================================================================
+Static Function LimparFiltro(oBrowse)
+    Local aArea := GetArea()
+    
+    oBrowse:CleanFilter()
+    
+    cBuscaProd := ""
+    oBrowse:SetQuery(MontaQuery())
+    oBrowse:Refresh(.T.)
+    oBrowse:GoTop()
+    
+    RestArea(aArea)
+Return

@@ -322,6 +322,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 	Local nPosItem		:= 0
 	Local nTotalItem	:= 0
 	Local nVlrTt		:= 0
+	Local lFixV610		:= SuperGetMV("MV_VCM610",,.F.) //[VORTICE-610] workaround rej.610 (devolucao RTC) - ativo com MV_VCM610=.T.
 
 	//Aparecida de Goi?nia
 	Local nValTotPrd 	:= 0
@@ -385,7 +386,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 	Local lNfCupZero	:= .F.
 	Local lRural		:= .F.
 	Local lSeekOk   	:= .F.
-	Local lDifParc		:= .F.
+	Local lDifParc		:= .F.               
 	Local lNfCompl		:= .F.
 	Local lFCI			:= GetNewPar("MV_FCIDANF",.F.) // Imprime ou n?o os dados da FCI no Xml/Danfe (De acordo com as configura??es necess?rias)
 	Local lGE			:= FindFunction("LjUP104OK") .AND. LjUP104OK() .AND. SuperGetMV("MV_LJIMPGF",,.F.)	// Indica se usa garantia
@@ -6809,7 +6810,9 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 							nVlrTt := GetAdvFVal("DKD","DKD_VALBRU",xFilial("DKD") + (cAliasSD1)->D1_DOC + (cAliasSD1)->D1_SERIE + (cAliasSD1)->D1_FORNECE + (cAliasSD1)->D1_LOJA + (cAliasSD1)->D1_ITEM + (cAliasSD1)->D1_EMISSAO + SF1->F1_ESPECIE,1)
 						EndIf
 
-						If nVlrTt == 0 .AND. !lConfTrib
+						//[VORTICE-610] Com config RTC (lConfTrib=.T.) o total do item era suprimido e vNF/vItem saiam zerados (rej. 610).
+						//Fallback: usa o calculo legado do total quando MV_VCM610 = .T. - remover apos pacote oficial TOTVS.
+						If nVlrTt == 0 .AND. ( !lConfTrib .OR. lFixV610 )
 							// Quando a TES for descontinuada o trecho abaixo entrar? em desuso e dever? ser removido.
 							nVlrTt := ((cAliasSD1)->D1_TOTAL-(cAliasSD1)->D1_VALDESC+(cAliasSD1)->D1_VALFRE+(cAliasSD1)->D1_SEGURO+(cAliasSD1)->D1_DESPESA;
 										+ IIF(SD1->(ColumnPos('D1_AFRMIMP'))>0,(cAliasSD1)->D1_AFRMIMP,0);

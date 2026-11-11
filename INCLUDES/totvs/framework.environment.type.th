@@ -1,0 +1,5 @@
+#define ENV_TYPE_PRODUCTION "1"
+#define ENV_TYPE_HOMOLOGATION "2"
+#define ENV_TYPE_DEVELOPMENT "3"
+#define ENV_TYPE_KEY_ID_OLD_APPPARAM "TypeEnvironment"
+#define ENV_TYPE_KEY_ID_NEW_APPPARAM "EnvironmentType"

@@ -1,0 +1,12 @@
+/*
+	Header : fw-tlpp-probat.th
+	Copyright (c) 2024 TOTVS SA
+	All rights reserved.
+*/
+
+#ifndef FW_TLPP_PROBAT_TH
+#define FW_TLPP_PROBAT_TH
+
+#include "tlpp-probat.th"
+
+#endif /* FW_TLPP_PROBAT_TH */

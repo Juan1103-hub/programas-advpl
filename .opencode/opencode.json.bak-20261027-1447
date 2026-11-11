@@ -1,0 +1,130 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    ".opencode/system-prompt-advpl-opus55.md",
+    "AGENTS.md",
+    "CONFIG/AGENTS.md",
+    ".opencode/memory/MEMORY.md"
+  ],
+  "plugin": [
+    "opencode-supermemory"
+  ],
+  "skills": {
+    "paths": [
+      "C:\\Users\\Vortice 0097\\Desktop\\PROGRAMAS_ADVPL\\skills\\advpl-tlpp",
+      "C:\\Users\\Vortice 0097\\Desktop\\PROGRAMAS_ADVPL\\skills\\vortice",
+      "C:\\Users\\Vortice 0097\\Desktop\\PROGRAMAS_ADVPL\\skills\\superpowers"
+    ]
+  },
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true,
+      "timeout": 60000
+    },
+    "protheus-rest": {
+      "type": "remote",
+      "url": "https://api.mcp.ai/p_protheus",
+      "enabled": true,
+      "timeout": 60000
+    },
+    "protheus-research": {
+      "type": "local",
+      "command": ["node", "C:\\Users\\Vortice 0097\\.local\\mcp\\protheus-research\\dist\\index.js"],
+      "enabled": true,
+      "timeout": 60000
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "@playwright/mcp@latest"],
+      "enabled": false,
+      "timeout": 90000
+    },
+    "github": {
+      "type": "local",
+      "command": [
+        "node",
+        "C:\\Users\\Vortice 0097\\AppData\\Roaming\\npm\\node_modules\\@modelcontextprotocol\\server-github\\dist\\index.js"
+      ],
+      "environment": { "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_PERSONAL_ACCESS_TOKEN}" },
+      "enabled": false,
+      "timeout": 60000
+    },
+    "persyst-memory": {
+      "type": "local",
+      "command": [
+        "node",
+        "C:\\Users\\Vortice 0097\\AppData\\Roaming\\npm\\node_modules\\persyst-mcp\\index.js"
+      ],
+      "enabled": false,
+      "timeout": 60000
+    },
+    "supabase": {
+      "type": "remote",
+      "url": "https://mcp.supabase.com/mcp?project_ref=dxujotmcfxewnagbtbtp&read_only=true&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching",
+      "enabled": false
+    },
+    "notebooklm": {
+      "type": "local",
+      "command": ["npx", "-y", "notebooklm-mcp@latest"],
+      "enabled": false,
+      "timeout": 600000,
+      "environment": {
+        "HEADLESS": "false"
+      }
+    },
+    "rea": {
+      "type": "local",
+      "command": [
+        "cmd.exe",
+        "/d",
+        "/c",
+        "npx",
+        "-y",
+        "rea-agents@6.7.0",
+        "mcp"
+      ],
+      "enabled": false
+    }
+  },
+  "permissions": [
+    {
+      "action": "supermemory_recall",
+      "resource": "*",
+      "effect": "allow"
+    }
+  ],
+  "permission": {
+    "lsp": "allow"
+  },
+  "lsp": {
+    "totvs-protheus": {
+      "command": [
+        "C:\\Users\\Vortice 0097\\.vscode\\extensions\\totvs.tds-vscode-2.1.6\\node_modules\\@totvs\\tds-ls\\bin\\windows\\advpls.exe",
+        "language-server"
+      ],
+      "extensions": [".prw", ".prx", ".tlpp", ".ch"]
+    }
+  },
+  "provider": {
+    "opencode": {
+      "models": {
+        "mimo-v2.6-flash-free": {
+          "variants": { "max": {}, "low": {} }
+        },
+        "deepseek-v4.1-flash-free": {
+          "options": { "reasoningEffort": "max" },
+          "variants": {
+            "max": { "reasoningEffort": "max" },
+            "low": { "reasoningEffort": "low" }
+          }
+        }
+      }
+    }
+  },
+  "agents": {
+    "build": { "model": "opencode/mimo-v2.6-flash-free#max" },
+    "plan": { "model": "opencode/deepseek-v4.1-flash-free#max" }
+  }
+}

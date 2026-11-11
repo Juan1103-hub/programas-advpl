@@ -11,6 +11,7 @@ Uma coleção de **20 skills** de agente IA para o ecossistema **TOTVS Protheus 
   - [Migração e Modernização](#migração-e-modernização)
   - [Qualidade de Código e Revisão](#qualidade-de-código-e-revisão)
   - [Testes](#testes)
+  - [Build e Compilação](#build-e-compilação)
   - [Documentação e Planejamento](#documentação-e-planejamento)
 - [Referências](#referências)
   - [Referências Compartilhadas](#referências-compartilhadas)
@@ -30,6 +31,7 @@ Skills que geram estruturas de código prontas para produção seguindo padrões
 | [mvc-generator](mvc-generator/SKILL.md) | Gera estruturas de telas MVC do Protheus — `ModelDef`, `ViewDef`, `MenuDef` e `BrowseDef` — para padrões de entidade única (Modelo 1) e mestre-detalhe (Modelo 3) usando `FWFormModel`, `FWFormView` e `FWFormBrowse`. |
 | [tlpp-rest-endpoint-generator](tlpp-rest-endpoint-generator/SKILL.md) | Gera endpoints REST em TLPP usando roteamento baseado em anotações (`@Get`, `@Post`, `@Put`, `@Patch`, `@Delete`) com o objeto `oRest`. Segue os padrões da API TOTVS TTALK incluindo paginação, modelo de erro e documentação Swagger. |
 | [fwrest-client-generator](fwrest-client-generator/SKILL.md) | Gera código AdvPL/TLPP que **consome** APIs REST externas usando a classe cliente `FWRest`. Cobre os verbos `GET`, `POST`, `PUT`, `DELETE`, construção de headers, parâmetros de query/path, serialização de body JSON, autenticação (No Auth, HTTP Basic, Bearer/JWT, OAuth 2.0), timeout, SSL, tratamento de status codes e padrões try/catch em TLPP. |
+| [fwmsexcelxlsx-generator](fwmsexcelxlsx-generator/SKILL.md) | Gera customizações em `User Function` (AdvPL/TLPP) que exportam dados do Protheus para planilha Excel `.xlsx` com a classe de framework `FwMsExcelXlsx` (padrão recomendado): abas, tabelas, colunas com alinhamento/formato/totalizador, fonte da planilha, gravação direta em arquivo ou no banco para grandes volumes, verificação da `printer.exe` e entrega em SmartClient, WebApp ou job. Mantém documentação e exemplos da classe legada `FWMsExcelEx` para uso apenas quando solicitado explicitamente. |
 | [entry-point-designer](entry-point-designer/SKILL.md) | Projeta e documenta Pontos de Entrada do Protheus com assinaturas adequadas de `User Function`, layouts de parâmetros `PARAMIXB`, especificações de valores de retorno e padrões de programação defensiva. |
 | [query-builder](query-builder/SKILL.md) | Constrói consultas SQL otimizadas e seguras para tabelas do Protheus. Inclui filtros obrigatórios (`D_E_L_E_T_`, filial), design de consultas orientado a índices, prevenção de SQL injection e padrões tanto de SQL Embarcado (`TCQuery`) quanto de Workarea (`DBSelectArea`/`DBSeek`). |
 
@@ -61,6 +63,14 @@ Skills que geram scripts de testes automatizados tanto para lógica de negócio 
 | Skill | Descrição |
 |-------|-----------|
 | [tir-test-generator](tir-test-generator/SKILL.md) | Gera scripts de teste end-to-end **TIR** (TOTVS Interface Robot) em Python para telas do Protheus SmartClient/Webapp. Abrange testes de telas CRUD, testes de telas MVC, interação com grid, telas de parâmetros de relatório, validação de campos e asserções de caixas de mensagem usando `tir.Webapp`. |
+
+### Build e Compilação
+
+Skills que compilam fontes AdvPL/TLPP e os enviam ao RPO.
+
+| Skill | Descrição |
+|-------|-----------|
+| [advpl-tlpp-compile](advpl-tlpp-compile/SKILL.md) | Compila fontes AdvPL/TLPP dentro do VS Code usando a extensão TOTVS Developer Studio (`tds-vscode`) e o registro de conexões `servers.json`. Verifica/instala a extensão, valida a configuração do servidor, pergunta qual servidor usar, conduz a etapa de conexão/autenticação (senha digitada pelo usuário), executa o comando de build/rebuild e reporta o resultado. |
 
 ### Documentação e Planejamento
 
@@ -118,10 +128,14 @@ Materiais de referência específicos de cada skill.
 | `fwrest-client-generator` | [fwrest-api-reference.md](fwrest-client-generator/references/fwrest-api-reference.md) | Referência da API da classe `FWRest` — construtor, métodos, propriedades e códigos de retorno. |
 | `fwrest-client-generator` | [fwrest-authentication-patterns.md](fwrest-client-generator/references/fwrest-authentication-patterns.md) | Padrões de autenticação para `FWRest` — No Auth, HTTP Basic, Bearer Token/JWT e OAuth 2.0. |
 | `fwrest-client-generator` | [fwrest-client-templates.md](fwrest-client-generator/references/fwrest-client-templates.md) | Templates completos de código cliente `FWRest` para `GET`, `POST`, `PUT` e `DELETE`. |
+| `fwmsexcelxlsx-generator` | [fwmsexcelxlsx-api-reference.md](fwmsexcelxlsx-generator/references/fwmsexcelxlsx-api-reference.md) | Referência da `FwMsExcelXlsx` — requisitos (binário, LIB, `printer.exe`), métodos, `SetWriteinFile`/`SetWriteinDB`, funções de apoio e comparativo com as classes legadas. |
+| `fwmsexcelxlsx-generator` | [fwmsexcelxlsx-examples.md](fwmsexcelxlsx-generator/references/fwmsexcelxlsx-examples.md) | Template base e 4 exemplos em `User Function` com `FwMsExcelXlsx`: cadastro simples, totais com coluna de situação, várias abas e TLPP para job com grande volume. |
+| `fwmsexcelxlsx-generator` | [legacy-fwmsexcelex-api-reference.md](fwmsexcelxlsx-generator/references/legacy-fwmsexcelex-api-reference.md) · [legacy-fwmsexcelex-examples.md](fwmsexcelxlsx-generator/references/legacy-fwmsexcelex-examples.md) | **Legado** — referência e exemplos da `FWMsExcelEx`, usados somente quando o usuário pedir explicitamente a classe antiga. |
 | `advpl-tlpp-sdd` | [project-init.md](advpl-tlpp-sdd/references/project-init.md) · [brownfield-mapping.md](advpl-tlpp-sdd/references/brownfield-mapping.md) | Inicialização de projetos novos e mapeamento de codebases brownfield existentes. |
 | `advpl-tlpp-sdd` | [specify.md](advpl-tlpp-sdd/references/specify.md) · [discuss.md](advpl-tlpp-sdd/references/discuss.md) · [design.md](advpl-tlpp-sdd/references/design.md) · [tasks.md](advpl-tlpp-sdd/references/tasks.md) | Fases do pipeline SDD — especificação, discussão de áreas cinzas, design arquitetural e breakdown de tarefas. |
 | `advpl-tlpp-sdd` | [implement.md](advpl-tlpp-sdd/references/implement.md) · [validate.md](advpl-tlpp-sdd/references/validate.md) · [quick-mode.md](advpl-tlpp-sdd/references/quick-mode.md) | Execução, validação/UAT interativo e modo rápido (quick mode) para tarefas pequenas. |
 | `advpl-tlpp-sdd` | [state-management.md](advpl-tlpp-sdd/references/state-management.md) · [session-handoff.md](advpl-tlpp-sdd/references/session-handoff.md) · [roadmap.md](advpl-tlpp-sdd/references/roadmap.md) · [concerns.md](advpl-tlpp-sdd/references/concerns.md) · [context-limits.md](advpl-tlpp-sdd/references/context-limits.md) · [code-analysis.md](advpl-tlpp-sdd/references/code-analysis.md) · [coding-principles.md](advpl-tlpp-sdd/references/coding-principles.md) | Gestão de estado entre sessões, handoff, roadmap, concerns, limites de contexto, análise de código e princípios de codificação. |
+| `advpl-tlpp-compile` | [tds-vscode-reference.md](advpl-tlpp-compile/references/tds-vscode-reference.md) | IDs de comandos do `tds-vscode`, schema do `servers.json`, caminhos por SO, extensões compiláveis e troubleshooting. |
 
 ---
 
@@ -132,6 +146,7 @@ Materiais de referência específicos de cada skill.
 | Criar uma nova tela CRUD (MVC clássico) | `mvc-generator` |
 | Construir uma API REST | `tlpp-rest-endpoint-generator` |
 | Consumir uma API REST externa | `fwrest-client-generator` |
+| Exportar dados para planilha Excel (`.xlsx`) | `fwmsexcelxlsx-generator` |
 | Customizar uma rotina padrão | `entry-point-designer` |
 | Escrever uma consulta SQL para o Protheus | `query-builder` |
 | Migrar `.prw` para `.tlpp` | `advpl-to-tlpp-migration` |
@@ -147,4 +162,5 @@ Materiais de referência específicos de cada skill.
 | Planejar uma implementação | `create-implementation-plan` |
 | Conduzir um projeto/feature com Spec-Driven Development | `advpl-tlpp-sdd` |
 | Converter encoding de fontes para CP1252 | `utf8-to-cp1252-conversion` |
+| Compilar fontes e enviá-los ao RPO | `advpl-tlpp-compile` |
 
