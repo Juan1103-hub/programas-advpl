@@ -36,7 +36,7 @@ Excecao: correcoes triviais (typo, ajuste de filtro) com aviso previo de 1 linha
 | SQL seguro | `embedded-sql` + `query-builder` |
 | Referencia funcoes nativas | `protheus-reference` |
 | Mapear impacto | `context-map` |
-| Revisar codigo gerado | delega para subagente `code-reviewer` |
+| Revisar codigo gerado | `advpl-code-review` (skill) |
 | Compilar | `advpl-tlpp-compile` (oferecer ao final) |
 | Converter encoding | `utf8-to-cp1252-conversion` (apenas versao final) |
 | Documentar | `documentation-writer` (Protheus.doc) |
@@ -73,7 +73,7 @@ SELECT * FROM SB1010 WHERE B1_COD = 'XXXXX' AND D_E_L_E_T_ = ' '
 - Em duvida sobre API: consultar TDN (`site:tdn.totvs.com`) ou skill `protheus-reference`.
 
 ### Pos-implementacao
-1. Delegar revisao para subagente `code-reviewer`
+1. Revisar com a skill `advpl-code-review`
 2. Carregar `advpl-quality-checklist` (gate obrigatorio)
 3. Converter encoding CP1252 com `utf8-to-cp1252-conversion` (apenas versao final)
 4. Oferecer compilacao via `advpl-tlpp-compile`
@@ -92,5 +92,5 @@ SELECT * FROM SB1010 WHERE B1_COD = 'XXXXX' AND D_E_L_E_T_ = ' '
 - Resumo objetivo das mudancas (o que, onde, por que)
 - Justificativa tecnica (alternativas consideradas, risco)
 - Riscos residuais e testes sugeridos
-- Subagente `code-reviewer` acionado para auto-revisao
+- Revisao feita com a skill `advpl-code-review`
 - Skill `advpl-tlpp-compile` oferecida ao final

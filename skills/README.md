@@ -19,7 +19,7 @@
 2. Use apenas skills que existem em `skills/` — nunca invente nome de skill.
 3. Se a tarefa cruzar categorias (ex.: criar MVC + exportar Excel), leia as duas skills.
 
-Total: **20 oficiais TOTVS** + **30 específicas Vortice** + **14 de método** + **1 de disciplina** = **65**.
+Total: **20 oficiais TOTVS** + **31 específicas Vortice** + **14 de método** + **1 de disciplina** = **66**.
 
 ---
 
@@ -139,7 +139,9 @@ Conhecimento deste cliente (Suprimentos/Compras, SC7, `CINVJ6_DEV` 7.00.240223P)
 | [advpl-debugging](vortice/advpl-debugging/SKILL.md) | Depurar erros, logs Protheus, performance e problemas de compilação/runtime. |
 | [advpl-error-memory](vortice/advpl-error-memory/SKILL.md) | Evitar repetir erros conhecidos de escopo, query, `MSExecAuto`, `dbSeek`, arrays e PEs. |
 | [advpl-tela-consulta](vortice/advpl-tela-consulta/SKILL.md) | Criar tela virtual de consulta no modelo ZLGCONS (MSDIALOG 650x1300, filtros, LISTBOX). |
-| [advpl-msdialog-dimensionamento](vortice/advpl-msdialog-dimensionamento/SKILL.md) | Dimensionar tela `MSDIALOG` Modelo 1: moldura = 2x o bounding box dos controles; auditar com `scripts/calc_frame.py`. Obrigatória antes de tela modal nova ou tela cortada. |
+| [advpl-tela-crud-review](vortice/advpl-tela-crud-review/SKILL.md) | Revisar o funcionamento básico de tela de cadastro em browse (mBrowse/FWMBrowse): cada botão faz o que promete, posição do registro, lock, refresh, filial, permissão — com `scripts/revisar_tela.py` (exit 0/1). |
+| [advpl-lista-itens-consulta](vortice/advpl-lista-itens-consulta/SKILL.md) | Montar lista de itens de consulta (LISTBOX + TReport): ordenação por data, contadores distintos, rodapé, lista vazia, colunas e comparativo de períodos. |
+| [advpl-msdialog-dimensionamento](vortice/advpl-msdialog-dimensionamento/SKILL.md) | Dimensionar tela `MSDIALOG` Modelo 1: moldura = 2x o bounding box dos controles; colunas da grade com folga de 30 a 40; auditar com `scripts/calc_frame.py`. Obrigatória antes de tela modal nova ou tela cortada. |
 | [advpl-msdialog-ciclo-de-vida](vortice/advpl-msdialog-ciclo-de-vida/SKILL.md) | Evitar `variable is not an object`: capturar valores no `ACTION` antes do `oDlg:End()`; auditar com `scripts/check_pos_activate.py`. |
 | [advpl-fwbrowse-fwbldfeature-bug](vortice/advpl-fwbrowse-fwbldfeature-bug/SKILL.md) | Workaround do `invalid macro source (SSYacc0105e)` em `FWBUILDFEATURE` com picture `@!`. |
 
@@ -221,6 +223,7 @@ Não são específicas de AdvPL: orientam **como** executar o trabalho.
 | Criar tela CRUD MVC (Modelo 1 / Modelo 3) | `mvc-generator` |
 | Seguir o padrão dos fontes deste repositório | `advpl-padrao-fonte` |
 | Criar tela virtual de consulta (não MVC) | `advpl-tela-consulta` |
+| Montar lista de itens de consulta / detalhamento (tela + PDF) | `advpl-lista-itens-consulta` |
 | Dimensionar tela modal `MSDIALOG` / tela abrindo cortada | `advpl-msdialog-dimensionamento` |
 | Erro `variable is not an object` logo após `ACTIVATE MSDIALOG` | `advpl-msdialog-ciclo-de-vida` |
 | Criar ou customizar Ponto de Entrada | `entry-point-designer` · catálogo em `pontos-entrada` |
@@ -231,6 +234,7 @@ Não são específicas de AdvPL: orientam **como** executar o trabalho.
 | Garantir SQL seguro (TopConnect) | `sql-safe` · `query-builder` |
 | Otimizar consulta lenta | `sql-optimization` |
 | Revisar código | `code-review` · `advpl-code-review` |
+| Revisar funcionamento de tela CRUD (browse) | `advpl-tela-crud-review` |
 | Revisar SQL | `sql-code-review` |
 | Validar antes de concluir | `advpl-quality-checklist` · `verification-evidence` |
 | Refatorar / reduzir complexidade | `refactor` · `refactor-method-complexity-reduce` · `advpl-refactoring` |

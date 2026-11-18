@@ -13,8 +13,8 @@ Este diretório guarda a configuração **local do projeto** para o OpenCode
 |----------|-----------|------------|
 | Config principal OpenCode | `~/.config/opencode/opencode.json` | NÃO versionar (global) |
 | Instruções do projeto | `.opencode/opencode.json` (`instructions`) + `AGENTS.md` raiz | versionados |
-| Skills locais espelhadas | `CONFIG/.opencode/skills/<nome>/` | Mirror das skills deste workspace |
-| Regras por projeto | `CONFIG/.opencode/Regras advpl/AGENTS.md` | Candidata (activation: candidate) |
+| Skills locais espelhadas | `_backup/duplicatas_20261118/CONFIG_.opencode_skills/` | Fora do caminho ativo em 18/11/2026: duplicava `skills/` com 28 arquivos divergentes |
+| Regras por projeto | `_backup/duplicatas_20261118/CONFIG_.opencode_Regras-advpl/AGENTS.md` | Idem: cópia antiga do `AGENTS.md` (nunca ativada) |
 | Memória OpenCode | `.opencode/memory.md` (raiz) | Versionada neste repo |
 | Agents | `.opencode/agents/` (raiz) | Versionados neste repo |
 | Settings workspace | `CONFIG/settings.json` | TDS, encoding windows-1252, idioma pt-br |

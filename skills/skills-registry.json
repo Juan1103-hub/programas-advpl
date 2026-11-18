@@ -111,12 +111,23 @@
     },
     {
       "name": "advpl-msdialog-dimensionamento",
-      "description": "Dimensiona telas MSDIALOG (Modelo 1) no SmartClient/Protheus quando a moldura usa pixels literais e os controles renderizam com zoom (~2x neste ambiente): moldura = ~2x o bounding box dos controles, cada controle declarado como px desejados / escala, soma das colunas do browse conferida. Precedentes ZANALBX, IMPSLDINI, CADSZ3 e ZSOLNF. Inclui scripts/calc_frame.py. Usar antes de criar tela modal nova ou quando a tela abrir cortada.",
+      "description": "Dimensiona telas MSDIALOG (Modelo 1) no SmartClient/Protheus quando a moldura usa pixels literais e os controles renderizam com zoom (~2x neste ambiente): moldura = ~2x o bounding box dos controles, cada controle declarado como px desejados / escala, soma das colunas do browse conferida com folga de 30 a 40. Precedentes ZANALBX, IMPSLDINI, CADSZ3 e ZSOLNF. Inclui scripts/calc_frame.py. Usar antes de criar tela modal nova ou quando a tela abrir cortada.",
       "category": "vortice",
       "path": "vortice/advpl-msdialog-dimensionamento",
       "files": [
         "SKILL.md",
         "scripts/calc_frame.py"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-lista-itens-consulta",
+      "description": "Monta listas de itens de consultas e relatorios analiticos em AdvPL/Protheus (LISTBOX na tela e TReport em PDF/planilha) com ordenacao por data de emissao, desempate pelo documento, contadores de itens e documentos distintos, rodape igual na tela e na impressao, linha de aviso para lista vazia, colunas com folga e comparativo de periodos.",
+      "category": "vortice",
+      "path": "vortice/advpl-lista-itens-consulta",
+      "files": [
+        "SKILL.md"
       ],
       "author": "Vortice Consultoria Mineral",
       "version": "1.0.0"
@@ -183,6 +194,21 @@
       "path": "vortice/advpl-tela-consulta",
       "files": [
         "SKILL.md"
+      ],
+      "author": "Vortice Consultoria Mineral",
+      "version": "1.0.0"
+    },
+    {
+      "name": "advpl-tela-crud-review",
+      "description": "Revisao funcional de tela de cadastro em browse (mBrowse/FWMBrowse) a partir do codigo: cada botao do aRotina faz o que promete, posicao do registro (Count To antes do RecNo gera MSRLOCK em EOF), lock conferido, refresh da grade, soft-delete, area restaurada, filial e permissao. Inclui scripts/revisar_tela.py (BOTAO_MORTO, POSICAO, LOCK, REFRESH, AREA, FILIAL, PERMISSAO, LOOP; exit 0/1). Usar depois de criar ou alterar tela de cadastro e antes de entregar para compilacao.",
+      "category": "vortice",
+      "path": "vortice/advpl-tela-crud-review",
+      "files": [
+        "SKILL.md",
+        "references/checklist-por-acao.md",
+        "references/relatorio-template.md",
+        "references/casos.md",
+        "scripts/revisar_tela.py"
       ],
       "author": "Vortice Consultoria Mineral",
       "version": "1.0.0"

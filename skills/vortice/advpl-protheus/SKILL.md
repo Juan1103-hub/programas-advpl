@@ -361,6 +361,13 @@ If !ParamBox(aPar, "Filtro do Relatorio", @aRet)
 EndIf
 ```
 
+> **CUIDADO - data em branco no `ParamBox`:** quando o campo e do tipo data e o
+> valor inicial e a data vazia (`CtoD("")`), o `ParamBox` preenche o campo com
+> a **data base do ambiente** (verificado em 13/11/2026 no `ZGASTOCC`, ambiente
+> CINVJ6_DEV). Para o campo abrir vazio, use **texto com mascara de data** e
+> converta depois do OK: `{1, "Data Inicial", cDtDe, "@R 99/99/9999", ...}`.
+> Detalhes em `advpl-lista-itens-consulta` (Etapa 8).
+
 ## Notacao Hungara (OBRIGATORIA)
 
 | Prefixo | Tipo | Exemplo |
@@ -415,6 +422,22 @@ CTB=Contabilidade, FIS=Fiscal, MNT=Manutencao, PCP=PCP
 | SZ3 | Solic. Cadastrais | `Z3_ID` key, `Z3_STATUS`: 0=Pendente, 1=Aprovado, 2=Rejeitado |
 | ZZ3 | Solic. Cadastrais (alt) | `Z3_ID` key |
 | ZZ4 | Solic. Fornecedor | `ZZ4_ID` key |
+
+### SC de compra x solicitacao ao armazem
+
+Sao documentos diferentes; nao usar o rotulo "SC" para os dois:
+
+| Termo na tela | Tabela | Campo-chave | O que e |
+| --- | --- | --- | --- |
+| SC (solicitacao de compra) | SC1 | `C1_NUM`; no pedido, `SC7.C7_NUMSC` | Pedido interno de compra, tratado pelo modulo Compras |
+| Solicitacao ao armazem | SCP | `CP_NUM`; na baixa, `SD3.D3_NUMSA` | Requisicao de material feita ao estoque/almoxarifado |
+
+Regras de relatorio:
+
+- Contar SCs de compra distintas por `C7_NUMSC` (nao por `C7_NUM`).
+- Contar solicitacoes ao armazem por `CP_NUM` distinto (nao por linha de `SD3`).
+- Na tela e no PDF, escrever **"Solicitacao"** (singular) e **"Solicitacoes"** (plural) para o SCP; reservar **"SC"** para a solicitacao de compra.
+- `CP_QUJE >= CP_QUANT` indica solicitacao ao armazem encerrada.
 
 ### CNPJ Comparison (SA2 vs ZZ4)
 ```sql

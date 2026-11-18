@@ -6,5 +6,25 @@
       "./skills/superpowers",
       "./skills/vortice"
     ]
+  },
+  "default_agent": "advpl",
+  "permissions": [
+    { "action": "playwright_*", "resource": "*", "effect": "deny" },
+    { "action": "github_*", "resource": "*", "effect": "deny" }
+  ],
+  "agents": {
+    "advpl": {
+      "description": "AdvPL/TLPP + Protheus com contexto enxuto: sem MCP de navegador, GitHub, memoria externa ou console. Use para criar, revisar e ajustar fontes.",
+      "mode": "primary",
+      "permissions": [
+        { "action": "github_*", "resource": "*", "effect": "deny" },
+        { "action": "playwright_*", "resource": "*", "effect": "deny" },
+        { "action": "browse_*", "resource": "*", "effect": "deny" },
+        { "action": "browser*", "resource": "*", "effect": "deny" },
+        { "action": "opencode_console_*", "resource": "*", "effect": "deny" },
+        { "action": "persyst-memory_*", "resource": "*", "effect": "deny" },
+        { "action": "reset_ip", "resource": "*", "effect": "deny" }
+      ]
+    }
   }
 }

@@ -7,7 +7,8 @@ controles. Este script faz a conta e valida as tres desigualdades do playbook.
 
 Uso:
   python calc_frame.py --control 8,12,380,20 --browse 34,12,376,150 \
-      --columns 40,196,140 [--frame 400,800] [--scale 2.0] [--round-to 50]
+      --columns 40,196,140 [--frame 400,800] [--scale 2.0] [--round-to 50] \
+      [--min-slack 30]
 """
 
 import argparse
@@ -64,12 +65,17 @@ def main():
     parser.add_argument("--frame", default=None, help="altura,largura da moldura atual")
     parser.add_argument("--scale", type=float, default=2.0, help="zoom medido (padrao 2.0)")
     parser.add_argument("--round-to", type=int, default=50, help="multiplo do arredondamento (padrao 50)")
+    parser.add_argument("--min-slack", type=float, default=30.0,
+                        help="folga minima entre a soma das colunas e a largura do browse "
+                             "(padrao 30; use 0 para grade sem barra vertical)")
     args = parser.parse_args()
 
     if args.scale <= 0:
         sys.exit("ERRO: --scale deve ser maior que zero")
     if args.round_to <= 0:
         sys.exit("ERRO: --round-to deve ser maior que zero")
+    if args.min_slack < 0:
+        sys.exit("ERRO: --min-slack nao pode ser negativo")
 
     controls = [parse_control(c) for c in args.control]
     browse = parse_control(args.browse) if args.browse else None
@@ -112,12 +118,20 @@ def main():
             errors.append("%s termina em %s na vertical; limite %s (moldura/2)"
                           % (rotulo, fmt(linha + altura), fmt(final_rows / 2.0)))
 
+    warnings = []
+
     if browse and columns:
         soma = sum(columns)
-        print("COLUNAS: soma %s / largura do browse %s" % (fmt(soma), fmt(browse[2])))
+        folga = browse[2] - soma
+        print("COLUNAS: soma %s / largura do browse %s (folga %s, minimo %s)"
+              % (fmt(soma), fmt(browse[2]), fmt(folga), fmt(args.min_slack)))
         if soma > browse[2]:
             errors.append("colunas somam %s e estouram a largura do browse (%s)"
                           % (fmt(soma), fmt(browse[2])))
+        elif folga < args.min_slack:
+            warnings.append("folga de %s entre as colunas e o browse; o minimo e %s "
+                            "(a barra de rolagem vertical ocupa espaco)"
+                            % (fmt(folga), fmt(args.min_slack)))
 
     if errors:
         print("")
@@ -126,8 +140,17 @@ def main():
             print("  - " + err)
         return 1
 
+    if warnings:
+        print("")
+        print("AVISO (%d)" % len(warnings))
+        for warn in warnings:
+            print("  - " + warn)
+
     print("")
-    print("VEREDITO: OK")
+    if warnings:
+        print("VEREDITO: OK COM AVISO")
+    else:
+        print("VEREDITO: OK")
     return 0
 
 

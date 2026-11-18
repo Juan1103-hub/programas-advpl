@@ -1,6 +1,6 @@
 ---
 name: advpl-msdialog-dimensionamento
-description: Dimensiona telas MSDIALOG (Modelo 1) no SmartClient/Protheus quando a moldura usa o valor literal em pixels mas as coordenadas dos controles renderizam com zoom (~2x neste ambiente). Usar quando uma tela .prw abrir cortada (ultima coluna do browse, botoes, grupo ou lista fora da janela), quando o usuario disser que o botao ficou cortado ou grande demais, quando uma lista/listbox cortar a direita por largura declarada em pixels renderizados, ou antes de escrever uma tela modal nova. Define a moldura como ~2x o bounding box dos controles, declara cada controle como px desejados / escala, confere a soma das colunas do browse e valida contra os precedentes ZANALBX, IMPSLDINI, CADSZ3 e ZSOLNF. Substitui o "aumentar um pouco a largura" e o "engordar o controle".
+description: Dimensiona telas MSDIALOG (Modelo 1) no SmartClient/Protheus quando a moldura usa o valor literal em pixels mas as coordenadas dos controles renderizam com zoom (~2x neste ambiente). Usar quando uma tela .prw abrir cortada (ultima coluna do browse, botoes, grupo ou lista fora da janela), quando o usuario disser que o botao ficou cortado ou grande demais, quando uma lista/listbox cortar a direita por largura declarada em pixels renderizados, ou antes de escrever uma tela modal nova. Define a moldura como ~2x o bounding box dos controles, declara cada controle como px desejados / escala, confere a soma das colunas do browse com folga de 30 a 40 e valida contra os precedentes ZANALBX, IMPSLDINI, CADSZ3 e ZSOLNF. Substitui o "aumentar um pouco a largura" e o "engordar o controle".
 argument-hint: <arquivo .prw e faixa de linhas da tela>
 user-invocable: true
 ---
@@ -70,11 +70,14 @@ caber um controle gigante.
 
 Antes de editar, confira as tres desigualdades:
 
-1. `soma das colunas do browse <= largura do browse`
+1. `soma das colunas do browse <= largura do browse - 30` (reserve 30 a 40 de folga)
 2. `coluna + largura do browse <= moldura_largura / 2`
 3. `linha + altura do browse (ou do ultimo botao) <= moldura_altura / 2`
 
 Falhar a 1 corta a ultima coluna; falhar a 2 ou 3 coloca o controle fora da janela.
+A folga de 30 a 40 existe porque a barra de rolagem vertical da grade ocupa espaco
+(~17 px) e a soma exata parece correta no fonte, mas corta a ultima coluna na tela.
+Grade declarada sem barra vertical pode usar `--min-slack 0`.
 Rode `scripts/calc_frame.py` para nao fazer essa conta de cabeca.
 
 ## Etapa 4 - precedentes verificados no repositorio
@@ -86,9 +89,11 @@ Rode `scripts/calc_frame.py` para nao fazer essa conta de cabeca.
 | `FONTES/CADSZ3.PRW:1500` | 800 x 400 | browse em (34,12) 376x150, colunas 40+196+140 = 376 (`FONTES/CADSZ3.PRW:1505`) | 2,0x |
 | `FONTES/ZSOLNF.PRW:472` | 600 x 450 | listbox em (50,10) 200x240 (`FONTES/ZSOLNF.PRW:483`), bordas 210 x 290 -> 420 x 580 arredondados | 2,0x |
 
-O `CADSZ3` e o modelo canonico (aprovado pelo usuario em 30/10/2026): moldura 800x400,
-grade 376x150, tres colunas somando exatamente 376, borda direita em 388 e borda
-inferior em 184 - dentro da metade (400 e 200).
+O `CADSZ3` e o modelo canonico do calculo da moldura (aprovado pelo usuario em
+30/10/2026): moldura 800x400, grade 376x150, borda direita em 388 e borda inferior
+em 184 - dentro da metade (400 e 200). As tres colunas somam exatamente 376, ou seja,
+folga zero: serve como referencia historica de moldura, **nao** como meta de folga.
+Tela nova deve reservar 30 a 40 entre a soma das colunas e a largura da grade.
 
 ## Anti-padroes (erros medidos que originaram e reforcaram esta Skill)
 
@@ -109,6 +114,10 @@ inferior em 184 - dentro da metade (400 e 200).
    reduzindo a listbox para 200 (rende ~400 px, o alvo visual) e declarando a
    moldura 600 x 450 = 2x o bounding box 290 x 210, arredondado. Auditoria com
    `calc_frame.py --frame 600,450`: VEREDITO OK.
+5. **Soma das colunas igual a largura do browse.** A soma exata passa na leitura
+   do fonte, mas a barra de rolagem vertical ocupa espaco e come a ultima coluna.
+   Reservar 30 a 40 de folga; quando a grade nao tem barra vertical, rodar o
+   script com `--min-slack 0`.
 
 ## Fechamento
 
@@ -125,7 +134,8 @@ inferior em 184 - dentro da metade (400 e 200).
 
 - [ ] escala medida na captura (ou 2,0 declarado como suposicao)
 - [ ] moldura = 2x bounding box, arredondada para cima em multiplo de 50
-- [ ] soma das colunas do browse <= largura do browse
+- [ ] soma das colunas do browse <= largura do browse - 30 (folga de 30 a 40)
+- [ ] folga conferida no `calc_frame.py` (AVISO de folga insuficiente tratado ou `--min-slack 0` justificado)
 - [ ] todo controle: `coluna + largura <= moldura_largura / 2`
 - [ ] todo controle: `linha + altura <= moldura_altura / 2`
 - [ ] controles mantidos no tamanho original (nenhum botao "engordado")
@@ -145,3 +155,8 @@ python skills\vortice\advpl-msdialog-dimensionamento\scripts\calc_frame.py `
 Saida: bounding box, moldura recomendada e as tres checagens. Com os numeros do
 `CADSZ3` a resposta e `400 x 800`. Use `--frame 400,800` para auditar uma moldura que
 ja existe; o script sai com codigo 1 quando alguma desigualdade falha.
+
+A linha `COLUNAS:` mostra a soma, a largura da grade e a folga. Quando a folga fica
+abaixo de `--min-slack` (padrao 30), o script imprime `AVISO` e continua com codigo 0:
+e um alerta de barra de rolagem, nao uma falha de moldura. Use `--min-slack 0` apenas
+em grade declarada sem barra vertical.

@@ -35,6 +35,7 @@ Esta skill evita repetir erros ja conhecidos ao corrigir ou gerar codigo ADVPL/P
 - [ ] Array inicializado com aAdd() ou Array() antes de uso indexado?
 - [ ] FWMsgRun() ou ProcRegua() chamados para operacoes longas?
 - [ ] User Function com nome maximo de 10 caracteres?
+- [ ] Duas funcoes do mesmo fonte nao colidem nos 10 primeiros caracteres do nome?
 - [ ] lContinua ou outra flag de controle verificada em loops criticos?
 
 ## Base de Conhecimento - Erros Conhecidos ADVPL/Protheus
@@ -229,6 +230,55 @@ Local cNome := Posicione("SA1", 1, xFilial("SA1") + cCodigo, "A1_NOME")
 ```
 
 **Regra:** a chave de busca deve incluir xFilial() quando o indice usa filial.
+
+### ERR-011 - Colisao de nomes nos 10 primeiros caracteres
+
+**Sintoma:** uma funcao nova "nao existe" ou a chamada cai em outra rotina, mesmo com nomes visivelmente diferentes no fonte.
+**Causa raiz:** o compilador AdvPL compara apenas os 10 primeiros caracteres do nome da funcao. Dois nomes que so diferem depois do decimo caractere sao o mesmo simbolo para o RPO.
+**Solucao correta:**
+
+```advpl
+// ERRADO - os dois nomes comecam com ZCCCALCULA
+Static Function ZCCCalculaMaterial()
+Static Function ZCCCalculaServico()
+
+// CORRETO - diferenca ja nos 10 primeiros caracteres
+Static Function ZCCCalcMat()
+Static Function ZCCCalcSvc()
+```
+
+**Regra:** antes de criar funcao nova, compare os 10 primeiros caracteres com todas as funcoes do mesmo fonte e do repositorio; se colidirem, renomeie.
+
+### ERR-012 - ParamBox preenche data vazia com a data base do ambiente
+
+**Sintoma:** o `ParamBox` abre com a data preenchida (31/01/2026 no ambiente
+CINVJ6_DEV) mesmo com o fonte passando a data vazia (`CtoD("")`).
+**Causa raiz:** quando o item do `ParamBox` e do tipo data e o valor inicial e a
+data vazia, o proprio `ParamBox` preenche o campo com a **data base do
+ambiente**. Verificado em 13/11/2026 no `ZGASTOCC`: o fonte ja passava
+`CtoD("")` nas duas datas (linhas 64-65) e mesmo assim a tela abriu com data.
+**Solucao correta:**
+
+```advpl
+// ERRADO - o ParamBox troca a data vazia pela data base do ambiente
+Local dDtDe := CtoD("")
+aAdd(aPar, {1, "Data De", dDtDe, "", "", "", "", 60, .T.})
+
+// CORRETO - campo de texto com mascara de data; a conversao vem depois do OK
+Local cDtDe := Space(10)
+aAdd(aPar, {1, "Data De", cDtDe, "@R 99/99/9999", "", "", "", 60, .T.})
+
+// depois do retorno do ParamBox
+cDtDe := AllTrim(cValToChar(aRet[1]))
+dDtDe := ZCCData(cDtDe)
+```
+
+**Regra:** para um filtro de data que precisa abrir vazio, use campo de texto
+com mascara `@R 99/99/9999` e converta com `StoD` depois do OK, conferindo a
+data pelo `DtoS` (rejeita 31/02/2026). O `ParamBox` so grava e recupera
+respostas quando recebe um nome de gravacao no 10o parametro (precedente:
+`VORATF01.prw:73`), entao nao ha memoria de valores entre execucoes quando o
+parametro nao e informado. Detalhes em `advpl-lista-itens-consulta` (Etapa 8).
 
 ## Como Adicionar Novos Erros
 

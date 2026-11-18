@@ -10,7 +10,7 @@ paths:
 
 > **Restricao**: usar SOMENTE `skills/advpl-tlpp`, `skills/superpowers`, `skills/vortice`
 > (+ `skills/unlazy` por leitura direta de `skills/unlazy/SKILL.md`).
-> Nunca assumir skill sem localiza-la em `skills/`. Catalogo com descricao de todas: `skills/README.md` (65 skills); versao maquina: `skills/skills-registry.json`.
+> Nunca assumir skill sem localiza-la em `skills/`. Catalogo com descricao de todas: `skills/README.md` (66 skills); versao maquina: `skills/skills-registry.json`.
 
 ## Tarefa -> skill
 
@@ -32,6 +32,7 @@ paths:
 | Regras/tabelas/PEs Vortice | `vortice-workflow`, `protheus-rules`, `tabelas-protheus`, `pontos-entrada` | vortice |
 | Padrao do fonte (header, layout, SQL, PE, tela) | `advpl-padrao-fonte` (auditar com `scripts/auditar_padrao.py --estrito`) | vortice |
 | Tela modal MSDIALOG (moldura/corte e valores pos-ACTIVATE) | `advpl-msdialog-dimensionamento`, `advpl-msdialog-ciclo-de-vida` (scripts em `scripts/`) | vortice |
+| Lista de itens de consulta (tela + PDF, contadores, ordenacao) | `advpl-lista-itens-consulta` | vortice |
 | SX3/SXB/F3 | `sx-configuration`, `data-dictionary-lookup` | vortice / advpl-tlpp |
 | Workaround FWBrowse build atual | `advpl-fwbrowse-fwbldfeature-bug` | vortice |
 | Debugar | `advpl-debugging`, `advpl-error-memory`, `systematic-debugging` | vortice / superpowers |

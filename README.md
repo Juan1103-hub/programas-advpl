@@ -242,16 +242,13 @@ Ao trabalhar com AdvPL, sempre verificar:
 | `launch.json` | `.vscode/launch.json` | Configurações de depuração |
 | `package.json` | `CONFIG/package.json` | Dependências Node.js + scripts de build (`npm run build`) |
 | `advpl.code-snippets` | `CONFIG/advpl.code-snippets` | Snippets VS Code |
-| Skills/memória | `CONFIG/.opencode/` | Skills locais e memória do OpenCode |
+| Skills/memória | `skills/` e `.opencode/memory/` | Catálogo ativo; o espelho antigo em `CONFIG/.opencode/skills/` foi isolado em `_backup/duplicatas_20261118/` (18/11/2026) |
 
 ## Agentes Disponíveis
 
 | Agente | Caminho | Descrição |
 |--------|---------|-----------|
-| `code-reviewer` | `.opencode/agents/` | Revisor de código |
-| `changelog-generator` | `.opencode/agents/` | Gerador de changelog |
-| `docs-reference` | `.opencode/agents/` | Referência de documentação |
-| `process-consultant` | `.opencode/agents/` | Consultor de processos |
+| `protheus-diag` | `.opencode/agents/` | Diagnóstico de bugs AdvPL/Protheus |
 
 ## Comandos Úteis
 

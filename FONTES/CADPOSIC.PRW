@@ -18,6 +18,7 @@ User Function CADPOSIC()
     Local aArea   := GetArea()
     Local oBrowse := Nil
     Local aSeek   := {}
+    Local cFilZC1 := ""
 
     // Verifica se a tabela ZC1 existe no dicionario
     If !FPOS_TabelaExiste("ZC1")
@@ -28,11 +29,12 @@ User Function CADPOSIC()
         Return 
     EndIf
 
+    cFilZC1 := xFilial("ZC1")
+
     Private aRotina    := {{"Visualizar", "AxVisual",  0, 2},;
                            {"Incluir",    "AxInclui",  0, 3},;
                            {"Alterar",    "AxAltera",  0, 4},;
                            {"Excluir",    "U_FPOS_DELETA", 0, 5},;
-                           {"Imprimir",   "Imprimir",  0, 6},;
                            {"Atualizar",  "U_FPOS_REFRESH", 0, 7},;
                            {"Importar Planilha", "U_FPOS_IMPORT", 0, 8},;
                            {"Limpar Registros", "U_FPOS_LIMPAR", 0, 9}}
@@ -43,6 +45,11 @@ User Function CADPOSIC()
     oBrowse := FWMBrowse():New()
     oBrowse:SetAlias("ZC1")
     oBrowse:SetDescription("Posicoes de Estoque do Item")
+
+    // Mostra somente os registros da filial do usuario. A inclusao e a
+    // importacao gravam sempre com xFilial("ZC1"); sem este filtro a
+    // grade exibia tambem registros de outras filiais.
+    oBrowse:SetFilterDefault("@ZC1_FILIAL = '" + cFilZC1 + "'")
 
     // Tamanhos fixos (regra do projeto: TamSX3() inline no array do
     // SetSeek para tabelas Z* causa "array out of bounds"). ZC1_ITEM = 13
@@ -72,7 +79,9 @@ Return
 //-------------------------------------------------------------------
 /*/{Protheus.doc} FPOS_IMPORT
 Importa posicoes de estoque em massa via planilha CSV.
-Planilha deve conter colunas: Codigo (ZC1_ITEM) e Posicao (ZC1_POSIC).
+Aceita dois layouts (separador ponto e virgula):
+  Codigo;Descricao;Posicao  (planilha exportada da tela)
+  Codigo;Posicao            (planilha minima)
 Descricao e Saldo Atual sao preenchidos automaticamente.
 
 @type    User Function
@@ -134,7 +143,9 @@ User Function FPOS_IMPORT()
             Loop
         EndIf
 
-        // Separa por ponto e virgula: Codigo;Posicao
+        // Separa por ponto e virgula. Aceita os dois layouts:
+        //   Codigo;Descricao;Posicao  (planilha exportada)
+        //   Codigo;Posicao            (planilha minima)
         aCampos := StrTokArr(cLinha, ";")
 
         If Len(aCampos) < 2
@@ -142,8 +153,13 @@ User Function FPOS_IMPORT()
             Loop
         EndIf
 
-        cCod   := AllTrim(aCampos[1])
-        cPosic := AllTrim(aCampos[2])
+        cCod := AllTrim(aCampos[1])
+
+        If Len(aCampos) >= 3
+            cPosic := AllTrim(aCampos[3])
+        Else
+            cPosic := AllTrim(aCampos[2])
+        EndIf
 
         If Empty(cCod)
             FT_FSkip()
@@ -151,12 +167,17 @@ User Function FPOS_IMPORT()
         EndIf
 
         // Busca descricao do SB1
-        cDesc := ""
+        // cLocal volta ao padrao a cada linha: sem isso o armazem do item
+        // anterior vazava para o proximo item sem B1_LOCPAD preenchido.
+        cDesc  := ""
+        cLocal := "01"
         DbSelectArea("SB1")
         SB1->(DbSetOrder(1))
         If SB1->(DbSeek(xFilial("SB1") + PadR(cCod, TamSX3("B1_COD")[1])))
             cDesc := SB1->B1_DESC
-            cLocal := SB1->B1_LOCPAD
+            If !Empty(SB1->B1_LOCPAD)
+                cLocal := SB1->B1_LOCPAD
+            EndIf
         Else
             nSkip++
             FT_FSkip()
@@ -207,6 +228,11 @@ User Function FPOS_IMPORT()
             "Duplicados (ignorados): " + AllTrim(Str(nDupl)) + Chr(13) + Chr(10) + ;
             "Codigo nao encontrado no SB1 (ignorados): " + AllTrim(Str(nSkip)), "Importar Planilha")
 
+    // Redesenha a grade para refletir os itens recem-importados
+    If oBrowseZC1 != Nil
+        oBrowseZC1:Refresh()
+    EndIf
+
 Return
 
 //-------------------------------------------------------------------
@@ -214,38 +240,78 @@ Return
 Exclui registro da ZC1, mas impede deletar o ultimo registro
 para evitar erro ARQVAZIO no browse.
 
+O registro selecionado e guardado ANTES do Count To: o Count deixa o
+alias posicionado em EOF e o RecNo() lido depois apontava para registro
+inexistente (erro MSRLOCK "tentativa de reservar registro em EOF").
+
 @type    User Function
 /*/
 //-------------------------------------------------------------------
 User Function FPOS_DELETA()
 
-    Local nReg := 0
+    Local nReg    := 0
+    Local nRec    := 0
+    Local aArea   := GetArea()
+    Local cFilZC1 := xFilial("ZC1")
 
     DbSelectArea("ZC1")
+
+    // Posicao da linha selecionada na grade, antes de qualquer Count
+    nRec := ZC1->(RecNo())
+
     Count To nReg
 
     If nReg <= 1
         MsgStop("Nao e possivel excluir o ultimo registro da tabela." + Chr(13) + Chr(10) + ;
                 "A tabela deve conter ao menos 1 registro.", "Excluir")
+        RestArea(aArea)
         Return
     EndIf
 
-    AxDeleta("ZC1", ZC1->(RecNo()), 5)
+    // Count To deixa o alias em EOF: volta para o registro selecionado
+    DbGoTo(nRec)
+
+    If ZC1->(Eof()) .Or. ZC1->(RecNo()) != nRec
+        MsgStop("Registro selecionado nao encontrado." + Chr(13) + Chr(10) + ;
+                "Atualize a lista e tente novamente.", "Excluir")
+        RestArea(aArea)
+        Return
+    EndIf
+
+    // A grade mostra apenas a filial do usuario: nunca apagar outra filial
+    If ZC1->ZC1_FILIAL != cFilZC1
+        MsgStop("Este registro pertence a outra filial e nao pode ser excluido por esta tela.", "Excluir")
+        RestArea(aArea)
+        Return
+    EndIf
+
+    AxDeleta("ZC1", nRec, 5)
+
+    RestArea(aArea)
+
+    If oBrowseZC1 != Nil
+        oBrowseZC1:Refresh()
+    EndIf
 
 Return
 
 //-------------------------------------------------------------------
 /*/{Protheus.doc} FPOS_TabelaExiste
 Verifica se a tabela informada existe na SX2.
+
+@type    Static Function
 /*/
 //-------------------------------------------------------------------
 Static Function FPOS_TabelaExiste(cArq)
 
-    Local lRet := .F.
+    Local lRet  := .F.
+    Local aArea := GetArea()
 
     DbSelectArea("SX2")
     SX2->(DbSetOrder(1))
     lRet := SX2->(DbSeek(cArq))
+
+    RestArea(aArea)
 
 Return lRet
 
@@ -303,6 +369,7 @@ User Function FPOS_SALDO()
     Local cCodProd := ZC1->ZC1_ITEM
     Local cLocal   := ZC1->ZC1_LOCAL
     Local nSaldo   := 0
+    Local aArea    := GetArea()
 
     If !Empty(cCodProd) .And. !Empty(cLocal)
         // Posiciona na SB2 (Indice 1: B2_FILIAL + B2_COD + B2_LOCAL)
@@ -312,8 +379,9 @@ User Function FPOS_SALDO()
             // Retorna o Saldo Atual (B2_QATU) tirando reservas se necessario
             nSaldo := SB2->B2_QATU
         EndIf
-        DbSelectArea("ZC1")
     EndIf
+
+    RestArea(aArea)
 
 Return nSaldo
 
@@ -379,29 +447,42 @@ Return
 
 //-------------------------------------------------------------------
 /*/{Protheus.doc} FPOS_LIMPAR
-Exclui todos os registros da ZC1, mantendo apenas 1
-para evitar erro ARQVAZIO no browse.
+Exclui os registros da ZC1 da filial do usuario, mantendo apenas 1
+para evitar erro ARQVAZIO no browse. Registros de outras filiais nao
+sao tocados (a grade mostra somente a filial do usuario).
 
 @type    User Function
 /*/
 //-------------------------------------------------------------------
 User Function FPOS_LIMPAR()
 
-    Local nReg := 0
-    Local nDel := 0
-    Local aArea := GetArea()
+    Local nReg    := 0
+    Local nDel    := 0
+    Local nLock   := 0
+    Local lPriFil := .T.
+    Local aArea   := GetArea()
+    Local cFilZC1 := xFilial("ZC1")
 
     DbSelectArea("ZC1")
-    Count To nReg
+
+    // Conta somente os registros da filial do usuario: a grade mostra
+    // apenas esta filial e a limpeza nao pode apagar o que esta oculto.
+    DbGoTop()
+    Do While !Eof()
+        If ZC1->ZC1_FILIAL == cFilZC1
+            nReg++
+        EndIf
+        DbSkip()
+    EndDo
 
     If nReg <= 1
-        MsgInfo("A tabela ja possui apenas " + AllTrim(Str(nReg)) + " registro(s)." + Chr(13) + Chr(10) + ;
+        MsgInfo("Esta filial ja possui apenas " + AllTrim(Str(nReg)) + " registro(s)." + Chr(13) + Chr(10) + ;
                 "Nenhuma exclusao necessaria.", "Limpar Registros")
         RestArea(aArea)
         Return
     EndIf
 
-    If !MsgYesNo("Deseja excluir TODOS os registros da tabela ZC1?" + Chr(13) + Chr(10) + Chr(13) + Chr(10) + ;
+    If !MsgYesNo("Deseja excluir TODOS os registros da tabela ZC1 desta filial?" + Chr(13) + Chr(10) + Chr(13) + Chr(10) + ;
                  "Sera mantido apenas 1 registro para evitar erro ARQVAZIO." + Chr(13) + Chr(10) + Chr(13) + Chr(10) + ;
                  "Total de registros: " + AllTrim(Str(nReg)) + Chr(13) + Chr(10) + ;
                  "Registros a excluir: " + AllTrim(Str(nReg - 1)), "Limpar Registros")
@@ -410,13 +491,24 @@ User Function FPOS_LIMPAR()
     EndIf
 
     DbGoTop()
-    DbSkip() // Pula o primeiro registro
 
     Do While !Eof()
-        RecLock("ZC1", .F.)
-        DbDelete()
-        MsUnlock()
-        nDel++
+        // Mantem o primeiro registro da filial; outras filiais nao sao tocadas
+        If ZC1->ZC1_FILIAL == cFilZC1
+            If lPriFil
+                lPriFil := .F.
+            Else
+                // Sem lock nao apaga: registro em uso por outro usuario e
+                // contado e informado no fim, em vez de ser excluido sem trava.
+                If RecLock("ZC1", .F.)
+                    DbDelete()
+                    MsUnlock()
+                    nDel++
+                Else
+                    nLock++
+                EndIf
+            EndIf
+        EndIf
         DbSkip()
     EndDo
 
@@ -427,6 +519,11 @@ User Function FPOS_LIMPAR()
     MsgInfo("Limpeza concluida!" + Chr(13) + Chr(10) + ;
             "Registros excluidos: " + AllTrim(Str(nDel)) + Chr(13) + Chr(10) + ;
             "Registros mantidos: 1", "Limpar Registros")
+
+    If nLock > 0
+        MsgInfo("Registros nao excluidos por estarem em uso (travados): " + AllTrim(Str(nLock)) + Chr(13) + Chr(10) + ;
+                "Tente novamente quando os usuarios sairem do registro.", "Limpar Registros")
+    EndIf
 
     If oBrowseZC1 != Nil
         oBrowseZC1:Refresh()
