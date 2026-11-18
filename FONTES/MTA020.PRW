@@ -16,6 +16,8 @@ que o FWLookup do campo A2_ZSOLID (F3) consiga localizar o alias.
 //-------------------------------------------------------------------
 User Function MTA020()
 
+    Local aArea := GetArea()
+
     ConOut("MTA020: PE chamado. Select(ZZ4)=" + cValToChar(Select("ZZ4")))
 
     If Select("ZZ4") <= 0
@@ -23,4 +25,5 @@ User Function MTA020()
         ConOut("MTA020: Apos ChkFile. Select(ZZ4)=" + cValToChar(Select("ZZ4")))
     EndIf
 
+    RestArea(aArea)
 Return
