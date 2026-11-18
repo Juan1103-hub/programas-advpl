@@ -3,6 +3,9 @@ Data de geracao: 31/05/2026
 Pasta analisada: Suprimentos (arquivos ativos no diretorio raiz)
 Total: 30
 
+Nota (18/11/2026): lista historica. 29 dos 30 nomes existem em FONTES/;
+ZCONSZZ4.PRW esta em _PATCHES/PATCH/.
+
 01. AVALCOT.PRW
     -> Sem Protheus.doc explicito. Funcao principal: AVALCOT().
 02. CADFORN.PRW

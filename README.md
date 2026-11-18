@@ -6,41 +6,43 @@
 
 ```
 PROGRAMAS_ADVPL/
-├── FONTES/              # 59 fontes principais (.PRW, .tlpp)
-│   ├── MT*.PRW          # Points of Entry (MT100TOK, MTA110OK, etc.)
+├── FONTES/              # 81 fontes (.prw e .tlpp) - fonte de verdade do código
+│   ├── MT*.PRW          # Pontos de Entrada (MT100TOK, MTA110OK, etc.)
 │   ├── Z*.PRW           # Rotinas customizadas (ZCOMPRAS, ZANALPRC, etc.)
 │   ├── CAD*.PRW         # Cadastros (CADFORN, CADSZ3, etc.)
 │   ├── V*.PRW           # Validações e rotinas Vortice
 │   └── *.tlpp           # Código TLPP moderno
 │
-├── _PATCHES/           # Patches organizados por número
-│   ├── PATCH/           # 13 arquivos (CADFORN, FFZZ4A2, M110STTS, MT110CON, etc.)
-│   └── PATCH_01/        # MT110TOK + custom25-06-2026.ptm
+├── _PATCHES/            # Pacotes de patch já entregues (histórico)
+│   ├── PATCH/           # 12 arquivos
+│   ├── PATCH_01/        # 5 arquivos
+│   └── PATCH_02/        # 2 arquivos
 │
-├── INCLUDES/            # Arquivos de include
-│   ├── _binary_class.prw
-│   └── _binary_functions.prw
+├── INCLUDES/            # Includes da instalação
+│   └── totvs/           # 157 includes (.ch) para conferir assinaturas
 │
-├── skills/              # Skills ADVPL locais (as 3 originais em vortice/)
-│   ├── vortice/advpl-error-memory/
-│   ├── vortice/protheus-rules/
-│   └── vortice/sql-safe/
+├── skills/              # 67 skills (catálogo em skills/README.md)
+│   ├── advpl-tlpp/      # 20 skills oficiais TOTVS
+│   ├── superpowers/     # 14 skills de fluxo de trabalho
+│   ├── vortice/         # 32 skills específicas Vortice
+│   └── unlazy/          # 1 skill de disciplina de execução
 │
-├── docs/        # Documentação e referências
-│   ├── CLAUDE-SKILLS-REF.md   # Lista completa de skills
-│   ├── CLAUDE-SOLUTION-PATTERNS.md  # Padrões de solução
-│   ├── LISTA_PROGRAMAS_ATIVOS_SEM_PE.txt
-│   └── LISTA_PROGRAMAS_BLOCO_NOTAS.txt
+├── docs/                # 10 arquivos de documentação
+│   ├── convencoes.md    # Sintaxe e convenções
+│   ├── tabelas.md       # Tabelas de Suprimentos
+│   ├── fontes.md        # Índice dos fontes
+│   ├── workflow.md      # SDD, LSP e memória
+│   └── LISTA_PROGRAMAS_*.txt  # Listas históricas (31/05/2026)
 │
-└── CONFIG/              # Configurações do projeto
-    ├── .vscode/         # Configurações VS Code (settings, launch, servers)
-    ├── .opencode/       # Configurações OpenCode (skills, agents, memória)
+└── CONFIG/              # Configurações (TDS, build e agentes)
+    ├── .vscode/         # settings/launch + dumps de símbolos do TDS
+    ├── .opencode/       # Configuração local do OpenCode
     ├── .advpl/          # Includes AdvPL
-    ├── .playwright-mcp/ # Configuração Playwright MCP
     ├── tir/             # Scripts TIR (testes)
-    ├── opencode.json    # Configuração principal OpenCode
+    ├── agents/          # Definições de agentes
+    ├── scripts/         # Build e regressão
     ├── package.json     # Dependências Node.js
-    └── servers.json     # Servidores AppServer
+    └── servers.json     # Servidores AppServer (contém token; não versionado)
 ```
 
 ## Convenções de Nomenclatura
@@ -70,95 +72,46 @@ PROGRAMAS_ADVPL/
 
 ## Resumo dos Conteúdos
 
-| Pasta | Qtd Arquivos | Descrição |
-|-------|--------------|-----------|
-| FONTES/ | 59 | Fontes principais (.PRW, .tlpp) |
-| _PATCHES/PATCH/ | 13 | Patch original |
-| _PATCHES/PATCH_01/ | 2 | Patch 01 |
-| INCLUDES/ | 2 | Arquivos de include |
-| skills/vortice/ | 3 | Skills ADVPL locais |
-| docs/ | 5 | Documentação e referências |
-| CONFIG/ | ~30 | Configurações e dependências |
-| .github/ | ~45 | Kit GitHub (agents, prompts, skills, scripts) |
-| **TOTAL** | **~160** | **Todos os recursos AdvPL centralizados** |
+| Pasta | Arquivos | Descrição |
+|-------|----------|-----------|
+| FONTES/ | 81 | 78 .PRW + 3 .tlpp |
+| _PATCHES/ | 19 | 12 em PATCH, 5 em PATCH_01 e 2 em PATCH_02 |
+| INCLUDES/totvs/ | 157 | Includes da instalação |
+| skills/ | 67 | 20 TOTVS + 14 superpowers + 32 Vortice + 1 unlazy |
+| docs/ | 10 | Documentação, listas históricas e referências |
+| CONFIG/ | 40 | Configurações, scripts e agentes |
+| .github/ | 2 | Instrução do TDS e workflow de CI |
 
 ## Referências
 
-- [AGENTS.md](../../AGENTS.md) - Regras gerais do workspace (AdvPL/TLPP)
+- [AGENTS.md](./AGENTS.md) - Regras gerais do workspace (AdvPL/TLPP)
 - [CLAUDE-SKILLS-REF.md](./docs/CLAUDE-SKILLS-REF.md) - Lista completa de skills
 - [CLAUDE-SOLUTION-PATTERNS.md](./docs/CLAUDE-SOLUTION-PATTERNS.md) - Padrões de solução
 
-## GitHub Kit (Copilot Instructions + Agentes + Prompts + Skills)
+## Skills do Repositório
 
-| Item | Caminho | Descrição |
-|------|---------|-----------|
-| Copilot Instructions | `.github/copilot-instructions.md` | Regras gerais para Copilot (161 linhas) |
-| Agent: advpl-dev | `.github/agents/advpl-dev.agent.md` | Agente de desenvolvimento AdvPL |
-| Agent: advpl-protheus12 | `.github/agents/advpl-protheus12.agent.md` | Agente Protheus 12 |
-| Agent: review-checklist | `.github/agents/review-checklist.agent.md` | Checklist de revisão |
-| Prompt: nova-tela-mvc | `.github/prompts/nova-tela-mvc.prompt.md` | Template de tela MVC |
-| Prompt: novo-ponto-entrada | `.github/prompts/novo-ponto-entrada.prompt.md` | Template de ponto de entrada |
-| Prompt: revisar-codigo | `.github/prompts/revisar-codigo.prompt.md` | Fluxo de revisão de código |
-| Prompt: sql-protheus | `.github/prompts/sql-protheus.prompt.md` | Template SQL Protheus |
-| Prompt: fluxo-hibrido-advpl | `.github/prompts/fluxo-hibrido-advpl.prompt.md` | Fluxo híbrido de desenvolvimento |
-| Prompt: ativar-kit-advpl | `.github/prompts/ativar-kit-advpl.prompt.md` | Ativação do kit completo |
-| Prompt: opsx-* | `.github/prompts/opsx-*.prompt.md` | Prompts OpenSpec (5 prompts) |
-| Script: log_mistake | `.github/scripts/log_mistake.ps1` | Script de log de erros |
-| Skill: advpl | `.github/skills/advpl/SKILL.md` | Skill AdvPL base |
-| Skill: advpl-tlpp | `.github/skills/advpl-tlpp/` | 22 skills AdvPL/TLPP |
-| Skill: openspec-* | `.github/skills/openspec-*/SKILL.md` | 5 skills OpenSpec |
-| Skill: superpowers | `.github/skills/superpowers/` | 14 skills de workflow de agente |
+O catálogo completo, com descrição e roteamento por tarefa, está em
+[`skills/README.md`](./skills/README.md) e em
+[`skills/skills-registry.json`](./skills/skills-registry.json).
 
-### Superpowers (14 skills de workflow)
+| Pasta | Skills | Conteúdo |
+|-------|--------|----------|
+| `skills/advpl-tlpp/` | 20 | Skills oficiais TOTVS (AdvPL/TLPP) |
+| `skills/superpowers/` | 14 | Fluxo de trabalho de agentes |
+| `skills/vortice/` | 32 | Skills específicas Vortice (inclui `advpl-padrao-fonte` e as de `MSDIALOG`) |
+| `skills/unlazy/` | 1 | Disciplina de execução para tarefas longas |
 
-| Skill | Categoria | Descrição |
-|-------|-----------|-----------|
-| `using-superpowers` | Meta-Skills | Descoberta e uso de skills |
-| `dispatching-parallel-agents` | Meta-Skills | Execução paralela de tarefas |
-| `brainstorming` | Planejamento | Exploração de ideias antes de implementar |
-| `writing-plans` | Planejamento | Escrita de planos de implementação |
-| `executing-plans` | Execução | Execução de planos em sessão separada |
-| `subagent-driven-development` | Execução | Execução com subagentes na sessão atual |
-| `verification-before-completion` | Qualidade | Verificação antes de declarar conclusão |
-| `requesting-code-review` | Qualidade | Solicitação de revisão de código |
-| `receiving-code-review` | Qualidade | Recebimento de feedback de revisão |
-| `systematic-debugging` | Depuração | Investigação e correção de bugs |
-| `test-driven-development` | Testes | Implementação com TDD |
-| `using-git-worktrees` | Git | Isolamento de trabalho em branches |
-| `finishing-a-development-branch` | Git | Finalização e integração de branches |
-| `writing-skills` | Criação | Criação de novas skills |
+> O registro `skills-registry.json` tem 66 entradas; `skills/unlazy/` fica fora do
+> registro e deve ser lida diretamente pelo `SKILL.md`.
 
-### AdvPL-TLPP (22 skills)
-
-| Skill | Descrição |
-|-------|-----------|
-| `advpl-error-memory` | Memória de erros comuns |
-| `advpl-tlpp-compile` | Compilação TLPP |
-| `advpl-tlpp-sdd` | SDD para TLPP |
-| `advpl-to-tlpp-migration` | Migração AdvPL para TLPP |
-| `code-review` | Revisão de código |
-| `context-map` | Mapa de contexto |
-| `create-implementation-plan` | Plano de implementação |
-| `data-dictionary-lookup` | Consulta ao dicionário de dados |
-| `documentation-writer` | Escritor de documentação |
-| `entry-point-designer` | Designer de pontos de entrada |
-| `fwrest-client-generator` | Gerador de clientes REST |
-| `mvc-generator` | Gerador de telas MVC |
-| `query-builder` | Construtor de queries |
-| `refactor` | Refatoração |
-| `refactor-method-complexity-reduce` | Redução de complexidade |
-| `sql-code-review` | Revisão de código SQL |
-| `sql-optimization` | Otimização SQL |
-| `tir-test-generator` | Gerador de testes TIR |
-| `tlpp-rest-endpoint-generator` | Gerador de endpoints REST |
-| `utf8-to-cp1252-conversion` | Conversão de encoding |
-| `advpl-tlpp-reference-guide` | Guia de referência TLPP |
-| `references` | Referências gerais |
+> O `.github/` guarda apenas a instrução do TDS
+> (`.github/instructions/tds-vscode-1-0-2.instructions.md`) e o workflow de CI
+> (`.github/workflows/ci.yml`).
 
 ## Uso
 
 Ao trabalhar com AdvPL, sempre verificar:
-1. Se o arquivo está na pasta correta (FONTES ou _PATCHES)
+1. Se o código ativo está em `FONTES/` e o histórico em `_PATCHES/`
 2. Se há documentação relacionada em docs/
 3. Se as skills em skills/ são aplicáveis
 4. Se as configurações em CONFIG/ estão atualizadas
@@ -167,38 +120,45 @@ Ao trabalhar com AdvPL, sempre verificar:
 
 | Pasta Original | Conteúdo | Destino em PROGRAMAS_ADVPL |
 |----------------|----------|---------------------------|
-| `programas_vortice/` | 59 fontes .PRW/.tlpp | `FONTES/` |
-| `PATCH/` | 13 arquivos patch | `_PATCHES/PATCH/` |
+| `programas_vortice/` | 81 fontes .PRW/.tlpp | `FONTES/` |
+| `PATCH/` | 12 arquivos | `_PATCHES/PATCH/` |
 | `PATCH - 01/` | MT110TOK + .ptm | `_PATCHES/PATCH_01/` |
 | `PATCH 01/` | (vazio) | - |
-| `.advpl/` | Includes binários | `INCLUDES/` |
-| `.claude/skills/advpl/` | 3 skills locais | `skills/vortice/` |
+| `PATCH 02/` | 2 fontes | `_PATCHES/PATCH_02/` |
+| `.advpl/` | Dumps de símbolos do TDS | `.vscode/.advpl/` e `CONFIG/.vscode/` |
+| `.claude/skills/advpl/` | base das 32 skills Vortice | `skills/vortice/` |
 | `CLAUDE*.md` | Documentação | `docs/` (parcial) |
-| `Suprimentos/` | Listas de programas | `docs/` |
+| `Suprimentos/` | Listas de programas (31/05/2026) | `docs/` |
 
 ## Skills ADVPL Obrigatórias (para qualquer projeto)
+
+> **Sempre obrigatórias (AGENTS.md):** `advpl-padrao-fonte` ao criar ou editar
+> qualquer fonte; `advpl-msdialog-dimensionamento` e
+> `advpl-msdialog-ciclo-de-vida` em telas `MSDIALOG`.
 
 | # | Skill | Quando usar |
 |---|-------|-------------|
 | 1 | `advpl-protheus` | Toda vez que iniciar desenvolvimento ADVPL/TLPP |
 | 2 | `advpl-code-generation` | Gerar qualquer novo código ADVPL/TLPP |
-| 3 | `advpl-tlpp-sdd` | Planejar e implementar funcionalidade nova no Protheus |
-| 4 | `advpl-quality-checklist` | ANTES de declarar qualquer tarefa como concluída |
-| 5 | `advpl-code-review` | Revisar código gerado/modificado antes de merge/deploy |
-| 6 | `entry-point-designer` | Criar/documentar Pontos de Entrada Protheus |
-| 7 | `advpl-debugging` | Diagnosticar erros de compilação, runtime ou lock |
-| 8 | `utf8-to-cp1252-conversion` | Após cada geração de código via IA (encoding obrigatório) |
-| 9 | `advpl-tlpp-compile` | Compilar contra AppServer real antes de UAT |
+| 3 | `advpl-padrao-fonte` | Aplicar o molde e rodar o auditor de padrão |
+| 4 | `advpl-tlpp-sdd` | Planejar e implementar funcionalidade nova no Protheus |
+| 5 | `advpl-quality-checklist` | ANTES de declarar qualquer tarefa como concluída |
+| 6 | `advpl-code-review` | Revisar código gerado/modificado antes de merge/deploy |
+| 7 | `entry-point-designer` | Criar/documentar Pontos de Entrada Protheus |
+| 8 | `advpl-debugging` | Diagnosticar erros de compilação, runtime ou lock |
+| 9 | `utf8-to-cp1252-conversion` | Após cada geração de código via IA (encoding obrigatório) |
+| 10 | `advpl-tlpp-compile` | Compilar contra AppServer real antes de UAT |
 
 ### Fluxo obrigatório
 
 ```
 1. advpl-code-generation  → criar/modificar fonte
-2. utf8-to-cp1252-conversion → garantir encoding CP1252
-3. advpl-tlpp-sdd          → verificar fase (quick/medium/large/complex)
-4. advpl-quality-checklist  → validar Regras de Ouro
-5. advpl-tlpp-compile       → compilar no AppServer
-6. advpl-code-review        → revisão final
+2. advpl-padrao-fonte      → aplicar molde e rodar o auditor
+3. utf8-to-cp1252-conversion → garantir encoding CP1252
+4. advpl-tlpp-sdd          → verificar fase (quick/medium/large/complex)
+5. advpl-quality-checklist  → validar Regras de Ouro
+6. advpl-tlpp-compile       → compilar no AppServer
+7. advpl-code-review        → revisão final
 ```
 
 ## Skills Recomendadas (quase sempre úteis)
@@ -236,6 +196,7 @@ Ao trabalhar com AdvPL, sempre verificar:
 | Arquivo | Caminho | Descrição |
 |---------|---------|-----------|
 | Configuração OpenCode | `~/.config/opencode/opencode.jsonc` | Configuração principal OpenCode (global) |
+| `opencode.json` | `.opencode/opencode.json` | Configuração do projeto (skills paths e agente `advpl`) |
 | `servers.json` | `CONFIG/servers.json` | Servidores AppServer TOTVS (TDS) |
 | `settings.json` | `CONFIG/settings.json` | Settings VS Code/workspace (TDS, encoding CP-1252, idioma) |
 | `settings.json` | `.vscode/settings.json` | Settings locais do projeto (includes do TDS) |
@@ -248,32 +209,37 @@ Ao trabalhar com AdvPL, sempre verificar:
 
 | Agente | Caminho | Descrição |
 |--------|---------|-----------|
+| `advpl` | `.opencode/opencode.json` | Agente principal (AdvPL/TLPP), com navegador e GitHub desativados |
 | `protheus-diag` | `.opencode/agents/` | Diagnóstico de bugs AdvPL/Protheus |
+
+> Cópias antigas de quatro agentes (`changelog-generator`, `code-reviewer`,
+> `docs-reference` e `process-consultant`) ficam em `CONFIG/.opencode/`, fora do
+> caminho ativo. Elas não são carregadas automaticamente.
 
 ## Comandos Úteis
 
 ```bash
 # Listar todas as fontes AdvPL
-ls PROGRAMAS_ADVPL/FONTES/
+ls FONTES/
 
 # Listar patches
-ls PROGRAMAS_ADVPL/_PATCHES/
+ls _PATCHES/
 
 # Ver skills disponíveis
-ls PROGRAMAS_ADVPL/skills/
+ls skills/
 
 # Ver documentação
-ls PROGRAMAS_ADVPL/docs/
+ls docs/
 
 # Ver configurações
-ls PROGRAMAS_ADVPL/CONFIG/
+ls CONFIG/
 
 # Buscar arquivo específico
-find PROGRAMAS_ADVPL/ -name "*.PRW" | grep -i "MT100"
+find . -name "*.PRW" | grep -i "MT100"
 
 # Contar arquivos por tipo
-find PROGRAMAS_ADVPL/FONTES/ -name "*.PRW" | wc -l
-find PROGRAMAS_ADVPL/FONTES/ -name "*.tlpp" | wc -l
+find FONTES/ -name "*.PRW" | wc -l
+find FONTES/ -name "*.tlpp" | wc -l
 ```
 
 ## Histórico
@@ -281,62 +247,27 @@ find PROGRAMAS_ADVPL/FONTES/ -name "*.tlpp" | wc -l
 | Data | Ação |
 |------|------|
 | 15/07/2026 | Criação da pasta centralizada PROGRAMAS_ADVPL |
-| 15/07/2026 | Consolidação de 59 fontes principais em FONTES/ |
-| 15/07/2026 | Organização de 15 arquivos de patch em PATCHES/ |
-| 15/07/2026 | Migração de 3 skills ADVPL locais para SKILLS/ |
-| 15/07/2026 | Documentação completa em docs/ |
-| 15/07/2026 | Configurações centralizadas em CONFIG/ |
-| 15/07/2026 | 30+ skills globais documentadas |
-| 15/07/2026 | 10 agentes documentados |
-| 15/07/2026 | GitHub Kit documentado (Copilot + Agentes + Prompts + Skills) |
-| 15/07/2026 | CLAUDE.md mesclado no AGENTS.md (raiz do workspace) |
+| 15/07/2026 | Consolidação inicial de 59 fontes em FONTES/ |
+| 15/07/2026 | Organização dos primeiros pacotes de patch em _PATCHES/ |
+| 15/07/2026 | Migração das 3 skills ADVPL iniciais para skills/vortice/ |
+| 15/07/2026 | Documentação em docs/ e configurações em CONFIG/ |
+| 18/11/2026 | Limpeza de node_modules, logs e __pycache__ (~105 MB) |
+| 18/11/2026 | Duplicatas isoladas em _backup/duplicatas_20261118/ (nada apagado) |
+| 18/11/2026 | Dumps de símbolos atualizados para a geração de 12/11/2026 |
+| 18/11/2026 | MTA020.PRW alinhado ao RPO; OPENZZ4.PRW mantido (não está no RPO) |
+| 18/11/2026 | README revisado: contagens, caminhos e catálogo de skills |
 
 ---
 
-> **Nota:** Esta pasta foi criada para centralizar todos os recursos AdvPL/TLPP do workspace, evitando dispersão de arquivos em múltiplos diretórios. Todos os caminhos são relativos a `C:\totvs\advpl\.vscode\PROGRAMAS_ADVPL\`.
+> **Nota:** Todos os caminhos deste README são relativos a esta pasta
+> (`PROGRAMAS_ADVPL/`).
 
----
-
-**Última atualização:** 15/07/2026
-
+**Última atualização:** 18/11/2026
 **Maintainer:** Vortice Consultoria Mineral Ltda
-
 **Contato:** suporte@vortice.com.br
+**Versão:** 1.1.0
+**Licença:** Uso interno
 
-**Versão:** 1.0.0
+> **Regra:** esta pasta é a fonte única de verdade dos recursos AdvPL/TLPP.
+> Ao mover, renomear ou excluir arquivos, atualize este README e `docs/fontes.md`.
 
-**Licença:** Uso interno - Vortice Consultoria Mineral Ltda
-
----
-
-> **IMPORTANTE:** Esta pasta é a fonte única de verdade para todos os recursos AdvPL/TLPP. Ao modificar, adicionar ou remover arquivos, sempre atualizar este README.
-
----
-
-**Copyright © 2026 Vortice Consultoria Mineral Ltda. Todos os direitos reservados.**
-
----
-
-> **ATENÇÃO:** Não esqueça de atualizar este arquivo sempre que houver mudanças na estrutura ou conteúdo desta pasta.
-
----
-
-**Fim do arquivo.**
-
----
-
-> **NOTA FINAL:** Este README foi gerado automaticamente pelo agente de IA em 15/07/2026. Para dúvidas ou sugestões, entre em contato com o maintainer.
-
----
-
-**Versão do README:** 1.0.0
-
-**Tamanho:** 255 linhas
-
----
-
-> **ATENÇÃO FINAL:** Este arquivo é sensível a mudanças. Sempre que alterar a estrutura de pastas ou mover arquivos, atualize as seções correspondentes neste README.
-
----
-
-**FIM DO ARQUIVO README.md**

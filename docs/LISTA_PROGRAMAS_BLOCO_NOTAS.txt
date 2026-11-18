@@ -4,6 +4,10 @@ Total de arquivos listados: 61
 
 Formato: Arquivo -> O que faz
 
+Nota (18/11/2026): catalogo historico da pasta Suprimentos. 43 dos 48 fontes
+citados existem em FONTES/; os demais estao em _PATCHES/ ou foram arquivados.
+Para o estado atual, consulte docs/fontes.md.
+
 [PATCH (fontes e pacote de patch)]
 01. PATCH/CADFORN.PRW
     -> Solicitacao Cadastral de Fornecedores (ZZ4). Tela FWMBrowse com sincronizacao automatica de status: ao mudar de linha, verifica se o CNPJ ja foi cadastrado na SA2 e atualiza a legenda (BR_BRANCO=Pendente / BR_VERMELHO=Cadastrado).
